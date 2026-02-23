@@ -22,6 +22,8 @@ export const Login = async (postData: any) => {
     }
     const data = await response.json();
     document.cookie = `token=${data.access_token}; expires= ${(new Date(Date.now() + 1000*60*60*24*30)).toUTCString()}; path=/`
+    console.log(document.cookie);
+    console.log(data);
     return data;
   } catch (error) {
     throw error;
