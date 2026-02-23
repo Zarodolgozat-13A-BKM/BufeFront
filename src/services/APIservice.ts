@@ -1,4 +1,5 @@
-const API_URL = "http://bufeapi-markomilan.jcloud.jedlik.cloud/api";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://bufeapi-markomilan.jcloud.jedlik.cloud/api";
 
 const getCookie = (name: string) => {
   const value = `; ${document.cookie}`;
@@ -26,6 +27,7 @@ export const Login = async (postData: any) => {
     throw error;
   }
 };
+
   export const Logout = async () => {
   try {
     const token = getCookie('token');
@@ -48,3 +50,5 @@ export const Login = async (postData: any) => {
     throw error;
   }
 };
+
+
