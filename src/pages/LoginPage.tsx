@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Login } from '../services/APIservice'
 
 const LoginPage = () => {
-    const [studentId, setStudentId] = useState('')
+    const [username, setusername] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -47,16 +47,18 @@ const LoginPage = () => {
         setError(null)
         setLoading(true)
         try {
-            if(studentId.trim() === '' || password.trim() === '') {
+            if(username.trim() === '' || password.trim() === '') {
                 setError('Kérem, töltse ki az összes mezőt.')
                 return;
             }
-            if(studentId.split('.').length < 2) {
+            if(username.split('.').length < 2 || username.split('.').map(part => part.trim()).some(part => part === '')) {
                 console.log("a")
                 setError('Kérem, adja meg a teljes Jedlikes azonosítóját (pl. Gipsz.Jakab).')
                 return;
             }
-            await Login({ studentId, password })
+            if(await Login({ username, password })) {
+                console.log('Login successful')
+            }
         } catch (err: any) {
             console.error('Login failed:', err)
             if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
@@ -105,8 +107,8 @@ const LoginPage = () => {
                                 <input
                                     type="text"
                                     placeholder="vezetéknév.keresztnév"
-                                    value={studentId}
-                                    onChange={(e) => setStudentId(e.target.value)}
+                                    value={username}
+                                    onChange={(e) => setusername(e.target.value)}
                                     required
                                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all"
                                     style={{ outlineColor: '#ee8c2b', borderColor: 'rgb(226, 232, 240)', '--tw-ring-color': '#ee8c2b' } as React.CSSProperties}
