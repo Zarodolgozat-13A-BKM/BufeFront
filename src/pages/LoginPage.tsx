@@ -84,8 +84,8 @@ const LoginPage = () => {
 
             <div className="relative z-10 w-full max-w-md px-6 py-8">
                 <div className="text-center mb-8">
-                    <div className="w-20 h-20 rounded-lg flex items-center justify-center shadow-lg mb-4 mx-auto" style={{ backgroundColor: '#ee8c2b' }}>
-                        <span className="material-symbols-outlined text-white text-6xl">restaurant</span>
+                    <div className="w-16 h-16 rounded-lg flex items-center justify-center shadow-lg mb-4 mx-auto" style={{ backgroundColor: '#ee8c2b' }}>
+                        <span className="material-symbols-outlined text-white text-4xl">restaurant</span>
                     </div>
                     <h1 className="text-3xl font-bold dark:text-white mb-2" style={{ color: '#ee8c2b' }}>Jedlik Bufé</h1>
                     <p className="text-slate-600 dark:text-slate-400">Fuel your study sessions.</p>
