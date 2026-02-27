@@ -1,5 +1,5 @@
-import type { ItemModel } from "../Models/ItemModel";
-import type { AllOrdersResponseModel } from "../Models/OrderModel";
+import type { ItemModel } from "../models/ItemModel";
+import type { AllOrdersResponseModel } from "../models/OrderModel";
 const API_URL = import.meta.env.VITE_API_URL || "http://bufeapi-markomilan.jcloud.jedlik.cloud/api";
 const getCookie = (name: string) => {
   const value = `; ${document.cookie}`;

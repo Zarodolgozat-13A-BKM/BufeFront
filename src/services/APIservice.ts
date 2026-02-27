@@ -9,7 +9,7 @@ const getCookie = (name: string) => {
   if (parts.length === 2) return parts.pop()?.split(';').shift();
   return null;
 };
-export const Login = async (postData: any) => {
+export const Login = async (postData: any, rememberMe: boolean) => {
   try {
     const response = await fetch(`${API_URL}/account/login`, {
       method: "POST",
@@ -20,18 +20,29 @@ export const Login = async (postData: any) => {
       body: JSON.stringify(postData),
       redirect: 'follow',
     });
-
+    console.log('Login response status:', response.status);
+    console.log('Login response status text:', postData);
+    console.log('Login response data:');
     if (!response.ok) {
       const bodyText = await response.text().catch(() => '');
       throw new Error(`Error: ${response.status} ${response.statusText} - ${bodyText}`);
       return false;
     }
     const data = await response.json();
-    document.cookie = `token=${data.access_token}; expires= ${(new Date(Date.now() + 1000*60*60*24*30)).toUTCString()}; path=/`
-    return true;
+    const token = data?.access_token as string | undefined;
+
+    if (!token) {
+      throw new Error('Login response does not contain access_token');
+    }
+
+    if(rememberMe)
+    {
+      document.cookie = `token=${token}; expires= ${(new Date(Date.now() + 1000*60*60*24*30)).toUTCString()}; path=/`
+    }
+    
+    return token;
   } catch (error) {
     throw error;
-    return false;
   }
 };
 

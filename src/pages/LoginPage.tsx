@@ -1,9 +1,13 @@
 import React, { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { Login } from '../services/APIservice'
+import { setToken, type AppDispatch } from '../store'
 
 const LoginPage = () => {
+    const dispatch = useDispatch<AppDispatch>()
     const [username, setusername] = useState('')
     const [password, setPassword] = useState('')
+    const [rememberMe, setRememberMe] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -52,11 +56,12 @@ const LoginPage = () => {
                 return;
             }
             if(username.split('.').length < 2 || username.split('.').map(part => part.trim()).some(part => part === '')) {
-                console.log("a")
                 setError('Kérem, adja meg a teljes Jedlikes azonosítóját (pl. Gipsz.Jakab).')
                 return;
             }
-            if(await Login({ username, password })) {
+            const token = await Login({ username, password }, rememberMe)
+            if(token) {
+                dispatch(setToken(token))
                 console.log('Login successful')
             }
         } catch (err: any) {
@@ -135,7 +140,12 @@ const LoginPage = () => {
                                     <img src={showPassword ? "./showpwd.svg" : "./hidepwd.svg"} onClick={() => setShowPassword(!showPassword)} className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer" alt="toggle password" />
                             </div>
                         </div>
-
+                        <div className="mx-1 flex items-center justify-between">
+                            <label className="inline-flex items-center text-sm text-slate-700 dark:text-slate-300">
+                                <input type="checkbox" className="form-checkbox h-4 w-4 text-orange focus:ring-orange border-gray-300 rounded" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+                                <span className="ml-2">Emlékezz rám</span>
+                            </label>
+                        </div>
                         <button
                             type="submit"
                             disabled={loading}

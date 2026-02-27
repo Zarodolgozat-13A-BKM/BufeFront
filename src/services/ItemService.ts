@@ -1,4 +1,4 @@
-import type { ItemCreateModel, ItemModel } from "../Models/ItemModel";
+import type { ItemCreateModel, ItemModel } from "../models/ItemModel";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://bufeapi-markomilan.jcloud.jedlik.cloud/api";
 const getCookie = (name: string) => {
