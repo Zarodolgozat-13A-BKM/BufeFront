@@ -71,3 +71,55 @@ export default defineConfig([
   },
 ])
 ```
+
+## Docker
+
+Build and run locally:
+
+```bash
+docker build -t bufefrontend:local .
+docker run --rm -p 8080:80 bufefrontend:local
+```
+
+Then open `http://localhost:8080`.
+
+## GitHub Actions (Container CI/CD)
+
+- On PRs and pushes to `main`: runs `lint`, `build`, and Docker image build check.
+- On pushes to `main`: publishes image to GHCR as `ghcr.io/<owner>/<repo>` with tags (`sha`, branch, and `latest` on default branch).
+- On pushes to `main`: deploys to Kubernetes using manifests in `k8s/`.
+
+## Kubernetes
+
+Manifests are available in `k8s/`:
+
+- `deployment.yaml`
+- `service.yaml`
+- `ingress.yaml`
+- `kustomization.yaml`
+
+Before applying:
+
+1. Set your image in `k8s/deployment.yaml`:
+
+```yaml
+image: ghcr.io/<owner>/<repo>:latest
+```
+
+2. Ingress host is already set to:
+
+```yaml
+host: bufefront-panyik-krisztian.jcloud.jedlik.cloud
+```
+
+Apply manifests:
+
+```bash
+kubectl apply -k k8s
+```
+
+If GHCR package is private, create an image pull secret and reference it in the Deployment.
+
+For automatic deployment from GitHub Actions, add repository secret:
+
+- `KUBE_CONFIG`: your kubeconfig file content (plain text)
