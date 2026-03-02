@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Login } from '../services/APIservice'
 import { setToken, type AppDispatch } from '../store'
+import { login } from '../store/authSlice'
 
 const LoginPage = () => {
     const dispatch = useDispatch<AppDispatch>()
@@ -61,8 +62,8 @@ const LoginPage = () => {
             const token = await Login({ username, password }, rememberMe)
             if(token) {
                 dispatch(setToken(token))
+                dispatch(login({ token, username }))
                 console.log('Login successful')
-                dispatch(loginAction({ token: result.token, username }))
             }
         } catch (err: any) {
             console.error('Login failed:', err)

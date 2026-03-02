@@ -26,7 +26,6 @@ export const Login = async (postData: any, rememberMe: boolean) => {
     if (!response.ok) {
       const bodyText = await response.text().catch(() => '');
       throw new Error(`Error: ${response.status} ${response.statusText} - ${bodyText}`);
-      return { success: false, token: null };
     }
     const data = await response.json();
     const token = data?.access_token as string | undefined;
