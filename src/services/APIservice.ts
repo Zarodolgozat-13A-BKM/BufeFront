@@ -26,7 +26,7 @@ export const Login = async (postData: any, rememberMe: boolean) => {
     if (!response.ok) {
       const bodyText = await response.text().catch(() => '');
       throw new Error(`Error: ${response.status} ${response.statusText} - ${bodyText}`);
-      return false;
+      return { success: false, token: null };
     }
     const data = await response.json();
     const token = data?.access_token as string | undefined;
@@ -46,7 +46,7 @@ export const Login = async (postData: any, rememberMe: boolean) => {
   }
 };
 
-  export const Logout = async () => {
+export const Logout = async () => {
   try {
     const token = getCookie('token');
     const response = await fetch(`${API_URL}/account/logout`, {

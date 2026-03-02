@@ -13,7 +13,6 @@ const LoginPage = () => {
     const [error, setError] = useState<string | null>(null)
 
     React.useEffect(() => {
-        // Add styles to head
         const style = document.createElement('style')
         style.textContent = `
             body {
@@ -63,6 +62,7 @@ const LoginPage = () => {
             if(token) {
                 dispatch(setToken(token))
                 console.log('Login successful')
+                dispatch(loginAction({ token: result.token, username }))
             }
         } catch (err: any) {
             console.error('Login failed:', err)

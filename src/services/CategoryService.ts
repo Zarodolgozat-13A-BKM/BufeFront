@@ -1,6 +1,8 @@
 import type { CategoryModel } from "../models/CategoryModel";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://bufeapi-markomilan.jcloud.jedlik.cloud/api";
+const API_URL = import.meta.env.DEV
+  ? (import.meta.env.VITE_API_URL || '/api')
+  : (import.meta.env.VITE_API_URL || "http://bufeapi-markomilan.jcloud.jedlik.cloud/api");
 const getCookie = (name: string) => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
