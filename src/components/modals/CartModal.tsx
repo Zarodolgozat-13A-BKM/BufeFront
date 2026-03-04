@@ -1,12 +1,13 @@
 import { Modal } from './Modal'
 import type { ItemModel } from '../../models/ItemModel'
+import type { OrderItem } from '../../models/OrderModel'
 
 interface CartModalProps {
   isOpen: boolean
   onClose: () => void
-  cartItems: { [key: string]: number }
+  cartItems: OrderItem[]
   allItems: ItemModel[]
-  onUpdateQuantity: (itemName: string, delta: number) => void
+  onUpdateQuantity: (itemId: number, delta: number) => void
   onCheckout: () => void
 }
 
@@ -18,29 +19,27 @@ export const CartModal = ({
   onUpdateQuantity,
   onCheckout 
 }: CartModalProps) => {
-  const cartEntries = Object.entries(cartItems).filter(([_, count]) => count > 0)
-  
-  const totalPrice = cartEntries.reduce((sum, [itemName, count]) => {
-    const item = allItems.find(i => i.name === itemName)
-    return sum + (item ? item.price * count : 0)
+  const totalPrice = cartItems.reduce((sum, cartItem) => {
+    const item = allItems.find(i => i.id === cartItem.item_id)
+    return sum + (item ? item.price * cartItem.quantity : 0)
   }, 0)
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Your Cart" maxWidth="lg">
       <div className="space-y-4">
-        {cartEntries.length === 0 ? (
+        {cartItems.length === 0 ? (
           <p className="text-center text-gray-500 dark:text-gray-400 py-8">
             Your cart is empty
           </p>
         ) : (
           <>
             <div className="space-y-3 max-h-96 overflow-y-auto">
-              {cartEntries.map(([itemName, count]) => {
-                const item = allItems.find(i => i.name === itemName)
+              {cartItems.map((cartItem) => {
+                const item = allItems.find(i => i.id === cartItem.item_id)
                 if (!item) return null
                 
                 return (
-                  <div key={itemName} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div key={cartItem.item_id} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <img 
                       src={item.picture_url ?? undefined} 
                       alt={item.name}
@@ -52,21 +51,21 @@ export const CartModal = ({
                     </div>
                     <div className="flex items-center gap-2">
                       <button 
-                        onClick={() => onUpdateQuantity(itemName, -1)}
+                        onClick={() => onUpdateQuantity(item.id, -1)}
                         className="w-8 h-8 flex items-center justify-center bg-white dark:bg-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
                       >
                         <span className="material-symbols-outlined text-sm">remove</span>
                       </button>
-                      <span className="w-8 text-center font-bold">{count}</span>
+                      <span className="w-8 text-center font-bold">{cartItem.quantity}</span>
                       <button 
-                        onClick={() => onUpdateQuantity(itemName, 1)}
+                        onClick={() => onUpdateQuantity(item.id, 1)}
                         className="w-8 h-8 flex items-center justify-center bg-white dark:bg-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
                       >
                         <span className="material-symbols-outlined text-sm">add</span>
                       </button>
                     </div>
                     <div className="font-bold text-gray-900 dark:text-white min-w-[60px] text-right">
-                      ${(item.price * count).toFixed(2)}
+                      ${(item.price * cartItem.quantity).toFixed(2)}
                     </div>
                   </div>
                 )

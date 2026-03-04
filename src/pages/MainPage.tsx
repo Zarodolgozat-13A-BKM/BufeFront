@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setCategories } from '../store/categorySlice'
 import { GetAllCategories } from '../services/CategoryService'
 import { setItems } from '../store/itemSlice'
+import { updateItemQuantity } from '../store/cartSlice'
 import type { CategoryModel } from '../models/CategoryModel'
 import type { ItemModel } from '../models/ItemModel'
 import { TopAppBar } from '../components/mainPage/TopAppBar'
@@ -18,9 +19,9 @@ const MainPage = () => {
     const dispatch = useAppDispatch()
     const { categories } = useAppSelector((state) => ({ categories: state.category.categories }))
     const username = useAppSelector((state) => state.auth.username)
+    const cartItems = useAppSelector((state) => state.cart.cart.items)
 
     const [searchQuery, setSearchQuery] = useState('')
-    const [cartItems, setCartItems] = useState<{ [key: string]: number }>({})
     const [activeCategory, setActiveCategory] = useState<CategoryModel | null>(null)
     const [isCartModalOpen, setIsCartModalOpen] = useState(false)
     const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false)
@@ -89,16 +90,16 @@ const MainPage = () => {
         }
     }, [])
 
-    const updateQuantity = (itemName: string, delta: number) => {
-        setCartItems(prev => {
-            const newCount = (prev[itemName] || 0) + delta
-            if (newCount <= 0) {
-                const { [itemName]: _, ...rest } = prev
-                return rest
-            }
-            return { ...prev, [itemName]: newCount }
-        })
+    // Helper to get item quantity from Redux cart
+    const getItemQuantity = (itemId: number): number => {
+        const cartItem = cartItems.find(item => item.item_id === itemId)
+        return cartItem?.quantity || 0
     }
+
+    const updateQuantity = (itemId: number, delta: number) => {
+        dispatch(updateItemQuantity({ item_id: itemId, delta }))
+    }
+
     const showModal = (item: ItemModel) => {
         setSelectedItem(item)
         setIsAddItemModalOpen(true)
@@ -107,13 +108,12 @@ const MainPage = () => {
 
     const handleCheckout = () => {
         console.log('Proceeding to checkout with items:', cartItems)
-
     }
 
-    const totalItems = Object.values(cartItems).reduce((sum, count) => sum + count, 0)
-    const totalPrice = Object.entries(cartItems).reduce((sum, [itemName, count]) => {
-        const item = categories.flatMap((category: CategoryModel) => category.items).find(i => i.name === itemName)
-        return sum + (item ? item.price * count : 0)
+    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0)
+    const totalPrice = cartItems.reduce((sum, cartItem) => {
+        const item = categories.flatMap((category: CategoryModel) => category.items).find(i => i.id === cartItem.item_id)
+        return sum + (item ? item.price * cartItem.quantity : 0)
     }, 0)
 
     const getFilteredItems = (items: ItemModel[]) => {
@@ -131,8 +131,8 @@ const MainPage = () => {
     }, [])
 
     return (
-        <div className="relative flex h-screen w-full flex-col overflow-y-scroll overflow-x-hidden bg-background-light dark:bg-background-dark">
-            <div className="sticky top-0 z-40 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+        <div className="relative flex h-screen w-full flex-col overflow-y-scroll overflow-x-hidden bg-white dark:bg-black">
+            <div className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm border-b border-orange-100 dark:border-orange-900/30">
                 <TopAppBar username={username} loyaltyPoints={150} />
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
                 <CategoryChips categories={categories} activeCategory={activeCategory} onCategoryClick={(category, categoryId) => { setActiveCategory(category), scrollToCategory(categoryId) }} />
@@ -140,11 +140,13 @@ const MainPage = () => {
 
             <div className="pt-6 pb-2">
                 <div className="flex items-center justify-between px-4 pb-3">
-                    <h2 className="text-[#181411] dark:text-white text-[22px] font-bold leading-tight">Daily Specials</h2>
+                    <h2 className="text-black dark:text-white text-[22px] font-bold leading-tight">
+                        <span className="text-orange-500"></span> Daily Specials
+                    </h2>
                 </div>
                 <div className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 gap-4">
                     {categories.flatMap((category: CategoryModel) => category.items).filter((item: ItemModel) => item.is_featured).map((item: ItemModel) => (
-                        <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={cartItems[item.name] || 0} />
+                        <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={getItemQuantity(item.id)} />
                     ))
                     }
                 </div>
@@ -156,9 +158,12 @@ const MainPage = () => {
 
                 return (
                     <div key={category.id} ref={(el) => { categoryRefs.current[category.id] = el }} className="flex flex-col gap-4 px-4 pt-6 scroll-mt-32">
-                        <h3 className="text-[#181411] dark:text-white text-lg font-bold leading-tight">{category.name}</h3>
+                        <h3 className="text-black dark:text-white text-lg font-bold leading-tight flex items-center gap-2">
+                            <span className="w-1 h-6 bg-orange-500 rounded-full"></span>
+                            {category.name}
+                        </h3>
                         {filteredItems.map((item) => (
-                            <MenuItemCard key={item.id} item={item} quantity={cartItems[item.name] || 0} showModal={showModal} />
+                            <MenuItemCard key={item.id} item={item} quantity={getItemQuantity(item.id)} showModal={showModal} />
                         ))}
                     </div>
                 )
@@ -167,9 +172,9 @@ const MainPage = () => {
 
             <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={() => setIsCartModalOpen(true)}/>
             
-            <CartModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} cartItems={cartItems} allItems={categories.flatMap((category: CategoryModel) => category.items)}  onUpdateQuantity={updateQuantity} onCheckout={handleCheckout}/>
+            <CartModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} cartItems={cartItems} allItems={categories.flatMap((category: CategoryModel) => category.items)} onUpdateQuantity={updateQuantity} onCheckout={handleCheckout}/>
             
-            <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity}/>
+            <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? getItemQuantity(selectedItem.id) : 0}/>
         </div>
     )
 }
