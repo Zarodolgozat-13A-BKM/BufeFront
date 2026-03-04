@@ -1,17 +1,13 @@
 import type { CategoryModel } from "../models/CategoryModel";
+import { store } from "../store/store";
 
 const API_URL = import.meta.env.DEV
   ? (import.meta.env.VITE_API_URL || '/api')
   : (import.meta.env.VITE_API_URL || "http://bufeapi-markomilan.jcloud.jedlik.cloud/api");
-const getCookie = (name: string) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift();
-  return null;
-};
 export const GetAllCategories = async () => {
   try {
-    const token = getCookie('token');
+    const token = store.getState().auth.bearerToken;
+    console.log("Token in GetAllCategories:", token);
     const response = await fetch(`${API_URL}/categories`, {
       method: "GET",
       headers: {
@@ -30,7 +26,7 @@ export const GetAllCategories = async () => {
 };
 export const GetOneCategory = async (id: string) => {
   try {
-    const token = getCookie('token');
+    const token = store.getState().auth.bearerToken;
     const response = await fetch(`${API_URL}/categories/${id}`, {
       method: "GET",
       headers: {
@@ -49,7 +45,7 @@ export const GetOneCategory = async (id: string) => {
 };
 export const CreateCategory = async (categoryName: string) => {
   try {
-    const token = getCookie('token');
+    const token = store.getState().auth.bearerToken;
     const postData = { name: categoryName };
     const response = await fetch(`${API_URL}/categories`, {
         method: "POST",
@@ -70,7 +66,7 @@ export const CreateCategory = async (categoryName: string) => {
 };
 export const DeleteCategory = async (id: string) => {
   try {
-    const token = getCookie('token');
+    const token = store.getState().auth.bearerToken;
     const response = await fetch(`${API_URL}/categories/${id}`, {
         method: "DELETE",
         headers: {
@@ -89,7 +85,7 @@ export const DeleteCategory = async (id: string) => {
 };
 export const UpdateCategory = async (id: string, categoryName: string) => {
   try {
-    const token = getCookie('token');
+    const token = store.getState().auth.bearerToken;
     const postData = { name: categoryName };
     const response = await fetch(`${API_URL}/categories/${id}`, {
         method: "PUT",
