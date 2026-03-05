@@ -9,5 +9,5 @@ RUN npm run build   # Vite outputs to /app/dist
 # Stage 2: Production
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 8080
+EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
