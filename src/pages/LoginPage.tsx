@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
 import { Login } from '../services/APIservice'
-import { setToken, type AppDispatch } from '../store'
+import { useAppDispatch } from '../store/hooks'
+import { login } from '../store/authSlice'
+
 
 const LoginPage = () => {
-    const dispatch = useDispatch<AppDispatch>()
+    const dispatch = useAppDispatch()
     const [username, setusername] = useState('')
     const [password, setPassword] = useState('')
     const [rememberMe, setRememberMe] = useState(false)
@@ -13,7 +14,6 @@ const LoginPage = () => {
     const [error, setError] = useState<string | null>(null)
 
     React.useEffect(() => {
-        // Add styles to head
         const style = document.createElement('style')
         style.textContent = `
             body {
@@ -51,20 +51,20 @@ const LoginPage = () => {
         setError(null)
         setLoading(true)
         try {
-            if(username.trim() === '' || password.trim() === '') {
+            if (username.trim() === '' || password.trim() === '') {
                 setError('Kérem, töltse ki az összes mezőt.')
                 return;
             }
-            if(username.split('.').length < 2 || username.split('.').map(part => part.trim()).some(part => part === '')) {
+            if (username.split('.').length < 2 || username.split('.').map(part => part.trim()).some(part => part === '')) {
                 setError('Kérem, adja meg a teljes Jedlikes azonosítóját (pl. Gipsz.Jakab).')
                 return;
             }
             const token = await Login({ username, password }, rememberMe)
-            if(token) {
-                dispatch(setToken(token))
+            if (token) {
+                dispatch(login({ token, username }))
                 console.log('Login successful')
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Login failed:', err)
             if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
                 setError('Nem sikerült csatlakozni a szerverhez. Ellenőrizd az internetkapcsolatot vagy próbáld újra később.');
@@ -99,7 +99,7 @@ const LoginPage = () => {
                 <div className="blur-bg-overlay dark:bg-slate-900/80 rounded-xl p-6 shadow-2xl border border-white/20">
                     <h2 className="text-xl font-semibold mb-6 text-slate-900 dark:text-white">Üdv újra!</h2>
                     {error && (
-                        <div className="rounded-lg mb-4 p-3 rounded bg-red-100 text-red-700 border border-red-300 text-sm">
+                        <div className="rounded-lg mb-4 p-3 bg-red-100 text-red-700 border border-red-300 text-sm">
                             {error}
                         </div>
                     )}
@@ -137,7 +137,7 @@ const LoginPage = () => {
                                     className="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all"
                                     style={{ outlineColor: '#ee8c2b', '--tw-ring-color': '#ee8c2b' } as React.CSSProperties}
                                 />
-                                    <img src={showPassword ? "./showpwd.svg" : "./hidepwd.svg"} onClick={() => setShowPassword(!showPassword)} className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer" alt="toggle password" />
+                                <img src={showPassword ? "./showpwd.svg" : "./hidepwd.svg"} onClick={() => setShowPassword(!showPassword)} className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer" alt="toggle password" />
                             </div>
                         </div>
                         <div className="mx-1 flex items-center justify-between">

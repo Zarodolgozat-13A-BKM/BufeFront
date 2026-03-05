@@ -9,7 +9,8 @@ export interface ItemModel {
   is_featured: boolean
   category_id: number
   created_at: Date
-  updated_at: Date
+  updated_at: Date,
+  quantity?: number
 }
 
 export interface ItemCreateModel {
