@@ -15,7 +15,7 @@ spec:
         - name: ghcr-login-secret
       containers:
         - name: bufe-frontend
-          image: ghcr.io/milanmarko/zarodolgozat-bufe-frontend
+          image: ghcr.io/zarodolgozat-13a-bkm/zarodolgozat-bufe-frontend
           imagePullPolicy: Always
 
           env:
