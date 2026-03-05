@@ -19,7 +19,8 @@ spec:
           imagePullPolicy: Always
 
           env:
-            API_URL: "http://bufeapi-markomilan.jcloud.jedlik.cloud/api"
+            - name: API_URL
+              value: "http://bufeapi-markomilan.jcloud.jedlik.cloud/api"
           ports:
             - containerPort: 8080
 
