@@ -64,7 +64,7 @@ export const CartModal = ({
                         <span className="material-symbols-outlined text-sm">add</span>
                       </button>
                     </div>
-                    <div className="font-bold text-gray-900 dark:text-white min-w-[60px] text-right">
+                    <div className="font-bold text-gray-900 dark:text-white min-w-15 text-right">
                       ${(item.price * cartItem.quantity).toFixed(2)}
                     </div>
                   </div>

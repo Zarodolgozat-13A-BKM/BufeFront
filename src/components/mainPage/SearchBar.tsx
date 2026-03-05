@@ -8,7 +8,7 @@ export const SearchBar = ({ value, onChange, placeholder = "Craving a burger? Se
   return (
     <div className="px-4 py-4">
       <label className="flex flex-col h-12 w-full shadow-md rounded-xl transition-all duration-300 focus-within:shadow-lg">
-        <div className="flex w-full flex-1 items-stretch rounded-xl h-full bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 focus-within:border-orange-500 overflow-hidden">
+        <div className="flex w-full flex-1 items-stretch rounded-xl h-full bg-white dark:bg-gray-900 border-2 border-orange-500 dark:border-gray-700 focus-within:border-orange-500 overflow-hidden">
           <div className="text-orange-500 flex items-center justify-center pl-4 pr-2">
             <span className="material-symbols-outlined">search</span>
           </div>

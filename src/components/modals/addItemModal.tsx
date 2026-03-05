@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Modal } from './Modal'
 import type { ItemModel } from '../../models/ItemModel'
 
@@ -11,15 +11,22 @@ interface AddItemModalProps {
 }
 
 export const AddItemModal = ({ isOpen, onClose, item, onUpdateQuantity, qty }: AddItemModalProps) => {
-    const [quantity, setQuantity] = useState(1)
-    console.log("asd", !!item?.is_active)
-    useEffect(() => {
-        if (isOpen) {
-            setQuantity(qty > 0 ? qty : 1)
-        }
-    }, [isOpen, item, qty])
-
     if (!item) return null
+
+    return (
+        <AddItemModalContent
+            key={`${isOpen}-${item.id}-${qty}`}
+            isOpen={isOpen}
+            onClose={onClose}
+            item={item}
+            onUpdateQuantity={onUpdateQuantity}
+            qty={qty}
+        />
+    )
+}
+
+const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: AddItemModalProps & { item: ItemModel }) => {
+    const [quantity, setQuantity] = useState(qty > 0 ? qty : 1)
 
     const handleAddToCart = () => {
         const delta = quantity - qty
@@ -108,7 +115,7 @@ export const AddItemModal = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                                     : 'bg-gray-400 cursor-not-allowed'
                                 }`}
                         >
-                            {!!item.is_active ? (
+                            {item.is_active ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <span className="material-symbols-outlined">shopping_cart</span>
                                     Add to Cart

@@ -50,7 +50,6 @@ const MainPage = () => {
         const data: ItemModel[] = categories.flatMap((category: CategoryModel) => category.items)
         dispatch(setItems(data))
         console.log('Fetched items:', data)
-        setActiveCategory((current) => current ?? null)
     }, [categories, dispatch])
 
     useEffect(() => {
@@ -135,7 +134,7 @@ const MainPage = () => {
             <div className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm border-b border-orange-100 dark:border-orange-900/30">
                 <TopAppBar username={username} loyaltyPoints={150} />
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
-                <CategoryChips categories={categories} activeCategory={activeCategory} onCategoryClick={(category, categoryId) => { setActiveCategory(category), scrollToCategory(categoryId) }} />
+                <CategoryChips categories={categories} activeCategory={activeCategory} onCategoryClick={(category, categoryId) => { setActiveCategory(category); scrollToCategory(categoryId) }} />
             </div>
 
             <div className="pt-6 pb-2">

@@ -64,7 +64,7 @@ const LoginPage = () => {
                 dispatch(login({ token, username }))
                 console.log('Login successful')
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Login failed:', err)
             if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
                 setError('Nem sikerült csatlakozni a szerverhez. Ellenőrizd az internetkapcsolatot vagy próbáld újra később.');
@@ -99,7 +99,7 @@ const LoginPage = () => {
                 <div className="blur-bg-overlay dark:bg-slate-900/80 rounded-xl p-6 shadow-2xl border border-white/20">
                     <h2 className="text-xl font-semibold mb-6 text-slate-900 dark:text-white">Üdv újra!</h2>
                     {error && (
-                        <div className="rounded-lg mb-4 p-3 rounded bg-red-100 text-red-700 border border-red-300 text-sm">
+                        <div className="rounded-lg mb-4 p-3 bg-red-100 text-red-700 border border-red-300 text-sm">
                             {error}
                         </div>
                     )}
