@@ -55,10 +55,10 @@ const LoginPage = () => {
                 setError('Kérem, töltse ki az összes mezőt.')
                 return;
             }
-            if (username.split('.').length < 2 || username.split('.').map(part => part.trim()).some(part => part === '')) {
-                setError('Kérem, adja meg a teljes Jedlikes azonosítóját (pl. Gipsz.Jakab).')
-                return;
-            }
+            // if (username.split('.').length < 2 || username.split('.').map(part => part.trim()).some(part => part === '')) {
+            //     setError('Kérem, adja meg a teljes Jedlikes azonosítóját (pl. Gipsz.Jakab).')
+            //     return;
+            // }
             const token = await Login({ username, password }, rememberMe)
             if (token) {
                 dispatch(login({ token, username }))
