@@ -18,6 +18,7 @@ export interface OrderCreateModel {
 export interface OrderItem {
   item_id: number
   quantity: number
+  
 }
 export interface Links {
   first: string
