@@ -1,27 +1,27 @@
-import { createSlice } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'
-import type { ItemModel } from '../models/ItemModel'
+import { createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
+import type { ItemModel } from "../Models/ItemModel";
 
 interface ItemState {
-  items: ItemModel[]
+  items: ItemModel[];
 }
 
 const initialState: ItemState = {
-  items: []
-}
+  items: [],
+};
 
 const itemSlice = createSlice({
-  name: 'item',
+  name: "item",
   initialState,
   reducers: {
     setItems: (state, action: PayloadAction<ItemModel[]>) => {
-      state.items = action.payload
+      state.items = action.payload;
     },
     clearItems: (state) => {
-      state.items = []
+      state.items = [];
     },
   },
-})
+});
 
-export const { setItems, clearItems } = itemSlice.actions
-export default itemSlice.reducer
+export const { setItems, clearItems } = itemSlice.actions;
+export default itemSlice.reducer;
