@@ -70,10 +70,10 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <span className="text-3xl font-extrabold text-primary">
-                            ${item.price}
+                        <span className="text-3xl font-extrabold text-primary dark:text-white">
+                            {item.price}Ft
                         </span>
-                        <span className="text-gray-500 dark:text-gray-400">per item</span>
+                        <span className="text-gray-500 dark:text-gray-400">/ darab</span>
                     </div>
 
                     <div className="space-y-2">
@@ -101,20 +101,13 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                                 </button>
                             </div>
                             <div className="text-gray-600 dark:text-gray-400">
-                                Total: <span className="font-bold text-gray-900 dark:text-white">${totalPrice.toFixed(2)}</span>
+                                Total: <span className="font-bold text-gray-900 dark:text-white">{totalPrice}Ft</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                        <button
-                            onClick={handleAddToCart}
-                            disabled={!item.is_active}
-                            className={`flex-1 py-3 rounded-lg font-bold bg-black text-white transition-all ${item.is_active
-                                    ? 'bg-orange-500 hover:bg-primary/90 active:scale-[0.98]'
-                                    : 'bg-gray-400 cursor-not-allowed'
-                                }`}
-                        >
+                        <button onClick={handleAddToCart} disabled={!item.is_active} className={`flex-1 py-3 rounded-lg font-bold bg-black text-white transition-all ${item.is_active ? 'bg-orange-500 hover:bg-primary/90 active:scale-[0.98]' : 'bg-gray-400 cursor-not-allowed' }`}  >
                             {item.is_active ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <span className="material-symbols-outlined">shopping_cart</span>
@@ -124,10 +117,7 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                                 'Currently Unavailable'
                             )}
                         </button>
-                        <button
-                            onClick={onClose}
-                            className="px-6 py-3 rounded-lg font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                        >
+                        <button onClick={onClose} className="px-6 py-3 rounded-lg font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                             Cancel
                         </button>
                     </div>
