@@ -20,7 +20,9 @@ spec:
 
           env:
             - name: API_URL
-              value: "http://bufeapi-markomilan.jcloud.jedlik.cloud/api"
+              value: "https://bufeapi.jcloud.jedlik.cloud/api"
+            - name: WEB_SOCKET_URL
+              value: "ws://bufeapi-ws.jcloud.jedlik.cloud/ws"
           ports:
             - containerPort: 80
 

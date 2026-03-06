@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { Login } from '../services/APIservice'
 import { useAppDispatch } from '../store/hooks'
 import { login } from '../store/authSlice'
-import type { LoginModel } from '../Models/AuthModel'
 
 
 const LoginPage = () => {
