@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import type { OrderCreateModel } from '../models/OrderModel'
+import type { OrderCreateModel } from '../Models/OrderModel'
 
 interface CartState {
   cart: OrderCreateModel
@@ -40,6 +40,7 @@ const cartSlice = createSlice({
       }
     },
     removeItemFromCart: (state, action: PayloadAction<number>) => {
+      console.log('Removing item with ID:', action.payload)
       state.cart.items = state.cart.items.filter(item => item.item_id !== action.payload)
     },
     clearCart: (state) => {
