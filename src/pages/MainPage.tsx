@@ -4,7 +4,7 @@ import { setCategories } from '../store/categorySlice'
 import { GetAllCategories } from '../services/CategoryService'
 import { setItems } from '../store/itemSlice'
 import { updateItemQuantity } from '../store/cartSlice'
-import type { CategoryModel } from '../models/CategoryModel'
+import type { CategoryModel } from '../Models/CategoryModel'
 import type { ItemModel } from '../models/ItemModel'
 import { TopAppBar } from '../components/mainPage/TopAppBar'
 import { SearchBar } from '../components/mainPage/SearchBar'
@@ -26,7 +26,9 @@ const MainPage = () => {
     const [isCartModalOpen, setIsCartModalOpen] = useState(false)
     const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState<ItemModel | null>(null)
-    const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+    const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+    const stickyHeaderRef = useRef<HTMLDivElement | null>(null)
+    const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -37,7 +39,7 @@ const MainPage = () => {
                 console.error('Failed to fetch categories:', error)
             }
         }
-
+        
         fetchCategories()
     }, [dispatch])
 
@@ -49,7 +51,6 @@ const MainPage = () => {
 
         const data: ItemModel[] = categories.flatMap((category: CategoryModel) => category.items)
         dispatch(setItems(data))
-        console.log('Fetched items:', data)
     }, [categories, dispatch])
 
     useEffect(() => {
@@ -121,20 +122,30 @@ const MainPage = () => {
             item.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
     }
 
-    const scrollToCategory = useCallback((categoryId: string | null) => {
-        if (categoryId === null) {
-            window.scrollTo({ top: 0, behavior: 'smooth' })
-        } else if (categoryRefs.current[categoryId]) {
-            categoryRefs.current[categoryId]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const scrollToCategory = useCallback((categoryIndex: number | null) => {
+        const scrollContainer = scrollContainerRef.current
+        if (!scrollContainer) return
+
+        if (categoryIndex === null) {
+            scrollContainer.scrollTo({ top: 0, behavior: 'smooth' })
+            return
         }
+
+        const targetElement = categoryRefs.current[categoryIndex]
+        if (!targetElement) return
+
+        const headerHeight = stickyHeaderRef.current?.offsetHeight ?? 0
+        const scrollTop = targetElement.offsetTop - headerHeight - 8
+
+        scrollContainer.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' })
     }, [])
 
     return (
-        <div className="relative flex h-screen w-full flex-col overflow-y-scroll overflow-x-hidden bg-white dark:bg-black">
-            <div className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm border-b border-orange-100 dark:border-orange-900/30">
+        <div ref={scrollContainerRef} className="mainpage-scrollbar relative flex h-screen w-full flex-col overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
+            <div ref={stickyHeaderRef} className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm border-b border-orange-100 dark:border-orange-900/30">
                 <TopAppBar username={username} loyaltyPoints={150} />
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
-                <CategoryChips categories={categories} activeCategory={activeCategory} onCategoryClick={(category, categoryId) => { setActiveCategory(category); scrollToCategory(categoryId) }} />
+                <CategoryChips categories={categories} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
             </div>
 
             <div className="pt-6 pb-2">
@@ -151,12 +162,12 @@ const MainPage = () => {
                 </div>
             </div>
 
-            {categories.map((category: CategoryModel) => {
+            {categories.map((category: CategoryModel, categoryIndex: number) => {
                 const filteredItems = getFilteredItems(category.items)
                 if (filteredItems.length === 0) return null
 
                 return (
-                    <div key={category.id} ref={(el) => { categoryRefs.current[category.id] = el }} className="flex flex-col gap-4 px-4 pt-6 scroll-mt-32">
+                    <div key={category.id} ref={(el) => { categoryRefs.current[categoryIndex] = el }} className="flex flex-col gap-4 px-4 pt-6 scroll-mt-32">
                         <h3 className="text-black dark:text-white text-lg font-bold leading-tight flex items-center gap-2">
                             <span className="w-1 h-6 bg-orange-500 rounded-full"></span>
                             {category.name}

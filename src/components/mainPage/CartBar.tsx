@@ -17,7 +17,7 @@ export const CartBar = ({ totalItems, totalPrice, onClick }: CartBarProps) => {
           <span className="text-base font-bold">Kosarad</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xl font-extrabold">${totalPrice.toFixed(2)}</span>
+          <span className="text-xl font-extrabold">{totalPrice}Ft</span>
           <span className="material-symbols-outlined text-2xl">arrow_forward</span>
         </div>
       </button>
