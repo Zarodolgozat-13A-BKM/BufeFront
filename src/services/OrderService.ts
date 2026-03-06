@@ -1,15 +1,10 @@
 import type { ItemModel } from "../models/ItemModel";
 import type { AllOrdersResponseModel } from "../models/OrderModel";
+import { getStoredToken } from "./tokenStorage";
 const API_URL = import.meta.env.VITE_API_URL || "http://bufeapi-markomilan.jcloud.jedlik.cloud/api";
-const getCookie = (name: string) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift();
-  return null;
-};
 export const GetAllOrders = async (page: number) => {
   try {
-    const token = getCookie('token');
+    const token = getStoredToken();
     const response = await fetch(`${API_URL}/orders?page=${page}`, {
       method: "GET",
       headers: {
@@ -29,7 +24,7 @@ export const GetAllOrders = async (page: number) => {
 
 export const GetOneOrder = async (id:string) => {
   try {
-    const token = getCookie('token');
+    const token = getStoredToken();
     const response = await fetch(`${API_URL}/orders/${id}`, {
       method: "GET",
       headers: {
@@ -48,7 +43,7 @@ export const GetOneOrder = async (id:string) => {
 };
 export const CreateOrder = async (postData: any) => {
   try {
-    const token = getCookie('token');
+    const token = getStoredToken();
     const response = await fetch(`${API_URL}/orders`, {
       method: "POST",
       headers: {

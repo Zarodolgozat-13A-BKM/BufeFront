@@ -1,4 +1,4 @@
-import type { CategoryModel } from "../models/CategoryModel";
+import type { CategoryModel } from "../Models/CategoryModel";
 import { store } from "../store/store";
 
 const API_URL = import.meta.env.DEV
