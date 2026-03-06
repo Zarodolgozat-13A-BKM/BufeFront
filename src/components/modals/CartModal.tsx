@@ -40,27 +40,17 @@ export const CartModal = ({
                 
                 return (
                   <div key={cartItem.item_id} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <img 
-                      src={item.picture_url ?? undefined} 
-                      alt={item.name}
-                      className="w-16 h-16 rounded-lg object-cover"
-                    />
+                    <img src={item.picture_url ?? undefined} alt={item.name} className="w-16 h-16 rounded-lg object-cover"/>
                     <div className="flex-1">
                       <h4 className="font-bold text-gray-900 dark:text-white">{item.name}</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">{item.price}Ft</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => onUpdateQuantity(item.id, -1)}
-                        className="w-8 h-8 flex items-center justify-center bg-white dark:bg-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
-                      >
+                      <button onClick={() => onUpdateQuantity(item.id, -1)} className="w-8 h-8 flex items-center justify-center bg-white dark:bg-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500" >
                         <span className="material-symbols-outlined text-sm">remove</span>
                       </button>
                       <span className="w-8 text-center font-bold">{cartItem.quantity}</span>
-                      <button 
-                        onClick={() => onUpdateQuantity(item.id, 1)}
-                        className="w-8 h-8 flex items-center justify-center bg-white dark:bg-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
-                      >
+                      <button onClick={() => onUpdateQuantity(item.id, 1)} className="w-8 h-8 flex items-center justify-center bg-white dark:bg-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500" >
                         <span className="material-symbols-outlined text-sm">add</span>
                       </button>
                     </div>
@@ -76,15 +66,7 @@ export const CartModal = ({
                 <span className="text-gray-900 dark:text-white">Total:</span>
                 <span className="dark:text-white text-primary">{totalPrice}Ft</span>
               </div>
-              <button 
-                onClick={() => {
-                  onCheckout()
-                  onClose()
-                }}
-                className="w-full py-3 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-colors"
-              >
-                Proceed to Checkout
-              </button>
+              <button onClick={() => {onCheckout(); onClose() }} className="dark:bg-orange-500 dark:hover:bg-orange-600 w-full py-3 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 transition-colors">Proceed to Checkout </button>
             </div>
           </>
         )}

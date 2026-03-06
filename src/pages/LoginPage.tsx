@@ -124,7 +124,6 @@ const LoginPage = () => {
                         <div>
                             <div className="flex justify-between items-center mb-2">
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">Jelszó</label>
-                                <a href="#" className="text-xs font-bold hover:underline" style={{ color: '#ee8c2b' }}>Elfelejtett jelszó?</a>
                             </div>
                             <div className="relative">
                                 <img src='./lock.svg' className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2" alt="lock" />

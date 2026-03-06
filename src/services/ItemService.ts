@@ -3,7 +3,7 @@ import { getStoredToken } from "./tokenStorage";
 
 const API_URL = import.meta.env.DEV
   ? (import.meta.env.VITE_API_URL || '/api')
-  : (import.meta.env.VITE_API_URL || "http://bufeapi-markomilan.jcloud.jedlik.cloud/api");
+  : (import.meta.env.VITE_API_URL || "http://bufeapi.jcloud.jedlik.cloud/api");
 export const GetAllItems = async () => {
   try {
     const token = getStoredToken();
