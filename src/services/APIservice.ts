@@ -1,9 +1,7 @@
 import type { LoginModel } from "../Models/AuthModel";
 import { clearStoredToken, getStoredToken, setStoredToken } from "./tokenStorage";
 
-const API_URL = import.meta.env.DEV
-  ? (import.meta.env.VITE_API_URL || '/api')
-  : (import.meta.env.VITE_API_URL || "http://bufeapi-markomilan.jcloud.jedlik.cloud/api");
+const API_URL = import.meta.env.VITE_API_URL || "https://bufeapi.jcloud.jedlik.cloud/api";
 
 export const Login = async (postData: LoginModel, _rememberMe: boolean) => {
   try {

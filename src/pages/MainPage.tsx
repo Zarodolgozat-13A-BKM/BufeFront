@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setCategories } from '../store/categorySlice'
 import { GetAllCategories } from '../services/CategoryService'
 import { setItems } from '../store/itemSlice'
-import { updateItemQuantity } from '../store/cartSlice'
+import { updateItemQuantity, removeItemFromCart } from '../store/cartSlice'
 import type { CategoryModel } from '../Models/CategoryModel'
 import type { ItemModel } from '../models/ItemModel'
 import { TopAppBar } from '../components/mainPage/TopAppBar'
@@ -100,6 +100,11 @@ const MainPage = () => {
         dispatch(updateItemQuantity({ item_id: itemId, delta }))
     }
 
+    // dispatching wrapper for removing an item from the cart
+    const handleRemoveItem = (itemId: number) => {
+        dispatch(removeItemFromCart(itemId))
+    }
+
     const showModal = (item: ItemModel) => {
         setSelectedItem(item)
         setIsAddItemModalOpen(true)
@@ -181,9 +186,9 @@ const MainPage = () => {
             <div className="h-6"></div>
 
             <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={() => setIsCartModalOpen(true)}/>
-            
-            <CartModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} cartItems={cartItems} allItems={categories.flatMap((category: CategoryModel) => category.items)} onUpdateQuantity={updateQuantity} onCheckout={handleCheckout}/>
-            
+
+            <CartModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} removeItem={handleRemoveItem} cartItems={cartItems} allItems={categories.flatMap((category: CategoryModel) => category.items)} onUpdateQuantity={updateQuantity} onCheckout={handleCheckout}/>
+
             <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? getItemQuantity(selectedItem.id) : 0}/>
         </div>
     )

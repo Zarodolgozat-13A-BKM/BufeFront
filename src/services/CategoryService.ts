@@ -1,9 +1,8 @@
 import type { CategoryModel } from "../Models/CategoryModel";
 import { store } from "../store/store";
 
-const API_URL = import.meta.env.DEV
-  ? (import.meta.env.VITE_API_URL || '/api')
-  : (import.meta.env.VITE_API_URL || "http://bufeapi-markomilan.jcloud.jedlik.cloud/api");
+const API_URL = import.meta.env.VITE_API_URL || "https://bufeapi.jcloud.jedlik.cloud/api";
+
 export const GetAllCategories = async () => {
   try {
     const token = store.getState().auth.bearerToken;

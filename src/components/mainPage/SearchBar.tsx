@@ -4,7 +4,7 @@ interface SearchBarProps {
   placeholder?: string
 }
 
-export const SearchBar = ({ value, onChange, placeholder = "Craving a burger? Search menu..." }: SearchBarProps) => {
+export const SearchBar = ({ value, onChange, placeholder = "Nem találsz valamit?" }: SearchBarProps) => {
   return (
     <div className="px-4 py-4">
       <label className="flex flex-col h-12 w-full shadow-md rounded-xl transition-all duration-300 focus-within:shadow-lg">
@@ -12,12 +12,7 @@ export const SearchBar = ({ value, onChange, placeholder = "Craving a burger? Se
           <div className="text-orange-500 flex items-center justify-center pl-4 pr-2">
             <span className="material-symbols-outlined">search</span>
           </div>
-          <input 
-            className="flex w-full min-w-0 flex-1 resize-none overflow-hidden bg-transparent text-black dark:text-white focus:outline-0 focus:ring-0 border-none h-full placeholder:text-gray-400 dark:placeholder:text-gray-500 px-2 text-base font-normal leading-normal" 
-            placeholder={placeholder}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-          />
+          <input className="flex w-full min-w-0 flex-1 resize-none overflow-hidden bg-transparent text-black dark:text-white focus:outline-0 focus:ring-0 border-none h-full placeholder:text-gray-400 dark:placeholder:text-gray-500 px-2 text-base font-normal leading-normal" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
         </div>
       </label>
     </div>
