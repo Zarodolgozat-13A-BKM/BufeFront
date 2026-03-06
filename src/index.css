@@ -8,6 +8,17 @@ body {
   height: 100%;
 }
 
+html::-webkit-scrollbar-button,
+body::-webkit-scrollbar-button,
+#root::-webkit-scrollbar-button {
+  -webkit-appearance: none;
+  display: none;
+  background: transparent;
+  border: 0;
+  width: 0;
+  height: 0;
+}
+
 body {
   min-width: 320px;
 }
@@ -15,4 +26,25 @@ body {
 #root {
   width: 100%;
   height: 100%;
+}
+
+.mainpage-scrollbar {
+  -ms-overflow-style: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #Ff6900 transparent;
+}
+
+.mainpage-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.mainpage-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mainpage-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #Ff6900;
+  border-radius: 9999px;
+  border: 2px solid transparent;
 }
