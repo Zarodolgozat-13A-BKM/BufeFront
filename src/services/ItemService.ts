@@ -1,17 +1,12 @@
 import type { ItemCreateModel, ItemModel } from "../models/ItemModel";
+import { getStoredToken } from "./tokenStorage";
 
 const API_URL = import.meta.env.DEV
   ? (import.meta.env.VITE_API_URL || '/api')
   : (import.meta.env.VITE_API_URL || "http://bufeapi-markomilan.jcloud.jedlik.cloud/api");
-const getCookie = (name: string) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift();
-  return null;
-};
 export const GetAllItems = async () => {
   try {
-    const token = getCookie('token');
+    const token = getStoredToken();
     const response = await fetch(`${API_URL}/items`, {
       method: "GET",
       headers: {
@@ -31,7 +26,7 @@ export const GetAllItems = async () => {
 
 export const GetOneItem = async (id:string) => {
   try {
-    const token = getCookie('token');
+    const token = getStoredToken();
     const response = await fetch(`${API_URL}/items/${id}`, {
       method: "GET",
       headers: {
@@ -51,7 +46,7 @@ export const GetOneItem = async (id:string) => {
 
 export const CreateItem = async (postData: ItemCreateModel) => {
   try {
-    const token = getCookie('token');
+    const token = getStoredToken();
     const response = await fetch(`${API_URL}/items`, {
       method: "POST",
       headers: {
@@ -72,7 +67,7 @@ export const CreateItem = async (postData: ItemCreateModel) => {
 
 export const UpdateItem = async (id:string, postData: any) => {
   try {
-    const token = getCookie('token');
+    const token = getStoredToken();
     const response = await fetch(`${API_URL}/items/${id}`, {
       method: "PUT",
       headers: {
@@ -92,7 +87,7 @@ export const UpdateItem = async (id:string, postData: any) => {
 };
 export const DeleteItem = async (id:string) => {
   try {
-    const token = getCookie('token');
+    const token = getStoredToken();
     const response = await fetch(`${API_URL}/items/${id}`, {
       method: "DELETE",
       headers: {
@@ -111,7 +106,7 @@ export const DeleteItem = async (id:string) => {
 };
 export const ToggleItem = async (id:string) => {
   try {
-    const token = getCookie('token');
+    const token = getStoredToken();
     const response = await fetch(`${API_URL}/items/${id}/toggle-active`, {
       method: "POST",
       headers: {
