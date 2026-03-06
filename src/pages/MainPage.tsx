@@ -37,7 +37,7 @@ const MainPage = () => {
                 console.error('Failed to fetch categories:', error)
             }
         }
-
+        
         fetchCategories()
     }, [dispatch])
 
@@ -49,7 +49,6 @@ const MainPage = () => {
 
         const data: ItemModel[] = categories.flatMap((category: CategoryModel) => category.items)
         dispatch(setItems(data))
-        console.log('Fetched items:', data)
     }, [categories, dispatch])
 
     useEffect(() => {
@@ -130,7 +129,7 @@ const MainPage = () => {
     }, [])
 
     return (
-        <div className="relative flex h-screen w-full flex-col overflow-y-scroll overflow-x-hidden bg-white dark:bg-black">
+        <div className="mainpage-scrollbar relative flex h-screen w-full flex-col overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
             <div className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm border-b border-orange-100 dark:border-orange-900/30">
                 <TopAppBar username={username} loyaltyPoints={150} />
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
