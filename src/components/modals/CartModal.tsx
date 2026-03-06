@@ -47,7 +47,7 @@ export const CartModal = ({
                     />
                     <div className="flex-1">
                       <h4 className="font-bold text-gray-900 dark:text-white">{item.name}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">${item.price}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{item.price}Ft</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button 
@@ -65,7 +65,7 @@ export const CartModal = ({
                       </button>
                     </div>
                     <div className="font-bold text-gray-900 dark:text-white min-w-15 text-right">
-                      ${(item.price * cartItem.quantity).toFixed(2)}
+                      {(item.price * cartItem.quantity)}Ft
                     </div>
                   </div>
                 )
@@ -74,7 +74,7 @@ export const CartModal = ({
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-4">
               <div className="flex justify-between items-center text-lg font-bold">
                 <span className="text-gray-900 dark:text-white">Total:</span>
-                <span className="text-primary">${totalPrice.toFixed(2)}</span>
+                <span className="dark:text-white text-primary">{totalPrice}Ft</span>
               </div>
               <button 
                 onClick={() => {

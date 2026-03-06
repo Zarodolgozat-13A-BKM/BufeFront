@@ -78,7 +78,7 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
 
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Quantity
+                            Mennyiség
                         </label>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
@@ -101,7 +101,7 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                                 </button>
                             </div>
                             <div className="text-gray-600 dark:text-gray-400">
-                                Total: <span className="font-bold text-gray-900 dark:text-white">{totalPrice}Ft</span>
+                                Összesen: <span className="font-bold text-gray-900 dark:text-white">{totalPrice}Ft</span>
                             </div>
                         </div>
                     </div>
@@ -111,14 +111,14 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                             {item.is_active ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <span className="material-symbols-outlined">shopping_cart</span>
-                                    Add to Cart
+                                    Kosaramba teszem
                                 </span>
                             ) : (
                                 'Currently Unavailable'
                             )}
                         </button>
                         <button onClick={onClose} className="px-6 py-3 rounded-lg font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                            Cancel
+                            Mégse
                         </button>
                     </div>
                 </div>
