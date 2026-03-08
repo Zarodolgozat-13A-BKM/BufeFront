@@ -59,7 +59,7 @@ export const CartModal = ({
                     <div className="font-bold text-gray-900 dark:text-white min-w-15 text-right">
                       {(item.price * cartItem.quantity)}Ft
                     </div>
-                    <button onClick={() => removeItem(item.id)} className="w-8 h-8 flex items-center justify-center bg-red-600 dark:bg-red-600 rounded-lg hover:bg-red-500 dark:hover:bg-red-500" >
+                    <button onClick={() => removeItem(item.id)} className="w-8 h-8 flex items-center justify-center bg-error hover:bg-error/90 text-white rounded-lg" >
                       <span className="material-symbols-outlined text-sm">close</span>
                     </button>
                   </div>
@@ -71,7 +71,7 @@ export const CartModal = ({
                 <span className="text-gray-900 dark:text-white">Összesen:</span>
                 <span className="dark:text-white text-primary">{totalPrice}Ft</span>
               </div>
-              <button onClick={() => { onCheckout(); onClose() }} className="dark:bg-orange-500 dark:hover:bg-orange-600 w-full py-3 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 transition-colors">Proceed to Checkout </button>
+              <button onClick={() => { onCheckout(); onClose() }} className="w-full py-3 bg-primary hover:bg-primary-hover text-white rounded-lg font-bold transition-colors">Proceed to Checkout </button>
             </div>
           </>
         )}

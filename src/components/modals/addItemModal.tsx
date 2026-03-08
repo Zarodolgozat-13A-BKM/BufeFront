@@ -107,7 +107,7 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                        <button onClick={handleAddToCart} disabled={!item.is_active} className={`flex-1 py-3 rounded-lg font-bold bg-black text-white transition-all ${item.is_active ? 'bg-orange-500 hover:bg-primary/90 active:scale-[0.98]' : 'bg-gray-400 cursor-not-allowed' }`}  >
+                        <button onClick={handleAddToCart} disabled={!item.is_active} className={`flex-1 py-3 rounded-lg font-bold bg-black text-white transition-all ${item.is_active ? 'bg-primary hover:bg-primary-hover active:scale-[0.98]' : 'bg-gray-400 cursor-not-allowed' }`}  >
                             {item.is_active ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <span className="material-symbols-outlined">shopping_cart</span>

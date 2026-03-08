@@ -15,7 +15,7 @@ export const CategoryChips = ({ categories, activeCategory, onCategoryClick }: C
             key={category.id}
             onClick={() => onCategoryClick(category, categoryIndex)}
             className={`active:scale-90 shrink-0 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${
-              activeCategory === category ? 'border-orange-500 bg-orange-500 text-white dark:text-black' : 'border-orange-500 dark:border-orange-500 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200' }`}
+              activeCategory === category ? 'border-primary bg-primary text-white dark:text-black' : 'border-primary dark:border-primary bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200' }`}
             style={{ lineHeight: 1.2 }}
           >
             {category.name}

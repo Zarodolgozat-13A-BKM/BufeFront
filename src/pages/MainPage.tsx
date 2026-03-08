@@ -147,7 +147,7 @@ const MainPage = () => {
 
     return (
         <div ref={scrollContainerRef} className="mainpage-scrollbar relative flex h-screen w-full flex-col overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
-            <div ref={stickyHeaderRef} className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm border-b border-orange-100 dark:border-orange-900/30">
+            <div ref={stickyHeaderRef} className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm border-b border-primary/20 dark:border-primary/30">
                 <TopAppBar username={username} loyaltyPoints={150} />
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
                 <CategoryChips categories={categories} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
@@ -156,7 +156,7 @@ const MainPage = () => {
             <div className="pt-6 pb-2">
                 <div className="flex items-center justify-between px-4 pb-3">
                     <h2 className="text-black dark:text-white text-[22px] font-bold leading-tight">
-                        <span className="text-orange-500"></span> Daily Specials
+                        <span className="text-primary"></span> Daily Specials
                     </h2>
                 </div>
                 <div className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 gap-4">
@@ -174,7 +174,7 @@ const MainPage = () => {
                 return (
                     <div key={category.id} ref={(el) => { categoryRefs.current[categoryIndex] = el }} className="flex flex-col gap-4 px-4 pt-6 scroll-mt-32">
                         <h3 className="text-black dark:text-white text-lg font-bold leading-tight flex items-center gap-2">
-                            <span className="w-1 h-6 bg-orange-500 rounded-full"></span>
+                            <span className="w-1 h-6 bg-primary rounded-full"></span>
                             {category.name}
                         </h3>
                         {filteredItems.map((item) => (
