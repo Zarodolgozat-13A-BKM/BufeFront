@@ -8,7 +8,7 @@ interface SpecialItemCardProps {
 
 export const SpecialItemCard = ({ item, showModal, quantity }: SpecialItemCardProps) => {
   return (
-    <div className={`snap-center shrink-0 group flex flex-col gap-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-orange-500/20 dark:border-orange-500/40 shadow-lg hover:shadow-xl min-w-65 w-65 overflow-hidden group transition-all duration-300 relative ${item.is_active ? '' : 'disabled'}`}>
+    <div className={`snap-center shrink-0 group flex flex-col gap-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-primary/20 dark:border-primary/40 shadow-lg hover:shadow-xl min-w-65 w-65 overflow-hidden group transition-all duration-300 relative ${item.is_active ? '' : 'disabled'}`}>
       <button onClick={() => showModal(item)} className="cursor-pointer absolute inset-0 z-10 rounded-xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
         <span className="text-6xl text-white font-light material-symbols-outlined">add</span>
       </button>
@@ -31,9 +31,9 @@ export const SpecialItemCard = ({ item, showModal, quantity }: SpecialItemCardPr
           </p>
         </div>
         <div className="flex items-center justify-between mt-1">
-          <p className="text-orange-500 text-xl font-extrabold leading-normal">{item.price}Ft</p>
+          <p className="text-primary text-xl font-extrabold leading-normal">{item.price}Ft</p>
             {quantity !== 0 ? (  
-          <button onClick={() => showModal(item)} className="flex size-10 z-20  cursor-pointer items-center justify-center rounded-full bg-orange-500 text-white shadow-lg hover:bg-orange-600 transition-all active:scale-90" >
+          <button onClick={() => showModal(item)} className="flex size-10 z-20  cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary-hover transition-all active:scale-90" >
               <span className="text-sm font-bold">{quantity}</span>
           </button>
             ) : (
