@@ -1,5 +1,5 @@
 const TOKEN_KEY = 'token'
-const USERNAME_KEY = 'username'
+const NAME_KEY = 'name'
 
 export const getStoredToken = (): string | null => {
   if (typeof window === 'undefined') {
@@ -30,7 +30,7 @@ export const getStoredUsername = (): string | null => {
     return null
   }
 
-  return window.localStorage.getItem(USERNAME_KEY)
+  return window.localStorage.getItem(NAME_KEY)
 }
 
 export const setStoredUsername = (username: string) => {
@@ -38,7 +38,7 @@ export const setStoredUsername = (username: string) => {
     return
   }
 
-  window.localStorage.setItem(USERNAME_KEY, username)
+  window.localStorage.setItem(NAME_KEY, username)
 }
 
 export const clearStoredUsername = () => {
@@ -46,5 +46,5 @@ export const clearStoredUsername = () => {
     return
   }
 
-  window.localStorage.removeItem(USERNAME_KEY)
+  window.localStorage.removeItem(NAME_KEY)
 }

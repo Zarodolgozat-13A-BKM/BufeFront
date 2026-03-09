@@ -12,7 +12,7 @@ import {
 interface AuthState {
   isLoggedIn: boolean
   bearerToken: string | null
-  username?: string
+  name?: string
 }
 
 const persistedToken = getStoredToken()
@@ -21,29 +21,31 @@ const persistedUsername = getStoredUsername()
 const initialState: AuthState = {
   isLoggedIn: !!persistedToken,
   bearerToken: persistedToken,
-  username: persistedUsername ?? undefined,
+  name : persistedUsername ?? undefined,
 }
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<{ token: string; username: string }>) => {
+    login: (state, action: PayloadAction<{ token: string }>) => {
       state.isLoggedIn = true
       state.bearerToken = action.payload.token
-      state.username = action.payload.username
       setStoredToken(action.payload.token)
-      setStoredUsername(action.payload.username)
     },
     logout: (state) => {
       state.isLoggedIn = false
       state.bearerToken = null
-      state.username = undefined
+      state.name = undefined
       clearStoredToken()
       clearStoredUsername()
     },
+    setName: (state, action: PayloadAction<{ name: string }>) => {
+      state.name = action.payload.name
+      setStoredUsername(action.payload.name)
+    }
   },
 })
 
-export const { login, logout } = authSlice.actions
+export const { login, logout, setName } = authSlice.actions
 export default authSlice.reducer

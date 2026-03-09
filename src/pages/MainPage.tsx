@@ -18,7 +18,7 @@ import { AddItemModal } from '../components/modals/addItemModal'
 const MainPage = () => {
     const dispatch = useAppDispatch()
     const { categories } = useAppSelector((state) => ({ categories: state.category.categories }))
-    const username = useAppSelector((state) => state.auth.username)
+    const username = useAppSelector((state) => state.auth.name)
     const cartItems = useAppSelector((state) => state.cart.cart.items)
 
     const [searchQuery, setSearchQuery] = useState('')
