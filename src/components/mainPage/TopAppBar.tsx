@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 interface TopAppBarProps {
   username?: string;
   loyaltyPoints?: number;
@@ -17,9 +19,9 @@ export const TopAppBar = ({
       <div className="flex items-center gap-3">
         <div>
           <p className="text-xs text-primary font-semibold">Szia,</p>
-          <h2 className="text-black dark:text-white text-lg font-bold leading-tight">
-            {displayName || "Guest"}
-          </h2>
+          <Link to="/profile" className="text-black dark:text-white text-lg font-bold leading-tight">
+            {displayName}
+          </Link>
         </div>
       </div>
       <div className="flex items-center gap-3">
