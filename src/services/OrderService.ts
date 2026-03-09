@@ -1,5 +1,5 @@
-import type { ItemModel } from "../models/ItemModel";
-import type { AllOrdersResponseModel } from "../models/OrderModel";
+import type { ItemModel } from "../Models/ItemModel";
+import type { AllOrdersResponseModel } from "../Models/OrderModel";
 import { getStoredToken } from "./tokenStorage";
 const API_URL = import.meta.env.VITE_API_URL || "http://bufeapi.jcloud.jedlik.cloud/api";
 export const GetAllOrders = async (page: number) => {
