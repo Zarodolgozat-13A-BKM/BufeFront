@@ -16,13 +16,14 @@ import { CartModal } from '../components/modals/CartModal'
 import { AddItemModal } from '../components/modals/addItemModal'
 import { setMe } from '../store/authSlice'
 import { GetMe } from '../services/APIservice'
+import { useNavigate } from 'react-router'
 
 const MainPage = () => {
     const dispatch = useAppDispatch()
+    const navigate = useNavigate()
     const { categories } = useAppSelector((state) => ({ categories: state.category.categories }))
     const me = useAppSelector((state) => state.auth.me)
     const cartItems = useAppSelector((state) => state.cart.cart.items)
-
     const [searchQuery, setSearchQuery] = useState('')
     const [activeCategory, setActiveCategory] = useState<CategoryModel | null>(null)
     const [isCartModalOpen, setIsCartModalOpen] = useState(false)
@@ -105,8 +106,8 @@ const MainPage = () => {
 
     // Helper to get item quantity from Redux cart
     const getItemQuantity = (itemId: number): number => {
-        const cartItem = cartItems.find(item => item.item_id === itemId)
-        return cartItem?.quantity || 0
+        const cartItem = cartItems.find((item) => item.id === itemId)
+        return cartItem?.quantity ?? 0
     }
 
     const updateQuantity = (itemId: number, delta: number) => {
@@ -125,13 +126,13 @@ const MainPage = () => {
 
 
     const handleCheckout = () => {
-        console.log('Proceeding to checkout with items:', cartItems)
+        console.log("Checking out with items:", cartItems)
+        navigate('/checkout')
     }
 
-    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0)
+    const totalItems = cartItems.reduce((sum, item) => sum + (item.quantity ?? 0), 0)
     const totalPrice = cartItems.reduce((sum, cartItem) => {
-        const item = categories.flatMap((category: CategoryModel) => category.items).find(i => i.id === cartItem.item_id)
-        return sum + (item ? item.price * cartItem.quantity : 0)
+        return sum + (cartItem.price * (cartItem.quantity ?? 0))
     }, 0)
 
     const getFilteredItems = (items: ItemModel[]) => {
@@ -200,7 +201,7 @@ const MainPage = () => {
 
             <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={() => setIsCartModalOpen(true)}/>
 
-            <CartModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} removeItem={handleRemoveItem} cartItems={cartItems} allItems={categories.flatMap((category: CategoryModel) => category.items)} onUpdateQuantity={updateQuantity} onCheckout={handleCheckout}/>
+            <CartModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} removeItem={handleRemoveItem} cartItems={cartItems} onUpdateQuantity={updateQuantity} onCheckout={handleCheckout}/>
 
             <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? getItemQuantity(selectedItem.id) : 0}/>
         </div>
