@@ -1,4 +1,4 @@
-import type { ItemCreateModel, ItemModel } from "../models/ItemModel";
+import type { ItemCreateModel, ItemModel } from "../Models/ItemModel";
 import { getStoredToken } from "./tokenStorage";
 
 const API_URL = import.meta.env.DEV

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Modal } from './Modal'
-import type { ItemModel } from '../../models/ItemModel'
+import type { ItemModel } from '../../Models/ItemModel'
 
 interface AddItemModalProps {
     isOpen: boolean

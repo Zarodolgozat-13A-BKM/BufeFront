@@ -1,4 +1,4 @@
-import type { ItemModel } from '../../models/ItemModel'
+import type { ItemModel } from '../../Models/ItemModel'
 
 interface SpecialItemCardProps {
   item: ItemModel
