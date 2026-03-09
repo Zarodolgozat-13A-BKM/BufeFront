@@ -2,26 +2,23 @@ import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import {
   clearStoredToken,
-  clearStoredUsername,
   getStoredToken,
-  getStoredUsername,
   setStoredToken,
-  setStoredUsername,
 } from '../services/tokenStorage'
+import type { MeModel } from '../Models/AuthModel'
 
 interface AuthState {
   isLoggedIn: boolean
   bearerToken: string | null
-  name?: string
+  me: MeModel | null
 }
 
 const persistedToken = getStoredToken()
-const persistedUsername = getStoredUsername()
 
 const initialState: AuthState = {
   isLoggedIn: !!persistedToken,
   bearerToken: persistedToken,
-  name : persistedUsername ?? undefined,
+  me: null,
 }
 
 const authSlice = createSlice({
@@ -36,16 +33,14 @@ const authSlice = createSlice({
     logout: (state) => {
       state.isLoggedIn = false
       state.bearerToken = null
-      state.name = undefined
+      state.me = null
       clearStoredToken()
-      clearStoredUsername()
     },
-    setName: (state, action: PayloadAction<{ name: string }>) => {
-      state.name = action.payload.name
-      setStoredUsername(action.payload.name)
+    setMe: (state, action: PayloadAction<{ me: MeModel }>) => {
+      state.me = action.payload.me
     }
-  },
+  }
 })
 
-export const { login, logout, setName } = authSlice.actions
+export const { login, logout, setMe } = authSlice.actions
 export default authSlice.reducer

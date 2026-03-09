@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { GetMe, Login } from '../services/APIservice'
 import { useAppDispatch } from '../store/hooks'
-import { login, setName } from '../store/authSlice'
+import { login, setMe } from '../store/authSlice'
 import type { MeModel } from '../Models/AuthModel'
 
 
@@ -45,7 +45,7 @@ const LoginPage = () => {
             if (token) {
                 dispatch(login({ token}))
                 const user: MeModel = await GetMe()
-                dispatch(setName({ name: user.full_name }))
+                dispatch(setMe({ me: user }))
             }
         } catch (err: unknown) {
             console.error('Login failed:', err)

@@ -14,11 +14,13 @@ import { MenuItemCard } from '../components/mainPage/MenuItemCard'
 import { CartBar } from '../components/mainPage/CartBar'
 import { CartModal } from '../components/modals/CartModal'
 import { AddItemModal } from '../components/modals/addItemModal'
+import { setMe } from '../store/authSlice'
+import { GetMe } from '../services/APIservice'
 
 const MainPage = () => {
     const dispatch = useAppDispatch()
     const { categories } = useAppSelector((state) => ({ categories: state.category.categories }))
-    const username = useAppSelector((state) => state.auth.name)
+    const me = useAppSelector((state) => state.auth.me)
     const cartItems = useAppSelector((state) => state.cart.cart.items)
 
     const [searchQuery, setSearchQuery] = useState('')
@@ -39,7 +41,18 @@ const MainPage = () => {
                 console.error('Failed to fetch categories:', error)
             }
         }
-        
+        const fetchMe = async () => {
+            try {
+                const data = await GetMe()
+                dispatch(setMe({ me: data }))
+            } catch (error) {
+                console.error('Failed to fetch user data:', error)
+            }
+        }
+        if(!me)
+        {
+            fetchMe()
+        } 
         fetchCategories()
     }, [dispatch])
 
@@ -148,7 +161,7 @@ const MainPage = () => {
     return (
         <div ref={scrollContainerRef} className="mainpage-scrollbar relative flex h-screen w-full flex-col overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
             <div ref={stickyHeaderRef} className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm border-b border-primary/20 dark:border-primary/30">
-                <TopAppBar username={username} loyaltyPoints={150} />
+                <TopAppBar username={me?.full_name ?? 'Guest'} loyaltyPoints={150} />
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
                 <CategoryChips categories={categories} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
             </div>
