@@ -1,4 +1,3 @@
-import './App.css'
 import MainPage from './pages/MainPage'
 import { useAppSelector } from './store/hooks'
 import LoginPage from './pages/LoginPage'
