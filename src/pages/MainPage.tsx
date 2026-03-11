@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setCategories } from '../store/categorySlice'
 import { GetAllCategories } from '../services/CategoryService'
@@ -134,11 +134,16 @@ const MainPage = () => {
         return sum + (item ? item.price * cartItem.quantity : 0)
     }, 0)
 
-    const getFilteredItems = (items: ItemModel[]) => {
+    const getFilteredItems = useCallback((items: ItemModel[]) => {
         if (!searchQuery.trim()) return items
         return items.filter(item =>
             item.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
-    }
+    }, [searchQuery])
+
+    const visibleCategories = useMemo(() =>
+        categories.filter(category => getFilteredItems(category.items).length > 0),
+        [categories, getFilteredItems]
+    )
 
     const scrollToCategory = useCallback((categoryIndex: number | null) => {
         const scrollContainer = scrollContainerRef.current
@@ -158,12 +163,17 @@ const MainPage = () => {
         scrollContainer.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' })
     }, [])
 
+    const handleCategoryClick = useCallback((category: CategoryModel) => {
+        setActiveCategory(category)
+        scrollToCategory(categories.findIndex(c => c.id === category.id))
+    }, [categories, scrollToCategory])
+
     return (
         <div ref={scrollContainerRef} className="mainpage-scrollbar relative flex h-screen w-full flex-col overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
             <div ref={stickyHeaderRef} className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm border-b border-primary/20 dark:border-primary/30">
                 <TopAppBar username={me?.full_name ?? 'Guest'} loyaltyPoints={150} />
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
-                <CategoryChips categories={categories} searchQuery={searchQuery} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
+                <CategoryChips categories={visibleCategories} activeCategory={activeCategory} onCategoryClick={handleCategoryClick} />
             </div>
 
             <div className="pt-6 pb-2">
