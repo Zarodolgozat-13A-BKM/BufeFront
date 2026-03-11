@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { GetRinging } from '../services/RingService'
 import type { RingModel } from '../Models/RingModel'
 import { useAppSelector } from '../store/hooks'
@@ -22,6 +22,11 @@ const CheckoutPage = () => {
         }
         fetchRinging()
     }, [])
+
+    const baseTotal = useMemo(
+        () => cart.items.reduce((total, item) => total + item.price * (item.quantity ?? 0), 0),
+        [cart.items]
+    )
 
     return (
         <div className="bg-background-light dark:bg-background-dark font-display antialiased">
@@ -97,26 +102,26 @@ const CheckoutPage = () => {
                             <div className="h-px bg-gray-200 dark:bg-zinc-700 my-3"></div>
                             <div className="flex justify-between items-center mb-1">
                                 <p className="text-text-light dark:text-zinc-400 text-sm">Részösszeg</p>
-                                <p className="text-text-dark dark:text-white text-sm font-medium">{Math.floor(cart.items.reduce((total, item) => total + (item.price * (item.quantity ?? 0)), 0) * 0.73)}Ft</p>
+                                <p className="text-text-dark dark:text-white text-sm font-medium">{Math.floor(baseTotal * 0.73)}Ft</p>
                             </div>
                             <div className="flex justify-between items-center mb-3">
                                 <p className="text-text-light dark:text-zinc-400 text-sm">Adó</p>
-                                <p className="text-text-dark dark:text-white text-sm font-medium">{Math.ceil(cart.items.reduce((total, item) => total + (item.price * (item.quantity ?? 0)), 0) * 0.27)}Ft</p>
+                                <p className="text-text-dark dark:text-white text-sm font-medium">{Math.ceil(baseTotal * 0.27)}Ft</p>
                             </div>
                             <div className="flex justify-between items-center mb-3">
                                 <p className="text-text-light dark:text-zinc-400 text-sm">Szervizdíj</p>
-                                <p className="text-text-dark dark:text-white text-sm font-medium">{Math.floor(cart.items.reduce((total, item) => total + (item.price * (item.quantity ?? 0)), 0) * 0.1)}Ft</p>
+                                <p className="text-text-dark dark:text-white text-sm font-medium">{Math.floor(baseTotal * 0.1)}Ft</p>
                             </div>
                             <div className="flex justify-between items-center pt-1">
                                 <p className="text-text-dark dark:text-white text-base font-bold">Összesen</p>
-                                <p className="text-text-dark dark:text-white text-xl font-bold">{Math.floor(cart.items.reduce((total, item) => total + (item.price * (item.quantity ?? 0)), 0)*1.1)}Ft</p>
+                                <p className="text-text-dark dark:text-white text-xl font-bold">{Math.floor(baseTotal * 1.1)}Ft</p>
                             </div>
                         </div>
                     </div>
                     <div className="px-4 pb-6">
                         <div className="flex items-center justify-center gap-2 py-2 px-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-full border border-yellow-100 dark:border-yellow-900/40 mx-auto w-fit">
                             <span className="material-symbols-outlined text-amber-500 dark:text-amber-400 text-lg">stars</span>
-                            <p className="text-amber-700 dark:text-amber-400 text-xs font-bold uppercase tracking-wide">+{Math.floor(cart.items.reduce((total, item) => total + (item.price * (item.quantity ?? 0)), 0) * 0.11)} pontot kapsz!</p>
+                            <p className="text-amber-700 dark:text-amber-400 text-xs font-bold uppercase tracking-wide">+{Math.floor(baseTotal * 0.11)} pontot kapsz!</p>
                         </div>
                     </div>
                 </main>
@@ -124,7 +129,7 @@ const CheckoutPage = () => {
                     <button className="w-full h-12 bg-primary hover:bg-[#e07b1a] text-white rounded-xl text-base font-bold shadow-lg shadow-orange-200 dark:shadow-none flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
                         <span>Rendelés leadása</span>
                         <span className="w-1 h-1 rounded-full bg-white/40"></span>
-                        <span>{Math.floor(cart.items.reduce((total, item) => total + (item.price * (item.quantity ?? 0)), 0)*1.1)}Ft</span>
+                        <span>{Math.floor(baseTotal * 1.1)}Ft</span>
                     </button>
                 </div>
             </div>

@@ -21,6 +21,7 @@ const cartSlice = createSlice({
       state.cart = action.payload
     },
     addItemToCart: (state, action: PayloadAction<{ item: ItemModel; quantity: number }>) => {
+      if (action.payload.quantity <= 0) return
       const existingItem = state.cart.items.find((item) => item.id === action.payload.item.id)
       if (existingItem) {
         existingItem.quantity = (existingItem.quantity ?? 0) + action.payload.quantity
