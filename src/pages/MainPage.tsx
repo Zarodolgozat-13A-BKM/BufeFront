@@ -163,7 +163,7 @@ const MainPage = () => {
             <div ref={stickyHeaderRef} className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm border-b border-primary/20 dark:border-primary/30">
                 <TopAppBar username={me?.full_name ?? 'Guest'} loyaltyPoints={150} />
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
-                <CategoryChips categories={categories} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
+                <CategoryChips categories={categories} searchQuery={searchQuery} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
             </div>
 
             <div className="pt-6 pb-2">
