@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setCategories } from '../store/categorySlice'
 import { GetAllCategories } from '../services/CategoryService'
@@ -67,11 +67,13 @@ const MainPage = () => {
         dispatch(setItems(data))
     }, [categories, dispatch])
 
-    // Helper to get item quantity from Redux cart
-    const getItemQuantity = (itemId: number): number => {
-        const cartItem = cartItems.find((item) => item.id === itemId)
-        return cartItem?.quantity ?? 0
-    }
+    const itemQuantityById = useMemo(() => {
+        const map: Record<number, number> = {}
+        for (const item of cartItems) {
+            map[item.id] = item.quantity ?? 0
+        }
+        return map
+    }, [cartItems])
 
     const updateQuantity = (itemId: number, delta: number) => {
         dispatch(updateItemQuantity({ item_id: itemId, delta }))
@@ -93,16 +95,42 @@ const MainPage = () => {
         navigate('/checkout')
     }
 
-    const totalItems = cartItems.reduce((sum, item) => sum + (item.quantity ?? 0), 0)
-    const totalPrice = cartItems.reduce((sum, cartItem) => {
-        return sum + (cartItem.price * (cartItem.quantity ?? 0))
-    }, 0)
+    const totalItems = useMemo(
+        () => cartItems.reduce((sum, item) => sum + (item.quantity ?? 0), 0),
+        [cartItems]
+    )
 
-    const getFilteredItems = (items: ItemModel[]) => {
-        if (!searchQuery.trim()) return items
-        return items.filter(item =>
-            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
-    }
+    const totalPrice = useMemo(
+        () => cartItems.reduce((sum, item) => sum + (item.price * (item.quantity ?? 0)), 0),
+        [cartItems]
+    )
+
+    const allItems = useMemo(
+        () => categories.flatMap((category: CategoryModel) => category.items),
+        [categories]
+    )
+
+    const featuredItems = useMemo(
+        () => allItems.filter((item: ItemModel) => item.is_featured),
+        [allItems]
+    )
+
+    const filteredCategories = useMemo(() => {
+        const normalizedQuery = searchQuery.trim().toLowerCase()
+        if (!normalizedQuery) {
+            return categories.map((category, categoryIndex) => ({
+                category,
+                categoryIndex,
+                filteredItems: category.items,
+            }))
+        }
+
+        return categories.map((category, categoryIndex) => ({
+            category,
+            categoryIndex,
+            filteredItems: category.items.filter((item) => item.name.toLowerCase().includes(normalizedQuery)),
+        }))
+    }, [categories, searchQuery])
 
     const scrollToCategory = useCallback((categoryIndex: number | null) => {
         const scrollContainer = scrollContainerRef.current
@@ -137,15 +165,14 @@ const MainPage = () => {
                     </h2>
                 </div>
                 <div className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 gap-4">
-                    {categories.flatMap((category: CategoryModel) => category.items).filter((item: ItemModel) => item.is_featured).map((item: ItemModel) => (
-                        <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={getItemQuantity(item.id)} />
+                    {featuredItems.map((item: ItemModel) => (
+                        <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={itemQuantityById[item.id] ?? 0} />
                     ))
                     }
                 </div>
             </div>
 
-            {categories.map((category: CategoryModel, categoryIndex: number) => {
-                const filteredItems = getFilteredItems(category.items)
+            {filteredCategories.map(({ category, categoryIndex, filteredItems }) => {
                 if (filteredItems.length === 0) return null
 
                 return (
@@ -155,7 +182,7 @@ const MainPage = () => {
                             {category.name}
                         </h3>
                         {filteredItems.map((item) => (
-                            <MenuItemCard key={item.id} item={item} quantity={getItemQuantity(item.id)} showModal={showModal} />
+                            <MenuItemCard key={item.id} item={item} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} />
                         ))}
                     </div>
                 )
@@ -166,7 +193,7 @@ const MainPage = () => {
 
             <CartModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} removeItem={handleRemoveItem} cartItems={cartItems} onUpdateQuantity={updateQuantity} onCheckout={handleCheckout}/>
 
-            <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? getItemQuantity(selectedItem.id) : 0}/>
+            <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? (itemQuantityById[selectedItem.id] ?? 0) : 0}/>
         </div>
     )
 }

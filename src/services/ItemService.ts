@@ -1,22 +1,18 @@
 import type { ItemCreateModel, ItemModel } from "../Models/ItemModel";
+import axios from "axios";
 import { getStoredToken } from "./tokenStorage";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://bufeapi.jcloud.jedlik.cloud/api"
 export const GetAllItems = async () => {
   try {
     const token = getStoredToken();
-    const response = await fetch(`${API_URL}/items`, {
-      method: "GET",
+    const response = await axios.get<ItemModel[]>(`${API_URL}/items`, {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
     }); 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: ItemModel[] = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -25,18 +21,13 @@ export const GetAllItems = async () => {
 export const GetOneItem = async (id:string) => {
   try {
     const token = getStoredToken();
-    const response = await fetch(`${API_URL}/items/${id}`, {
-      method: "GET",
+    const response = await axios.get<ItemModel>(`${API_URL}/items/${id}`, {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
     }); 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: ItemModel = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -45,19 +36,13 @@ export const GetOneItem = async (id:string) => {
 export const CreateItem = async (postData: ItemCreateModel) => {
   try {
     const token = getStoredToken();
-    const response = await fetch(`${API_URL}/items`, {
-      method: "POST",
+    const response = await axios.post(`${API_URL}/items`, postData, {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
-      body: JSON.stringify(postData),
     });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    } 
-    const data = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -66,19 +51,13 @@ export const CreateItem = async (postData: ItemCreateModel) => {
 export const UpdateItem = async (id:string, postData: any) => {
   try {
     const token = getStoredToken();
-    const response = await fetch(`${API_URL}/items/${id}`, {
-      method: "PUT",
+    const response = await axios.put<ItemModel>(`${API_URL}/items/${id}`, postData, {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
-      body: JSON.stringify(postData),
     });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: ItemModel = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -86,18 +65,13 @@ export const UpdateItem = async (id:string, postData: any) => {
 export const DeleteItem = async (id:string) => {
   try {
     const token = getStoredToken();
-    const response = await fetch(`${API_URL}/items/${id}`, {
-      method: "DELETE",
+    const response = await axios.delete<ItemModel>(`${API_URL}/items/${id}`, {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
     });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: ItemModel = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -105,18 +79,13 @@ export const DeleteItem = async (id:string) => {
 export const ToggleItem = async (id:string) => {
   try {
     const token = getStoredToken();
-    const response = await fetch(`${API_URL}/items/${id}/toggle-active`, {
-      method: "POST",
+    const response = await axios.post<ItemModel>(`${API_URL}/items/${id}/toggle-active`, null, {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
     });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: ItemModel = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     throw error;
   }
