@@ -41,8 +41,11 @@ const CheckoutPage = () => {
                             <label className="flex flex-col flex-1">
                                 <p className="text-text-dark dark:text-zinc-300 text-sm font-medium leading-normal pb-2">Válassz szünetet</p>
                                 <div className="relative">
-                                    <select className="appearance-none flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-text-dark dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal transition-shadow">
-                                        <option disabled selected value="">Válassz időpontot...</option>
+                                    <select
+                                        className="appearance-none flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-text-dark dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal transition-shadow"
+                                        defaultValue=""
+                                    >
+                                        <option disabled value="">Válassz időpontot...</option>
                                         <option value={`${new Date().getHours()}:${new Date().getMinutes().toString().padStart(2, '0')}`}>Most</option>
                                         {ringing?.data?.ringlist.slice(0, -1).map((ring, index) => {
                                             const nextRing = ringing.data.ringlist[index + 1]
