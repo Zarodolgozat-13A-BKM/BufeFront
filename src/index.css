@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @source "./";
 @source "./pages/CheckoutPage.tsx";
+@source "./pages/LoginPage.tsx";
+@source "./pages/MainPage.tsx";
+@source "./pages/ProfilePage.tsx";
+
+
 
 @theme {
   --color-primary: #ee8c2b;
