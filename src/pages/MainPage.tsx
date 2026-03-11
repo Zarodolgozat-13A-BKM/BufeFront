@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router'
 const MainPage = () => {
     const dispatch = useAppDispatch()
     const navigate = useNavigate()
-    const { categories } = useAppSelector((state) => ({ categories: state.category.categories }))
+    const categories = useAppSelector((state) => state.category.categories)
     const me = useAppSelector((state) => state.auth.me)
     const cartItems = useAppSelector((state) => state.cart.cart.items)
     const [searchQuery, setSearchQuery] = useState('')
