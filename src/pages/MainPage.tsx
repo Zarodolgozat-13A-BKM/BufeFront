@@ -67,43 +67,6 @@ const MainPage = () => {
         dispatch(setItems(data))
     }, [categories, dispatch])
 
-    useEffect(() => {
-        const links = [
-            'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
-            'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap'
-        ]
-        links.forEach(href => {
-            if (!document.querySelector(`link[href="${href}"]`)) {
-                const link = document.createElement('link')
-                link.rel = 'stylesheet'
-                link.href = href
-                document.head.appendChild(link)
-            }
-        })
-
-        const style = document.createElement('style')
-        style.textContent = `
-            body {
-                font-family: 'Plus Jakarta Sans', sans-serif;
-            }
-            .no-scrollbar::-webkit-scrollbar {
-                display: none;
-            }
-            .no-scrollbar {
-                -ms-overflow-style: none;
-                scrollbar-width: none;
-            }
-            .material-symbols-outlined.filled {
-                font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            }
-        `
-        document.head.appendChild(style)
-
-        return () => {
-            document.head.removeChild(style)
-        }
-    }, [])
-
     // Helper to get item quantity from Redux cart
     const getItemQuantity = (itemId: number): number => {
         const cartItem = cartItems.find((item) => item.id === itemId)

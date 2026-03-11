@@ -13,21 +13,6 @@ const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-
-    React.useEffect(() => {
-        const style = document.createElement('style')
-        style.textContent = `
-            body {
-                font-family: 'Plus Jakarta Sans', sans-serif;
-            }
-        `
-        document.head.appendChild(style)
-
-        return () => {
-            document.head.removeChild(style)
-        }
-    }, [])
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
