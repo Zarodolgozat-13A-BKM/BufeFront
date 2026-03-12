@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Modal } from './Modal'
-import type { ItemModel } from '../../models/ItemModel'
+import type { ItemModel } from '../../Models/ItemModel'
+import { useAppDispatch } from '../../store/hooks'
+import { addItemToCart } from '../../store/cartSlice'
 
 interface AddItemModalProps {
     isOpen: boolean
@@ -26,12 +28,17 @@ export const AddItemModal = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
 }
 
 const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: AddItemModalProps & { item: ItemModel }) => {
+    const dispatch = useAppDispatch()
     const [quantity, setQuantity] = useState(qty > 0 ? qty : 1)
 
     const handleAddToCart = () => {
-        const delta = quantity - qty
-        if (delta !== 0) {
-            onUpdateQuantity(item.id, delta)
+        if (qty === 0) {
+            dispatch(addItemToCart({ item, quantity }))
+        } else {
+            const delta = quantity - qty
+            if (delta !== 0) {
+                onUpdateQuantity(item.id, delta)
+            }
         }
         onClose()
     }
@@ -70,15 +77,15 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <span className="text-3xl font-extrabold text-primary">
-                            ${item.price}
+                        <span className="text-3xl font-extrabold text-primary dark:text-white">
+                            {item.price}Ft
                         </span>
-                        <span className="text-gray-500 dark:text-gray-400">per item</span>
+                        <span className="text-gray-500 dark:text-gray-400">/ darab</span>
                     </div>
 
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Quantity
+                            Mennyiség
                         </label>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
@@ -101,34 +108,24 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                                 </button>
                             </div>
                             <div className="text-gray-600 dark:text-gray-400">
-                                Total: <span className="font-bold text-gray-900 dark:text-white">${totalPrice.toFixed(2)}</span>
+                                Összesen: <span className="font-bold text-gray-900 dark:text-white">{totalPrice}Ft</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                        <button
-                            onClick={handleAddToCart}
-                            disabled={!item.is_active}
-                            className={`flex-1 py-3 rounded-lg font-bold bg-black text-white transition-all ${item.is_active
-                                    ? 'bg-orange-500 hover:bg-primary/90 active:scale-[0.98]'
-                                    : 'bg-gray-400 cursor-not-allowed'
-                                }`}
-                        >
+                        <button onClick={handleAddToCart} disabled={!item.is_active} className={`flex-1 py-3 rounded-lg font-bold bg-black text-white transition-all ${item.is_active ? 'bg-primary hover:bg-primary-hover active:scale-[0.98]' : 'bg-gray-400 cursor-not-allowed' }`}  >
                             {item.is_active ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <span className="material-symbols-outlined">shopping_cart</span>
-                                    Add to Cart
+                                    Kosaramba teszem
                                 </span>
                             ) : (
-                                'Currently Unavailable'
+                                'Jelenleg nem elérhető'
                             )}
                         </button>
-                        <button
-                            onClick={onClose}
-                            className="px-6 py-3 rounded-lg font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                        >
-                            Cancel
+                        <button onClick={onClose} className="px-6 py-3 rounded-lg font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            Mégse
                         </button>
                     </div>
                 </div>

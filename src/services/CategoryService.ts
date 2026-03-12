@@ -1,25 +1,20 @@
-import type { CategoryModel } from "../models/CategoryModel";
+import type { CategoryModel } from "../Models/CategoryModel";
+import axios from "axios";
 import { store } from "../store/store";
 
-const API_URL = import.meta.env.DEV
-  ? (import.meta.env.VITE_API_URL || '/api')
-  : (import.meta.env.VITE_API_URL || "http://bufeapi-markomilan.jcloud.jedlik.cloud/api");
+const API_URL = import.meta.env.VITE_API_URL || "https://bufeapi.jcloud.jedlik.cloud/api";
+
 export const GetAllCategories = async () => {
   try {
     const token = store.getState().auth.bearerToken;
     console.log("Token in GetAllCategories:", token);
-    const response = await fetch(`${API_URL}/categories`, {
-      method: "GET",
+    const response = await axios.get<CategoryModel[]>(`${API_URL}/categories`, {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
     }); 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: CategoryModel[] = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -27,18 +22,13 @@ export const GetAllCategories = async () => {
 export const GetOneCategory = async (id: string) => {
   try {
     const token = store.getState().auth.bearerToken;
-    const response = await fetch(`${API_URL}/categories/${id}`, {
-      method: "GET",
+    const response = await axios.get<CategoryModel>(`${API_URL}/categories/${id}`, {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
     }); 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: CategoryModel = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -47,19 +37,13 @@ export const CreateCategory = async (categoryName: string) => {
   try {
     const token = store.getState().auth.bearerToken;
     const postData = { name: categoryName };
-    const response = await fetch(`${API_URL}/categories`, {
-        method: "POST",
+    const response = await axios.post<CategoryModel>(`${API_URL}/categories`, postData, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(postData),
         });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: CategoryModel = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -67,18 +51,13 @@ export const CreateCategory = async (categoryName: string) => {
 export const DeleteCategory = async (id: string) => {
   try {
     const token = store.getState().auth.bearerToken;
-    const response = await fetch(`${API_URL}/categories/${id}`, {
-        method: "DELETE",
+    const response = await axios.delete(`${API_URL}/categories/${id}`, {
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,
         },
     });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data = await response.json();
-    return data;
+    return response.data;
     } catch (error) {
     throw error;
     }
@@ -87,19 +66,13 @@ export const UpdateCategory = async (id: string, categoryName: string) => {
   try {
     const token = store.getState().auth.bearerToken;
     const postData = { name: categoryName };
-    const response = await fetch(`${API_URL}/categories/${id}`, {
-        method: "PUT",
+    const response = await axios.put<CategoryModel>(`${API_URL}/categories/${id}`, postData, {
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(postData),
     });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: CategoryModel = await response.json();
-    return data;
+    return response.data;
     } catch (error) {
     throw error;
     };

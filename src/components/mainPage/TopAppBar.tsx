@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 interface TopAppBarProps {
   username?: string;
   loyaltyPoints?: number;
@@ -16,14 +18,14 @@ export const TopAppBar = ({
     <div className="p-4 pb-2 flex items-center justify-between transition-colors duration-300">
       <div className="flex items-center gap-3">
         <div>
-          <p className="text-xs text-orange-500 font-semibold">Szia,</p>
-          <h2 className="text-black dark:text-white text-lg font-bold leading-tight">
-            {displayName || "Guest"}
-          </h2>
+          <p className="text-xs text-primary font-semibold">Szia,</p>
+          <Link to="/profile" className="text-black dark:text-white text-lg font-bold leading-tight">
+            {displayName}
+          </Link>
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center bg-orange-500 px-3 py-1.5 rounded-full shadow-lg">
+        <div className="flex items-center justify-center bg-primary px-3 py-1.5 rounded-full shadow-lg">
           <span className="text-white material-symbols-outlined text-lg mr-1 filled">
             star
           </span>

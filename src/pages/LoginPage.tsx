@@ -1,51 +1,18 @@
 import React, { useState } from 'react'
-import { Login } from '../services/APIservice'
+import { GetMe, Login } from '../services/APIservice'
 import { useAppDispatch } from '../store/hooks'
-import { login } from '../store/authSlice'
+import { login, setMe } from '../store/authSlice'
+import type { MeModel } from '../Models/AuthModel'
 
 
 const LoginPage = () => {
     const dispatch = useAppDispatch()
     const [username, setusername] = useState('')
     const [password, setPassword] = useState('')
-    const [rememberMe, setRememberMe] = useState(false)
+    const [rememberMe, setRememberMe] = useState(true)
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-
-    React.useEffect(() => {
-        const style = document.createElement('style')
-        style.textContent = `
-            body {
-                font-family: 'Plus Jakarta Sans', sans-serif;
-            }
-            .blur-bg-overlay {
-                backdrop-filter: blur(8px);
-                background-color: rgba(248, 247, 246, 0.85);
-            }
-            .bg-orange {
-                background-color: #ee8c2b;
-            }
-            .text-orange {
-                color: #ee8c2b;
-            }
-            .border-orange {
-                border-color: #ee8c2b;
-            }
-            .ring-orange {
-                --tw-ring-color: #ee8c2b;
-            }
-            .focus\\:ring-orange:focus {
-                --tw-ring-color: #ee8c2b;
-            }
-        `
-        document.head.appendChild(style)
-
-        return () => {
-            document.head.removeChild(style)
-        }
-    }, [])
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
@@ -55,14 +22,15 @@ const LoginPage = () => {
                 setError('Kérem, töltse ki az összes mezőt.')
                 return;
             }
-            if (username.split('.').length < 2 || username.split('.').map(part => part.trim()).some(part => part === '')) {
-                setError('Kérem, adja meg a teljes Jedlikes azonosítóját (pl. Gipsz.Jakab).')
-                return;
-            }
+            // if (username.split('.').length < 2 || username.split('.').map(part => part.trim()).some(part => part === '')) {
+            //     setError('Kérem, adja meg a teljes Jedlikes azonosítóját (pl. Gipsz.Jakab).')
+            //     return;
+            // }
             const token = await Login({ username, password }, rememberMe)
             if (token) {
-                dispatch(login({ token, username }))
-                console.log('Login successful')
+                dispatch(login({ token}))
+                const user: MeModel = await GetMe()
+                dispatch(setMe({ me: user }))
             }
         } catch (err: unknown) {
             console.error('Login failed:', err)
@@ -77,7 +45,7 @@ const LoginPage = () => {
     }
 
     return (
-        <div className="w-screen h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center overflow-hidden relative">
+        <div className="w-screen h-screen bg-slate-50 dark:bg-primary flex items-center justify-center overflow-hidden relative">
             <div className="absolute inset-0 z-0 w-full h-full">
                 <div
                     className="w-full h-full bg-center bg-cover bg-no-repeat"
@@ -88,43 +56,39 @@ const LoginPage = () => {
             </div>
 
             <div className="relative z-10 w-full max-w-md px-6 py-8">
-                <div className="text-center mb-8">
-                    <div className="w-16 h-16 rounded-lg flex items-center justify-center shadow-lg mb-4 mx-auto" style={{ backgroundColor: '#ee8c2b' }}>
-                        <span className="material-symbols-outlined text-white text-4xl">restaurant</span>
+                <div className="backdrop-blur-lg bg-bg-overlay-light/10 dark:bg-black/10 rounded-xl p-6 shadow-2xl border border-white/20">
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 rounded-lg bg-primary flex items-center justify-center shadow-lg mb-4 mx-auto">
+                            <span className="material-symbols-outlined text-white text-4xl">restaurant</span>
+                        </div>
+                        <h1 className="text-3xl font-bold text-primary dark:text-white mb-2">Jedlik Bufé</h1>
+                        <p className="text-slate-400">Fuel your study sessions.</p>
                     </div>
-                    <h1 className="text-3xl font-bold dark:text-white mb-2" style={{ color: '#ee8c2b' }}>Jedlik Bufé</h1>
-                    <p className="text-slate-600 dark:text-slate-400">Fuel your study sessions.</p>
-                </div>
-
-                <div className="blur-bg-overlay dark:bg-slate-900/80 rounded-xl p-6 shadow-2xl border border-white/20">
-                    <h2 className="text-xl font-semibold mb-6 text-slate-900 dark:text-white">Üdv újra!</h2>
                     {error && (
-                        <div className="rounded-lg mb-4 p-3 bg-red-100 text-red-700 border border-red-300 text-sm">
+                        <div className="rounded-lg mb-4 p-3 bg-error/10 text-error-text border border-error/20 text-sm font-semibold">
                             {error}
                         </div>
                     )}
                     <form className="space-y-5" onSubmit={handleSubmit}>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Jedlikes bejelentkezés</label>
+                            <label className="block text-sm text-slate-200 mb-2">Jedlikes bejelentkezés</label>
                             <div className="relative">
-                                <img src='./profile.svg' className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2" alt="profile" />
+                                <img src='./profile.svg' className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-white" alt="profile" />
                                 <input
                                     type="text"
                                     placeholder="vezetéknév.keresztnév"
                                     value={username}
                                     onChange={(e) => setusername(e.target.value)}
                                     required
-                                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all"
-                                    style={{ outlineColor: '#ee8c2b', borderColor: 'rgb(226, 232, 240)', '--tw-ring-color': '#ee8c2b' } as React.CSSProperties}
+                                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300/50 bg-white/30 text-slate-200 placeholder-slate-200 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                                 />
                             </div>
                         </div>
 
                         <div>
                             <div className="flex justify-between items-center mb-2">
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">Jelszó</label>
-                                <a href="#" className="text-xs font-bold hover:underline" style={{ color: '#ee8c2b' }}>Elfelejtett jelszó?</a>
+                                <label className="block text-sm text-slate-200">Jelszó</label>
                             </div>
                             <div className="relative">
                                 <img src='./lock.svg' className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2" alt="lock" />
@@ -134,26 +98,31 @@ const LoginPage = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all"
-                                    style={{ outlineColor: '#ee8c2b', '--tw-ring-color': '#ee8c2b' } as React.CSSProperties}
+                                    className="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-300/50 bg-white/30 text-slate-200 placeholder-slate-200 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                                 />
                                 <img src={showPassword ? "./showpwd.svg" : "./hidepwd.svg"} onClick={() => setShowPassword(!showPassword)} className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer" alt="toggle password" />
                             </div>
                         </div>
-                        <div className="mx-1 flex items-center justify-between">
-                            <label className="inline-flex items-center text-sm text-slate-700 dark:text-slate-300">
-                                <input type="checkbox" className="form-checkbox h-4 w-4 text-orange focus:ring-orange border-gray-300 rounded" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
-                                <span className="ml-2">Emlékezz rám</span>
+                        <div className="flex items-center">
+                            <label className="flex items-center cursor-pointer relative" htmlFor="check-2">
+                                <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="peer h-5 w-5 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-slate-300 checked:bg-slate-800 checked:border-slate-800" id="check-2" />
+                                <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"
+                                        stroke="currentColor" stroke-width="1">
+                                        <path fill-rule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
+                                </span>
+                            </label>
+                            <label className="cursor-pointer ml-2 text-slate-200 text-sm leading-5" htmlFor="check-2">
+                                Emlékezz rám
                             </label>
                         </div>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full text-white font-bold py-3 px-4 rounded-lg shadow-md transition-all active:scale-95 mt-4"
-                            style={{
-                                backgroundColor: loading ? 'rgba(238, 140, 43, 0.5)' : '#ee8c2b',
-                                opacity: loading ? 0.7 : 1
-                            }}
+                            className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-all active:scale-95 mt-4"
                         >
                             {loading ? 'Bejelentkezés...' : 'Bejelentkezés'}
                         </button>
@@ -162,7 +131,7 @@ const LoginPage = () => {
 
                 <div className="text-center mt-8 text-slate-600 dark:text-slate-400">
                     <div className="flex justify-center gap-6 text-xs uppercase tracking-widest text-slate-500 dark:text-slate-500">
-                        <a href="#" className="hover:text-slate-700 dark:hover:text-slate-300">Adatvédelem</a>
+                        <a href="#" className="hover:text-slate-700 dark:hover:text-slate-300">Adatkezelés</a>
                         <a href="#" className="hover:text-slate-700 dark:hover:text-slate-300">Szerződési feltételek</a>
                     </div>
                 </div>

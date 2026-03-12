@@ -9,7 +9,12 @@ export interface OrderModel {
   updated_at: Date
   items: ItemModel[]
 }
-
+export interface CartModel {
+  items: CartItemModel[]
+}
+export type CartItemModel = ItemModel & {
+  quantity?: number
+};
 export interface OrderCreateModel {
   delivery_date: string
   items: OrderItem[]
