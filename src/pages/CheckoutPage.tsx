@@ -4,6 +4,10 @@ import type { RingModel } from '../Models/RingModel'
 import { useAppSelector } from '../store/hooks'
 import { Link } from 'react-router'
 
+const TAX_RATE = 0.27
+const SERVICE_FEE_RATE = 0.10
+const SUBTOTAL_RATE = 1 - TAX_RATE  // 0.73
+
 const CheckoutPage = () => {
     const [ringing, setRinging] = useState<RingModel | null>(null)
     const { cart } = useAppSelector((state) => ({ cart: state.cart.cart }))
@@ -102,26 +106,26 @@ const CheckoutPage = () => {
                             <div className="h-px bg-gray-200 dark:bg-zinc-700 my-3"></div>
                             <div className="flex justify-between items-center mb-1">
                                 <p className="text-text-light dark:text-zinc-400 text-sm">Részösszeg</p>
-                                <p className="text-text-dark dark:text-white text-sm font-medium">{Math.floor(baseTotal * 0.73)}Ft</p>
+                                <p className="text-text-dark dark:text-white text-sm font-medium">{Math.floor(baseTotal * SUBTOTAL_RATE)}Ft</p>
                             </div>
                             <div className="flex justify-between items-center mb-3">
                                 <p className="text-text-light dark:text-zinc-400 text-sm">Adó</p>
-                                <p className="text-text-dark dark:text-white text-sm font-medium">{Math.ceil(baseTotal * 0.27)}Ft</p>
+                                <p className="text-text-dark dark:text-white text-sm font-medium">{Math.ceil(baseTotal * TAX_RATE)}Ft</p>
                             </div>
                             <div className="flex justify-between items-center mb-3">
                                 <p className="text-text-light dark:text-zinc-400 text-sm">Szervizdíj</p>
-                                <p className="text-text-dark dark:text-white text-sm font-medium">{Math.floor(baseTotal * 0.1)}Ft</p>
+                                <p className="text-text-dark dark:text-white text-sm font-medium">{Math.floor(baseTotal * SERVICE_FEE_RATE)}Ft</p>
                             </div>
                             <div className="flex justify-between items-center pt-1">
                                 <p className="text-text-dark dark:text-white text-base font-bold">Összesen</p>
-                                <p className="text-text-dark dark:text-white text-xl font-bold">{Math.floor(baseTotal * 1.1)}Ft</p>
+                                <p className="text-text-dark dark:text-white text-xl font-bold">{Math.floor(baseTotal * (1 + SERVICE_FEE_RATE))}Ft</p>
                             </div>
                         </div>
                     </div>
                     <div className="px-4 pb-6">
                         <div className="flex items-center justify-center gap-2 py-2 px-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-full border border-yellow-100 dark:border-yellow-900/40 mx-auto w-fit">
                             <span className="material-symbols-outlined text-amber-500 dark:text-amber-400 text-lg">stars</span>
-                            <p className="text-amber-700 dark:text-amber-400 text-xs font-bold uppercase tracking-wide">+{Math.floor(baseTotal * 0.11)} pontot kapsz!</p>
+                            <p className="text-amber-700 dark:text-amber-400 text-xs font-bold uppercase tracking-wide">+{Math.floor(baseTotal * SERVICE_FEE_RATE * 1.1)} pontot kapsz!</p>
                         </div>
                     </div>
                 </main>
@@ -129,7 +133,7 @@ const CheckoutPage = () => {
                     <button className="w-full h-12 bg-primary hover:bg-[#e07b1a] text-white rounded-xl text-base font-bold shadow-lg shadow-orange-200 dark:shadow-none flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
                         <span>Rendelés leadása</span>
                         <span className="w-1 h-1 rounded-full bg-white/40"></span>
-                        <span>{Math.floor(baseTotal * 1.1)}Ft</span>
+                        <span>{Math.floor(baseTotal * (1 + SERVICE_FEE_RATE))}Ft</span>
                     </button>
                 </div>
             </div>
