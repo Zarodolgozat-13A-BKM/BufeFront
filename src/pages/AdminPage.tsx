@@ -1,13 +1,24 @@
 import { useState, useMemo } from 'react'
-import { useAppSelector } from '../store/hooks'
+import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { setCategories } from '../store/categorySlice'
 import type { CategoryModel } from '../Models/CategoryModel'
 import type { ItemModel } from '../Models/ItemModel'
+import { GetAllCategories } from '../services/CategoryService'
+import { CreateItemModal } from '../components/modals/CreateItemModal'
 
 type SortDir = 'asc' | 'desc'
 
 const AdminPage = () => {
+    const dispatch = useAppDispatch()
     const categories = useAppSelector((state) => state.category.categories)
     const items = useAppSelector((state) => state.category.categories.flatMap((c) => c.items))
+
+    const [isCreateItemOpen, setIsCreateItemOpen] = useState(false)
+
+    const handleItemCreated = async () => {
+        const updated = await GetAllCategories()
+        dispatch(setCategories(updated))
+    }
 
     const [catSortField, setCatSortField] = useState<keyof CategoryModel>('id')
     const [catSortDir, setCatSortDir] = useState<SortDir>('asc')
@@ -23,9 +34,6 @@ const AdminPage = () => {
             setCatSortDir('asc')
         }
     }
-    // const changeActiveCategory = (item: ItemModel) => {
-        
-    // }
 
     const handleItemSort = (field: keyof ItemModel) => {
         if (field === itemSortField) {
@@ -97,7 +105,16 @@ const AdminPage = () => {
         </div>
 
         <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold text-primary dark:text-white mb-2">Termékek</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-2xl font-bold text-primary dark:text-white">Termékek</h2>
+            <button
+              onClick={() => setIsCreateItemOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-hover transition-colors"
+            >
+              <span className="text-lg leading-none">+</span>
+              Termék hozzáadása
+            </button>
+          </div>
           <table className="w-full text-sm text-left border-collapse">
         <thead className="border-b-2 border-primary/30 text-black dark:text-white">
           <tr className="h-10">
@@ -149,6 +166,13 @@ const AdminPage = () => {
         </div>
 
       </div>
+
+      <CreateItemModal
+        isOpen={isCreateItemOpen}
+        onClose={() => setIsCreateItemOpen(false)}
+        categories={categories}
+        onCreated={handleItemCreated}
+      />
     </div>
   )
 }
