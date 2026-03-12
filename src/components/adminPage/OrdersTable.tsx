@@ -1,5 +1,5 @@
 import type { OrderModel } from '../../Models/OrderModel'
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { Fragment, type ReactNode, useEffect, useRef, useState } from 'react'
 
 type SortDir = 'asc' | 'desc'
 
@@ -38,6 +38,16 @@ const OrdersTable = ({
 }: OrdersTableProps) => {
     const [openStatusId, setOpenStatusId] = useState<number | null>(null)
     const popoverRef = useRef<HTMLDivElement>(null)
+    const [expandedRowKeys, setExpandedRowKeys] = useState<Set<number>>(new Set())
+
+    const toggleExpanded = (id: number) => {
+        setExpandedRowKeys((prev) => {
+            const next = new Set(prev)
+            if (next.has(id)) next.delete(id)
+            else next.add(id)
+            return next
+        })
+    }
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -59,7 +69,7 @@ const OrdersTable = ({
                 <thead className="bg-primary/5 dark:bg-primary/10 border-b border-primary/20 text-gray-700 dark:text-gray-200">
                     <tr className="h-10">
                         <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('id')}>
-                            ID{sortIcon('id', orderSortField, orderSortDir)}
+                            <span className="mr-1">▼</span>ID{sortIcon('id', orderSortField, orderSortDir)}
                         </th>
                         <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('order_identifier_number')}>
                             Rendelésszám{sortIcon('order_identifier_number', orderSortField, orderSortDir)}
@@ -74,21 +84,27 @@ const OrdersTable = ({
                             Szállítási dátum{sortIcon('delivery_date', orderSortField, orderSortDir)}
                         </th>
                         <th className="py-2 px-3 font-semibold uppercase tracking-wide text-[11px] text-center">
-                            Termékek
-                        </th>
-                        <th className="py-2 px-3 font-semibold uppercase tracking-wide text-[11px] text-center">
                             Végösszeg
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    {sortedOrders.map((order: OrderModel) => (
-                        <tr key={order.id} className="h-14 border-b border-primary/10 dark:border-primary/20 hover:bg-orange-50/70 dark:hover:bg-zinc-800/80 transition-colors">
-                            <td className="py-2 px-3 font-medium text-black dark:text-white text-center">{order.id}</td>
+                    {sortedOrders.map((order: OrderModel) => {
+                        const isExpanded = expandedRowKeys.has(order.id)
+                        return (
+                        <Fragment key={order.id}>
+                        <tr
+                            className="h-14 cursor-pointer border-b border-primary/10 dark:border-primary/20 hover:bg-orange-50/70 dark:hover:bg-zinc-800/80 transition-colors"
+                            onClick={() => toggleExpanded(order.id)}
+                        >
+                            <td className="py-2 px-3 font-medium text-black dark:text-white text-center select-none">
+                                <span className="mr-1.5 text-xs text-gray-500 dark:text-gray-400">{isExpanded ? '▼' : '▶'}</span>
+                                {order.id}
+                            </td>
                             <td className="py-2 px-3 font-medium text-black dark:text-white text-center">#{order.order_identifier_number}</td>
                             <td className="py-2 px-3 text-black dark:text-white text-center">{order.user_id}</td>
                             <td className="py-2 px-3 text-center">
-                                <div className="relative inline-block" ref={openStatusId === order.id ? popoverRef : undefined}>
+                                <div className="relative inline-block" ref={openStatusId === order.id ? popoverRef : undefined} onClick={(e) => e.stopPropagation()}>
                                     <button
                                         type="button"
                                         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition hover:brightness-95 ${statusStyle(order.status)}`}
@@ -122,16 +138,43 @@ const OrdersTable = ({
                                     : <span className="text-gray-400 dark:text-gray-600">—</span>
                                 }
                             </td>
-                            <td className="py-2 px-3 text-center">
-                                <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-                                    {order.items?.length ?? 0} db
-                                </span>
-                            </td>
                             <td className="py-2 px-3 text-black dark:text-white text-center font-medium">
                                 {(order.total_price ?? 0).toLocaleString('hu-HU')} Ft
                             </td>
                         </tr>
-                    ))}
+                        {isExpanded && (
+                            <tr className="bg-primary/5 dark:bg-zinc-900/70 border-b border-primary/10 dark:border-primary/20">
+                                <td colSpan={6} className="px-6 py-3">
+                                    {!order.items || order.items.length === 0 ? (
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">Nincs termék ebben a rendelésben.</p>
+                                    ) : (
+                                        <table className="w-full text-xs text-left border-collapse">
+                                            <thead>
+                                                <tr className="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-[10px] border-b border-primary/10">
+                                                    <th className="py-1.5 pr-4 font-semibold">Termék neve</th>
+                                                    <th className="py-1.5 pr-4 font-semibold text-center">Mennyiség</th>
+                                                    <th className="py-1.5 pr-4 font-semibold text-right">Egységár</th>
+                                                    <th className="py-1.5 font-semibold text-right">Összeg</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {order.items.map((item) => (
+                                                    <tr key={item.item_id} className="border-b border-primary/5 last:border-0">
+                                                        <td className="py-1.5 pr-4 font-medium text-black dark:text-white">{item.item_name}</td>
+                                                        <td className="py-1.5 pr-4 text-center text-black dark:text-white">{item.quantity} db</td>
+                                                        <td className="py-1.5 pr-4 text-right text-black dark:text-white">{item.item_price.toLocaleString('hu-HU')} Ft</td>
+                                                        <td className="py-1.5 text-right font-semibold text-black dark:text-white">{item.price.toLocaleString('hu-HU')} Ft</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </td>
+                            </tr>
+                        )}
+                        </Fragment>
+                        )
+                    })}
                 </tbody>
             </table>
         </div>
