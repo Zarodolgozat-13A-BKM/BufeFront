@@ -5,8 +5,6 @@ export interface OrderModel {
   order_identifier_number: number
   status: boolean
   delivery_date: Date | null;
-  created_at: Date
-  updated_at: Date
   items: ItemModel[]
 }
 export interface CartModel {
