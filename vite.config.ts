@@ -10,12 +10,14 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      // Proxy /api/* to the real backend during development to avoid CORS
-      '/api': {
-        target: 'http://bufeapi-markomilan.jcloud.jedlik.cloud',
+
+      // requests to /external-api/... will be forwarded to
+      // https://jedlikinfo.jedlik.eu/api/api/...
+      '/external-api': {
+        target: 'https://jedlikinfo.jedlik.eu/api/api',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '/api'),
+        rewrite: (path) => path.replace(/^\/external-api/, ''),
       },
     },
   },
