@@ -1,14 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Modal } from './Modal'
-import type { ItemCreateModel } from '../../Models/ItemModel'
+import type { ItemCreateModel, ItemModel } from '../../Models/ItemModel'
 import type { CategoryModel } from '../../Models/CategoryModel'
-import { CreateItem } from '../../services/ItemService'
+import { CreateItem, UpdateItem } from '../../services/ItemService'
 
 interface CreateItemModalProps {
     isOpen: boolean
     onClose: () => void
     categories: CategoryModel[]
     onCreated: () => void
+    item?: ItemModel
 }
 
 const EMPTY_FORM: ItemCreateModel = {
@@ -22,10 +23,30 @@ const EMPTY_FORM: ItemCreateModel = {
     category_id: 0,
 }
 
-export const CreateItemModal = ({ isOpen, onClose, categories, onCreated }: CreateItemModalProps) => {
+export const CreateItemModal = ({ isOpen, onClose, categories, onCreated, item }: CreateItemModalProps) => {
     const [form, setForm] = useState<ItemCreateModel>(EMPTY_FORM)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const isEditing = Boolean(item)
+
+    useEffect(() => {
+        if (!isOpen) return
+        if (item) {
+            setForm({
+                name: item.name,
+                picture_url: item.picture_url,
+                description: item.description,
+                price: item.price,
+                is_active: item.is_active,
+                is_featured: item.is_featured,
+                default_time_to_deliver: item.default_time_to_deliver,
+                category_id: item.category_id,
+            })
+        } else {
+            setForm(EMPTY_FORM)
+        }
+        setError(null)
+    }, [isOpen, item])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target
@@ -46,19 +67,23 @@ export const CreateItemModal = ({ isOpen, onClose, categories, onCreated }: Crea
         if (form.price <= 0) { setError('Az árnak pozitívnak kell lennie.'); return }
         setLoading(true)
         try {
-            await CreateItem(form)
+            if (item) {
+                await UpdateItem(item.id.toString(), form)
+            } else {
+                await CreateItem(form)
+            }
             setForm(EMPTY_FORM)
             onCreated()
             onClose()
         } catch {
-            setError('Hiba történt a termék létrehozásakor.')
+            setError(item ? 'Hiba történt a termék módosításakor.' : 'Hiba történt a termék létrehozásakor.')
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Új termék hozzáadása" maxWidth="lg">
+        <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Termék módosítása' : 'Új termék hozzáadása'} maxWidth="lg">
             <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-4">
                 {error && (
                     <div className="rounded-lg p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 text-sm font-medium">
@@ -130,7 +155,7 @@ export const CreateItemModal = ({ isOpen, onClose, categories, onCreated }: Crea
                 <div className="flex gap-3 pt-2">
                     <button type="submit" disabled={loading}
                         className="flex-1 py-2.5 rounded-lg font-bold text-white bg-primary hover:bg-primary-hover disabled:opacity-50 transition-colors">
-                        {loading ? 'Mentés...' : 'Termék létrehozása'}
+                        {loading ? 'Mentés...' : isEditing ? 'Termék mentése' : 'Termék létrehozása'}
                     </button>
                     <button type="button" onClick={onClose}
                         className="px-6 py-2.5 rounded-lg font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">

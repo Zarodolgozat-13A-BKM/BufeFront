@@ -3,175 +3,209 @@ import { useAppSelector, useAppDispatch } from '../store/hooks'
 import { setCategories } from '../store/categorySlice'
 import type { CategoryModel } from '../Models/CategoryModel'
 import type { ItemModel } from '../Models/ItemModel'
-import { GetAllCategories } from '../services/CategoryService'
+import { DeleteCategory, GetAllCategories } from '../services/CategoryService'
 import { CreateItemModal } from '../components/modals/CreateItemModal'
+import CategoriesTable from '../components/adminPage/CategoriesTable'
+import ItemsTable from '../components/adminPage/ItemsTable'
+import { DeleteItem, ToggleActive, ToggleFeatured } from '../services/ItemService'
+import { CreateCatModal } from '../components/modals/CreateCatModal'
 
 type SortDir = 'asc' | 'desc'
 
 const AdminPage = () => {
-    const dispatch = useAppDispatch()
-    const categories = useAppSelector((state) => state.category.categories)
-    const items = useAppSelector((state) => state.category.categories.flatMap((c) => c.items))
+  const dispatch = useAppDispatch()
+  const categories = useAppSelector((state) => state.category.categories)
+  const items = useAppSelector((state) => state.category.categories.flatMap((c) => c.items))
+  const [CategoryTableVisible, setCategoryTableVisible] = useState(true)
+  const [ItemTableVisible, setItemTableVisible] = useState(true)
+  
+  const [isCreateItemOpen, setIsCreateItemOpen] = useState(false)
+  const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false)
+  const [selectedItem, setSelectedItem] = useState<ItemModel | undefined>(undefined)
 
-    const [isCreateItemOpen, setIsCreateItemOpen] = useState(false)
-
-    const handleItemCreated = async () => {
-        const updated = await GetAllCategories()
-        dispatch(setCategories(updated))
+  const handleItemStatusToggle = async (id: number, field: 'is_active' | 'is_featured') => {
+    if (field === 'is_active') {
+      await ToggleActive(id.toString())
+    } else {
+      await ToggleFeatured(id.toString())
     }
+    const updated = await GetAllCategories()
+    dispatch(setCategories(updated))
+  }
 
-    const [catSortField, setCatSortField] = useState<keyof CategoryModel>('id')
-    const [catSortDir, setCatSortDir] = useState<SortDir>('asc')
+  const handleItemCreated = async () => {
+    const updated = await GetAllCategories()
+    dispatch(setCategories(updated))
+  }
 
-    const [itemSortField, setItemSortField] = useState<keyof ItemModel>('id')
-    const [itemSortDir, setItemSortDir] = useState<SortDir>('asc')
+  const handleItemDelete = async (item: ItemModel) => {
+    await DeleteItem(item.id.toString())
+    const updated = await GetAllCategories()
+    dispatch(setCategories(updated))
+  }
 
-    const handleCatSort = (field: keyof CategoryModel) => {
-        if (field === catSortField) {
-            setCatSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-        } else {
-            setCatSortField(field)
-            setCatSortDir('asc')
-        }
+  const handleCatDelete = async (cat: CategoryModel) => {
+    DeleteCategory(cat.id.toString())
+    const updated = await GetAllCategories()
+    dispatch(setCategories(updated))
+  }
+
+  const handleCatCreated = async () => {
+    const updated = await GetAllCategories()
+    dispatch(setCategories(updated))
+  }
+
+  const [catSortField, setCatSortField] = useState<keyof CategoryModel>('id')
+  const [catSortDir, setCatSortDir] = useState<SortDir>('asc')
+  const [selectedCategory, setSelectedCategory] = useState<CategoryModel | undefined>(undefined)
+  const [itemSortField, setItemSortField] = useState<keyof ItemModel>('id')
+  const [itemSortDir, setItemSortDir] = useState<SortDir>('asc')
+
+  const handleCatSort = (field: keyof CategoryModel) => {
+    if (field === catSortField) {
+      setCatSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setCatSortField(field)
+      setCatSortDir('asc')
     }
+  }
 
-    const handleItemSort = (field: keyof ItemModel) => {
-        if (field === itemSortField) {
-            setItemSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-        } else {
-            setItemSortField(field)
-            setItemSortDir('asc')
-        }
+  const handleItemSort = (field: keyof ItemModel) => {
+    if (field === itemSortField) {
+      setItemSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setItemSortField(field)
+      setItemSortDir('asc')
     }
+  }
 
-    const sortedCategories = useMemo(() => {
-        return [...categories].sort((a, b) => {
-            const aVal = a[catSortField]
-            const bVal = b[catSortField]
-            if (aVal == null || bVal == null) return 0
-            if (aVal < bVal) return catSortDir === 'asc' ? -1 : 1
-            if (aVal > bVal) return catSortDir === 'asc' ? 1 : -1
-            return 0
-        })
-    }, [categories, catSortField, catSortDir])
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => {
+      const aVal = a[catSortField]
+      const bVal = b[catSortField]
+      if (aVal == null || bVal == null) return 0
+      if (aVal < bVal) return catSortDir === 'asc' ? -1 : 1
+      if (aVal > bVal) return catSortDir === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [categories, catSortField, catSortDir])
 
-    const sortedItems = useMemo(() => {
-        return [...items].sort((a, b) => {
-            const aVal = a[itemSortField]
-            const bVal = b[itemSortField]
-            if (aVal == null || bVal == null) return 0
-            if (aVal < bVal) return itemSortDir === 'asc' ? -1 : 1
-            if (aVal > bVal) return itemSortDir === 'asc' ? 1 : -1
-            return 0
-        })
-    }, [items, itemSortField, itemSortDir])
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      const aVal = a[itemSortField]
+      const bVal = b[itemSortField]
+      if (aVal == null || bVal == null) return 0
+      if (aVal < bVal) return itemSortDir === 'asc' ? -1 : 1
+      if (aVal > bVal) return itemSortDir === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [items, itemSortField, itemSortDir])
 
-    const sortIcon = (field: string, activeField: string, dir: SortDir) => {
-        if (field !== activeField) return <span className="ml-1 opacity-30">↕</span>
-        return <span className="ml-1">{dir === 'asc' ? '↑' : '↓'}</span>
-    }
+  const sortIcon = (field: string, activeField: string, dir: SortDir) => {
+    if (field !== activeField) return <span className="ml-1 text-[11px] opacity-35">↕</span>
+    return <span className="ml-1 text-[11px] text-primary">{dir === 'asc' ? '▲' : '▼'}</span>
+  }
 
   return (
-    <div className="p-4 dark:bg-gray-800 overflow-x-auto">
-      <h1 className="text-3xl font-bold text-primary dark:text-white mb-4">Admin Page</h1>
-
-      <div className="flex gap-8 items-start">
-
-        <div className="min-w-fit">
-          <h2 className="text-2xl font-bold text-primary dark:text-white mb-2">Kategóriák</h2>
-          <table className="text-sm text-left border-collapse mb-8">
-        <thead className="border-b-2 border-primary/30 text-black dark:text-white">
-          <tr className="h-10">
-            <th className="py-2 pr-4 cursor-pointer select-none" onClick={() => handleCatSort('id')}>ID{sortIcon('id', catSortField, catSortDir)}</th>
-            <th className="py-2 pr-4 cursor-pointer select-none" onClick={() => handleCatSort('name')}>Név{sortIcon('name', catSortField, catSortDir)}</th>
-            <th className="py-2 pr-4">Termékek száma</th>
-            <th className="py-2">Műveletek</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedCategories.map((category) => (
-            <tr key={category.id} className="h-14 border-b border-primary/10 dark:border-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors">
-              <td className="py-2 pr-4 text-gray-500 dark:text-gray-400">{category.id}</td>
-              <td className="py-2 pr-4 font-medium text-black dark:text-white">{category.name}</td>
-              <td className="py-2 pr-4 text-black dark:text-white">{category.items.length}</td>
-              <td className="py-2 flex gap-2">
-                <button className="px-2 py-1 text-xs rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors">Edit</button>
-                <button className="px-2 py-1 text-xs rounded bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">Delete</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-2xl font-bold text-primary dark:text-white">Termékek</h2>
-            <button
-              onClick={() => setIsCreateItemOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-hover transition-colors"
-            >
-              <span className="text-lg leading-none">+</span>
-              Termék hozzáadása
-            </button>
+    <div className="min-h-screen bg-linear-to-b from-orange-50/60 to-white dark:from-zinc-900 dark:to-zinc-950 p-4 md:p-6 overflow-x-auto">
+      <div className="mx-auto max-w-375 space-y-6">
+        <div className="rounded-2xl border border-primary/20 bg-white/90 dark:bg-zinc-900/90 backdrop-blur p-5 md:p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-extrabold tracking-tight text-black dark:text-white">Admin Dashboard</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Kategóriák, termékek és rendelések kezelése egy helyen.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span onClick={() => setCategoryTableVisible(!CategoryTableVisible)} className="cursor-pointer hover:bg-primary/25 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                {categories.length} kategória
+              </span>
+              <span onClick={() => setItemTableVisible(!ItemTableVisible)} className="cursor-pointer hover:bg-primary/25 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                {items.length} termék
+              </span>
+            </div>
           </div>
-          <table className="w-full text-sm text-left border-collapse">
-        <thead className="border-b-2 border-primary/30 text-black dark:text-white">
-          <tr className="h-10">
-            <th className="py-2 pr-4 cursor-pointer select-none" onClick={() => handleItemSort('id')}>ID{sortIcon('id', itemSortField, itemSortDir)}</th>
-            <th className="py-2 pr-4">Kép</th>
-            <th className="py-2 pr-4 cursor-pointer select-none" onClick={() => handleItemSort('name')}>Név{sortIcon('name', itemSortField, itemSortDir)}</th>
-            <th className="py-2 pr-4">Leírás</th>
-            <th className="py-2 pr-4 cursor-pointer select-none" onClick={() => handleItemSort('price')}>Ár (Ft){sortIcon('price', itemSortField, itemSortDir)}</th>
-            <th className="py-2 pr-4 cursor-pointer select-none" onClick={() => handleItemSort('category_id')}>Kategória{sortIcon('category_id', itemSortField, itemSortDir)}</th>
-            <th className="py-2 pr-4 cursor-pointer select-none" onClick={() => handleItemSort('is_active')}>Aktív{sortIcon('is_active', itemSortField, itemSortDir)}</th>
-            <th className="py-2 pr-4 cursor-pointer select-none" onClick={() => handleItemSort('is_featured')}>Kiemelt{sortIcon('is_featured', itemSortField, itemSortDir)}</th>
-            <th className="py-2 pr-4 cursor-pointer select-none" onClick={() => handleItemSort('default_time_to_deliver')}>Átfutási idő (perc){sortIcon('default_time_to_deliver', itemSortField, itemSortDir)}</th>
-            <th className="py-2">Műveletek</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedItems.map((item) => (
-            <tr key={item.id} className="h-14 border-b border-primary/10 dark:border-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors">
-              <td className="py-2 pr-4 text-gray-500 dark:text-gray-400">{item.id}</td>
-              <td className="py-2 pr-4">
-                {item.picture_url
-                  ? <img src={item.picture_url} alt={item.name} className="w-10 h-10 object-cover rounded" />
-                  : <span className="text-gray-400 dark:text-gray-600">—</span>
-                }
-              </td>
-              <td className="py-2 pr-4 font-medium text-black dark:text-white">{item.name}</td>
-              <td className="py-2 pr-4 text-gray-500 dark:text-gray-400 max-w-xs truncate" title={item.description ?? ''}>{item.description ?? '—'}</td>
-              <td className="py-2 pr-4 text-black dark:text-white font-medium">{item.price}</td>
-              <td className="py-2 pr-4 text-black dark:text-white">{item.category_id}</td>
-              <td className="py-2 pr-4">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${item.is_active ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'}`}>
-                  {item.is_active ? 'Igen' : 'Nem'}
-                </span>
-              </td>
-              <td className="py-2 pr-4">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${item.is_featured ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
-                  {item.is_featured ? 'Igen' : 'Nem'}
-                </span>
-              </td>
-              <td className="py-2 pr-4 text-black dark:text-white">{item.default_time_to_deliver}</td>
-              <td className="py-2 flex gap-2">
-                <button className="px-2 py-1 text-xs rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors">Edit</button>
-                <button className="px-2 py-1 text-xs rounded bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">Delete</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
         </div>
 
+        {CategoryTableVisible && (
+          <div className="w-full xl:w-full rounded-2xl border border-primary/20 bg-white dark:bg-zinc-900 shadow-sm p-4 md:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 className="text-xl font-bold text-black dark:text-white mb-4">Kategóriák</h2>
+              <button
+                onClick={() => {
+                  setSelectedCategory(undefined)
+                  setIsCreateCategoryOpen(true)
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover transition-colors shadow-sm hover:shadow"
+              >
+                <span className="text-base">+</span>
+                Kategória hozzáadása
+              </button>
+            </div>
+            <CategoriesTable
+              sortedCategories={sortedCategories}
+              categories={categories}
+              catSortField={catSortField}
+              catSortDir={catSortDir}
+              handleCatSort={handleCatSort}
+              itemSortField={itemSortField}
+              itemSortDir={itemSortDir}
+              handleItemSort={handleItemSort}
+              handleItemStatusToggle={handleItemStatusToggle}
+              sortIcon={sortIcon}
+              handleCatDelete={handleCatDelete}
+              setSelectedCategory={setSelectedCategory}
+              setCreateCategoryOpen={setIsCreateCategoryOpen}
+              setSelectedItem={setSelectedItem}
+              setCreateItemOpen={setIsCreateItemOpen}
+              handleItemDelete={handleItemDelete}
+            />
+          </div>)}
+        {ItemTableVisible && (
+          <div className="min-w-0 w-full flex-1 rounded-2xl border border-primary/20 bg-white dark:bg-zinc-900 shadow-sm p-4 md:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 className="text-xl font-bold text-black dark:text-white">Termékek</h2>
+              <button
+                onClick={() => setIsCreateItemOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover transition-colors shadow-sm hover:shadow"
+              >
+                <span className="text-base leading-none">+</span>
+                Termék hozzáadása
+              </button>
+            </div>
+            <ItemsTable
+              handleItemStatusToggle={handleItemStatusToggle}
+              sortedItems={sortedItems}
+              itemSortField={itemSortField}
+              itemSortDir={itemSortDir}
+              categories={categories}
+              handleItemSort={handleItemSort}
+              sortIcon={sortIcon}
+              setSelectedItem={setSelectedItem}
+              setCreateItemOpen={setIsCreateItemOpen}
+              handleItemDelete={handleItemDelete}
+            />
+          </div>
+        )}
       </div>
 
       <CreateItemModal
         isOpen={isCreateItemOpen}
-        onClose={() => setIsCreateItemOpen(false)}
+        onClose={() => {
+          setIsCreateItemOpen(false)
+          setSelectedItem(undefined)
+        }}
         categories={categories}
         onCreated={handleItemCreated}
+        item={selectedItem}
+      />
+      <CreateCatModal
+        isOpen={isCreateCategoryOpen}
+        onClose={() => {
+          setIsCreateCategoryOpen(false)
+          setSelectedCategory(undefined)
+        }}
+        onCreated={handleCatCreated}
+        category={selectedCategory}
       />
     </div>
   )
