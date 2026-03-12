@@ -10,13 +10,10 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-
-      // requests to /external-api/... will be forwarded to
-      // https://jedlikinfo.jedlik.eu/api/api/...
       '/external-api': {
         target: 'https://jedlikinfo.jedlik.eu/api/api',
         changeOrigin: true,
-        secure: false,
+        secure: true,
         rewrite: (path) => path.replace(/^\/external-api/, ''),
       },
     },

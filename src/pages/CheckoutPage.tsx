@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { GetRinging } from '../services/RingService'
-import type { RingModel } from '../Models/RingModel'
+import type { Ringlist } from '../Models/RingModel'
 import { useAppSelector } from '../store/hooks'
 import { Link } from 'react-router'
 
@@ -9,16 +9,16 @@ const SERVICE_FEE_RATE = 0.10
 const SUBTOTAL_RATE = 1 - TAX_RATE  // 0.73
 
 const CheckoutPage = () => {
-    const [ringing, setRinging] = useState<RingModel | null>(null)
-    const { cart } = useAppSelector((state) => ({ cart: state.cart.cart }))
+    const [ringing, setRinging] = useState<Ringlist[]>([])
+    const cart = useAppSelector((state) => state.cart.cart)
     useEffect(() => {
         const fetchRinging = async () => {
             try {
-                const data: RingModel = await GetRinging()
-                if (data.status === 'OK') {
+                const data = await GetRinging()
+                if (Array.isArray(data) && data.length > 0) {
                     setRinging(data)
                 } else {
-                    console.error('Failed to fetch ringing data: Invalid status', data.status)
+                    console.error('Failed to fetch ringing data: unexpected response shape', data)
                 }
             } catch (error) {
                 console.error('Failed to fetch ringing data:', error)
@@ -56,8 +56,8 @@ const CheckoutPage = () => {
                                     >
                                         <option disabled value="">Válassz időpontot...</option>
                                         <option value={`${new Date().getHours()}:${new Date().getMinutes().toString().padStart(2, '0')}`}>Most</option>
-                                        {ringing?.data?.ringlist.slice(0, -1).map((ring, index) => {
-                                            const nextRing = ringing.data.ringlist[index + 1]
+                                        {ringing.slice(0, -1).map((ring, index) => {
+                                            const nextRing = ringing[index + 1]
 
                                             return (
                                                 new Date() < new Date(`${new Date().toDateString()} ${nextRing.becsengetés}`)
