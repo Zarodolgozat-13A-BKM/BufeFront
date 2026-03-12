@@ -158,7 +158,7 @@ const MainPage = () => {
             </div>
 
             {filteredCategories.map(({ category, categoryIndex, filteredItems }) => {
-                if (filteredItems.length === 0) return null
+                if (filteredItems.length === 0) return <span key={category.id} />
 
                 return (
                     <div key={category.id} ref={(el) => { categoryRefs.current[categoryIndex] = el }} className="flex flex-col gap-4 px-4 pt-6 scroll-mt-32">
