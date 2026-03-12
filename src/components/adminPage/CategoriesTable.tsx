@@ -73,7 +73,7 @@ const CategoriesTable = ({
             <table className="min-w-full text-sm text-left border-collapse">
                 <thead className="bg-primary/5 dark:bg-primary/10 border-b border-primary/20 text-gray-700 dark:text-gray-200">
                 <tr className="h-10">
-                    <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleCatSort('id')}>{sortIcon('id', catSortField, catSortDir)}</th>
+                    <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center">▼</th>
                     <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px]" onClick={() => handleCatSort('name')}>Név{sortIcon('name', catSortField, catSortDir)}</th>
                     <th className="py-2 px-3 font-semibold uppercase tracking-wide text-[11px] text-center">Termékek száma</th>
                     <th className="py-2 px-3 font-semibold uppercase tracking-wide text-[11px] text-end">Műveletek</th>

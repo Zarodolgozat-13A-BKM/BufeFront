@@ -17,7 +17,7 @@ export const CreateItem = async (postData: ItemCreateModel) => {
 };
 
 export const UpdateItem = async (id: string, postData: Partial<ItemCreateModel>) => {
-  const response = await api.put<ItemModel>(`/items/${id}`, postData);
+  const response = await api.patch<ItemModel>(`/items/${id}`, postData);
   return response.data;
 };
 
