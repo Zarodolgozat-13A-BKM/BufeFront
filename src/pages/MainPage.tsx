@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
-import { setCategories } from '../store/categorySlice'
+import { setCategories, selectAllItems } from '../store/categorySlice'
 import { GetAllCategories } from '../services/CategoryService'
-import { setItems } from '../store/itemSlice'
 import { updateItemQuantity, removeItemFromCart } from '../store/cartSlice'
 import type { CategoryModel } from '../Models/CategoryModel'
 import type { ItemModel } from '../Models/ItemModel'
@@ -55,17 +54,9 @@ const MainPage = () => {
             fetchMe()
         } 
         fetchCategories()
-    }, [dispatch])
+    }, [dispatch, me])
 
-    useEffect(() => {
-        if (categories.length === 0) {
-            dispatch(setItems([]))
-            return
-        }
-
-        const data: ItemModel[] = categories.flatMap((category: CategoryModel) => category.items)
-        dispatch(setItems(data))
-    }, [categories, dispatch])
+    const allItems = useAppSelector(selectAllItems)
 
     const itemQuantityById = useMemo(() => {
         const map: Record<number, number> = {}
@@ -91,7 +82,6 @@ const MainPage = () => {
 
 
     const handleCheckout = () => {
-        console.log("Checking out with items:", cartItems)
         navigate('/checkout')
     }
 
@@ -103,11 +93,6 @@ const MainPage = () => {
     const totalPrice = useMemo(
         () => cartItems.reduce((sum, item) => sum + (item.price * (item.quantity ?? 0)), 0),
         [cartItems]
-    )
-
-    const allItems = useMemo(
-        () => categories.flatMap((category: CategoryModel) => category.items),
-        [categories]
     )
 
     const featuredItems = useMemo(

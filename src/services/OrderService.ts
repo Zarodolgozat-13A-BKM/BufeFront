@@ -1,48 +1,17 @@
-import type { ItemModel } from "../Models/ItemModel";
-import type { AllOrdersResponseModel } from "../Models/OrderModel";
-import axios from "axios";
-import { getStoredToken } from "./tokenStorage";
-const API_URL = import.meta.env.VITE_API_URL || "http://bufeapi.jcloud.jedlik.cloud/api";
+import type { AllOrdersResponseModel, OrderCreateModel, OrderModel } from "../Models/OrderModel";
+import api from "./axiosInstance";
+
 export const GetAllOrders = async (page: number) => {
-  try {
-    const token = getStoredToken();
-    const response = await axios.get<AllOrdersResponseModel>(`${API_URL}/orders?page=${page}`, {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    }); 
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get<AllOrdersResponseModel>(`/orders?page=${page}`);
+  return response.data;
 };
 
-export const GetOneOrder = async (id:string) => {
-  try {
-    const token = getStoredToken();
-    const response = await axios.get<ItemModel>(`${API_URL}/orders/${id}`, {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    }); 
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+export const GetOneOrder = async (id: string) => {
+  const response = await api.get<OrderModel>(`/orders/${id}`);
+  return response.data;
 };
-export const CreateOrder = async (postData: any) => {
-  try {
-    const token = getStoredToken();
-    const response = await axios.post(`${API_URL}/orders`, postData, {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    }); 
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+
+export const CreateOrder = async (postData: OrderCreateModel) => {
+  const response = await api.post<OrderModel>(`/orders`, postData);
+  return response.data;
 };
