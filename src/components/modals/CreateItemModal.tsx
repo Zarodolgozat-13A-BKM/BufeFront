@@ -8,7 +8,7 @@ interface CreateItemModalProps {
     isOpen: boolean
     onClose: () => void
     categories: CategoryModel[]
-    onCreated: () => void
+    onCreated: (item: ItemModel) => void
     item?: ItemModel
 }
 
@@ -23,11 +23,23 @@ const EMPTY_FORM: ItemCreateModel = {
     category_id: 0,
 }
 
+const MAX_IMAGE_SIZE_BYTES = 1024 * 1024
+
 export const CreateItemModal = ({ isOpen, onClose, categories, onCreated, item }: CreateItemModalProps) => {
     const [form, setForm] = useState<ItemCreateModel>(EMPTY_FORM)
+    const [imageFile, setImageFile] = useState<File | null>(null)
+    const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const isEditing = Boolean(item)
+
+    useEffect(() => {
+        return () => {
+            if (imagePreview?.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePreview)
+            }
+        }
+    }, [imagePreview])
 
     useEffect(() => {
         if (!isOpen) return
@@ -42,9 +54,12 @@ export const CreateItemModal = ({ isOpen, onClose, categories, onCreated, item }
                 default_time_to_deliver: item.default_time_to_deliver,
                 category_id: item.category_id,
             })
+            setImagePreview(item.picture_url)
         } else {
             setForm(EMPTY_FORM)
+            setImagePreview(null)
         }
+        setImageFile(null)
         setError(null)
     }, [isOpen, item])
 
@@ -59,6 +74,55 @@ export const CreateItemModal = ({ isOpen, onClose, categories, onCreated, item }
         }
     }
 
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) {
+            setImageFile(null)
+            if (!isEditing) {
+                setImagePreview(null)
+            }
+            setError(null)
+            return
+        }
+
+        if (!file.type.startsWith('image/')) {
+            setError('Csak kepfajl toltheto fel (image/*).')
+            e.target.value = ''
+            return
+        }
+
+        if (file.size > MAX_IMAGE_SIZE_BYTES) {
+            setError('A kep maximalis merete 1 MB lehet.')
+            e.target.value = ''
+            return
+        }
+
+        if (imagePreview?.startsWith('blob:')) {
+            URL.revokeObjectURL(imagePreview)
+        }
+
+        setImageFile(file)
+        setImagePreview(URL.createObjectURL(file))
+        setError(null)
+    }
+
+    const buildItemFormData = (values: ItemCreateModel, file?: File | null) => {
+        const formData = new FormData()
+        formData.append('name', values.name)
+        formData.append('description', values.description ?? '')
+        formData.append('price', String(values.price))
+        formData.append('is_active', String(values.is_active))
+        formData.append('is_featured', String(values.is_featured))
+        formData.append('default_time_to_deliver', String(values.default_time_to_deliver))
+        formData.append('category_id', String(values.category_id))
+        if (file) {
+            formData.append('picture', file)
+        } else if (values.picture_url) {
+            formData.append('picture_url', values.picture_url)
+        }
+        return formData
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
@@ -67,13 +131,24 @@ export const CreateItemModal = ({ isOpen, onClose, categories, onCreated, item }
         if (form.price <= 0) { setError('Az árnak pozitívnak kell lennie.'); return }
         setLoading(true)
         try {
+            let savedItem: ItemModel
             if (item) {
-                await UpdateItem(item.id.toString(), form)
+                if (imageFile) {
+                    savedItem = await UpdateItem(item.id.toString(), buildItemFormData(form, imageFile))
+                } else {
+                    savedItem = await UpdateItem(item.id.toString(), form)
+                }
             } else {
-                await CreateItem(form)
+                if (imageFile) {
+                    savedItem = await CreateItem(buildItemFormData(form, imageFile))
+                } else {
+                    savedItem = await CreateItem(form)
+                }
             }
             setForm(EMPTY_FORM)
-            onCreated()
+            setImageFile(null)
+            setImagePreview(null)
+            onCreated(savedItem)
             onClose()
         } catch {
             setError(item ? 'Hiba történt a termék módosításakor.' : 'Hiba történt a termék létrehozásakor.')
@@ -106,11 +181,24 @@ export const CreateItemModal = ({ isOpen, onClose, categories, onCreated, item }
                             className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none" />
                     </div>
 
-                    {/* Picture URL */}
+                    {/* Picture Upload */}
                     <div className="col-span-2">
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Kép URL</label>
-                        <input name="picture_url" value={form.picture_url ?? ''} onChange={handleChange}
-                            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40" />
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Kép feltöltése</label>
+                        <input
+                            name="picture"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:font-semibold file:text-primary hover:file:bg-primary/20"
+                        />
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Csak kepfajl (image/*), legfeljebb 1 MB.
+                        </p>
+                        {imagePreview && (
+                            <div className="mt-3 rounded-lg border border-gray-200 dark:border-gray-600 p-2 w-fit bg-gray-50 dark:bg-gray-800">
+                                <img src={imagePreview} alt="Elonézet" className="h-24 w-24 object-cover rounded-md" />
+                            </div>
+                        )}
                     </div>
 
                     {/* Price */}

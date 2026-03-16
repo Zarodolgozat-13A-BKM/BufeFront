@@ -1,6 +1,8 @@
 import type { ItemCreateModel, ItemModel } from "../Models/ItemModel";
 import api from "./axiosInstance";
 
+type ItemPayload = ItemCreateModel | FormData;
+
 export const GetAllItems = async () => {
   const response = await api.get<ItemModel[]>(`/items`);
   return response.data;
@@ -11,12 +13,12 @@ export const GetOneItem = async (id: string) => {
   return response.data;
 };
 
-export const CreateItem = async (postData: ItemCreateModel) => {
+export const CreateItem = async (postData: ItemPayload) => {
   const response = await api.post<ItemModel>(`/items`, postData);
   return response.data;
 };
 
-export const UpdateItem = async (id: string, postData: Partial<ItemCreateModel>) => {
+export const UpdateItem = async (id: string, postData: Partial<ItemCreateModel> | FormData) => {
   const response = await api.patch<ItemModel>(`/items/${id}`, postData);
   return response.data;
 };

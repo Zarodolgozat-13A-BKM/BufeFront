@@ -1,4 +1,4 @@
-import type { OrderCreateModel, OrderModel, OrderPatchModel } from "../Models/OrderModel";
+import type { OrderCreateModel, OrderModel, OrderPatchModel, StatusModel } from "../Models/OrderModel";
 import api from "./axiosInstance";
 
 export const GetAllOrders = async () => {
@@ -17,7 +17,12 @@ export const CreateOrder = async (postData: OrderCreateModel) => {
 };
 
 export const UpdateOrderStatus = async (id: number, status: string) => {
-  const response = await api.patch<OrderPatchModel>(`/orders/${id}`, {status: 6});
+  const response = await api.patch<OrderPatchModel>(`/orders/${id}`, status);
   console.log('Order status updated:', response.data);
   return response.data;
 };
+
+export const GetStatuses = async () => {
+  const response = await api.get<StatusModel[]>(`/statuses`);
+  return response.data;
+}

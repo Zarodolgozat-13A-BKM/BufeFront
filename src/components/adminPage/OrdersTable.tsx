@@ -75,7 +75,7 @@ const OrdersTable = ({
                             Rendelésszám{sortIcon('order_identifier_number', orderSortField, orderSortDir)}
                         </th>
                         <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('user_id')}>
-                            Felhasználó ID{sortIcon('user_id', orderSortField, orderSortDir)}
+                            Felhasználónév{sortIcon('user_id', orderSortField, orderSortDir)}
                         </th>
                         <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('status')}>
                             Státusz{sortIcon('status', orderSortField, orderSortDir)}
@@ -102,7 +102,7 @@ const OrdersTable = ({
                                 {order.id}
                             </td>
                             <td className="py-2 px-3 font-medium text-black dark:text-white text-center">#{order.order_identifier_number}</td>
-                            <td className="py-2 px-3 text-black dark:text-white text-center">{order.user_id}</td>
+                            <td className="py-2 px-3 text-black dark:text-white text-center">{order.user_username}</td>
                             <td className="py-2 px-3 text-center">
                                 <div className="relative inline-block" ref={openStatusId === order.id ? popoverRef : undefined} onClick={(e) => e.stopPropagation()}>
                                     <button

@@ -1,19 +1,28 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useAppSelector, useAppDispatch } from '../store/hooks'
-import { setCategories } from '../store/categorySlice'
 import type { CategoryModel } from '../Models/CategoryModel'
 import type { ItemModel } from '../Models/ItemModel'
-import { DeleteCategory, GetAllCategories } from '../services/CategoryService'
 import { CreateItemModal } from '../components/modals/CreateItemModal'
 import CategoriesTable from '../components/adminPage/CategoriesTable'
 import ItemsTable from '../components/adminPage/ItemsTable'
-import { DeleteItem, ToggleActive, ToggleFeatured } from '../services/ItemService'
 import { CreateCatModal } from '../components/modals/CreateCatModal'
 import OrdersTable from '../components/adminPage/OrdersTable'
 import type { OrderModel } from '../Models/OrderModel'
-import { setOrders } from '../store/orderSlice'
-import { GetAllOrders, UpdateOrderStatus } from '../services/OrderService'
-type SortDir = 'asc' | 'desc'
+import {
+  type SortDir,
+  type SortableOrderField,
+  getSortIcon,
+  handleCategoryCreatedAction,
+  handleCategoryDeleteAction,
+  handleItemCreatedAction,
+  handleItemDeleteAction,
+  handleItemStatusToggleAction,
+  handleOrderStatusChangeAction,
+  initializeAdminPage,
+  sortByField,
+  sortOrdersByField,
+  toggleSortDirection,
+} from '../services/AdminPageService'
 
 const AdminPage = () => {
   const dispatch = useAppDispatch()
@@ -26,49 +35,36 @@ const AdminPage = () => {
   const [isCreateItemOpen, setIsCreateItemOpen] = useState(false)
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<ItemModel | undefined>(undefined)
+
   useEffect(() => {
-    const fetchOrders = async () => {
+    const bootstrapAdminPage = async () => {
       try {
-        const data = await GetAllOrders()
-        dispatch(setOrders(data))
+        await initializeAdminPage(dispatch)
       } catch (error) {
         console.error('Failed to fetch orders:', error)
       }
     }
-    fetchOrders()
-    UpdateOrderStatus(1, 'completed')
+    bootstrapAdminPage()
   }, [])
 
   const handleItemStatusToggle = async (id: number, field: 'is_active' | 'is_featured') => {
-    if (field === 'is_active') {
-      await ToggleActive(id.toString())
-    } else {
-      await ToggleFeatured(id.toString())
-    }
-    const updated = await GetAllCategories()
-    dispatch(setCategories(updated))
+    await handleItemStatusToggleAction(dispatch, categories, id, field)
   }
 
-  const handleItemCreated = async () => {
-    const updated = await GetAllCategories()
-    dispatch(setCategories(updated))
+  const handleItemCreated = async (item: ItemModel) => {
+    await handleItemCreatedAction(dispatch, categories, item)
   }
 
   const handleItemDelete = async (item: ItemModel) => {
-    await DeleteItem(item.id.toString())
-    const updated = await GetAllCategories()
-    dispatch(setCategories(updated))
+    await handleItemDeleteAction(dispatch, categories, item)
   }
 
   const handleCatDelete = async (cat: CategoryModel) => {
-    DeleteCategory(cat.id.toString())
-    const updated = await GetAllCategories()
-    dispatch(setCategories(updated))
+    await handleCategoryDeleteAction(dispatch, categories, cat)
   }
 
-  const handleCatCreated = async () => {
-    const updated = await GetAllCategories()
-    dispatch(setCategories(updated))
+  const handleCatCreated = async (category: CategoryModel) => {
+    await handleCategoryCreatedAction(dispatch, categories, category)
   }
 
   const [catSortField, setCatSortField] = useState<keyof CategoryModel>('id')
@@ -77,85 +73,47 @@ const AdminPage = () => {
   const [itemSortField, setItemSortField] = useState<keyof ItemModel>('id')
   const [itemSortDir, setItemSortDir] = useState<SortDir>('asc')
 
-  type SortableOrderField = 'id' | 'user_id' | 'order_identifier_number' | 'status' | 'delivery_date'
   const [orderSortField, setOrderSortField] = useState<SortableOrderField>('id')
   const [orderSortDir, setOrderSortDir] = useState<SortDir>('asc')
 
   const handleCatSort = (field: keyof CategoryModel) => {
-    if (field === catSortField) {
-      setCatSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setCatSortField(field)
-      setCatSortDir('asc')
-    }
+    const next = toggleSortDirection(catSortField, catSortDir, field)
+    setCatSortField(next.field)
+    setCatSortDir(next.dir)
   }
 
   const handleItemSort = (field: keyof ItemModel) => {
-    if (field === itemSortField) {
-      setItemSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setItemSortField(field)
-      setItemSortDir('asc')
-    }
+    const next = toggleSortDirection(itemSortField, itemSortDir, field)
+    setItemSortField(next.field)
+    setItemSortDir(next.dir)
   }
 
   const handleOrderSort = (field: SortableOrderField) => {
-    if (field === orderSortField) {
-      setOrderSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setOrderSortField(field)
-      setOrderSortDir('asc')
-    }
+    const next = toggleSortDirection(orderSortField, orderSortDir, field)
+    setOrderSortField(next.field)
+    setOrderSortDir(next.dir)
   }
 
 
   const handleOrderStatusChange = async (order: OrderModel, status: string) => {
     try {
-      const updated = await UpdateOrderStatus(order.id, status)
-      const orders = await GetAllOrders()
-      dispatch(setOrders(orders))
+      await handleOrderStatusChangeAction(dispatch, orders, order, status)
     } catch (error) {
       console.error('Failed to update order status:', error)
     }
   }
 
   const sortedCategories = useMemo(() => {
-    return [...categories].sort((a, b) => {
-      const aVal = a[catSortField]
-      const bVal = b[catSortField]
-      if (aVal == null || bVal == null) return 0
-      if (aVal < bVal) return catSortDir === 'asc' ? -1 : 1
-      if (aVal > bVal) return catSortDir === 'asc' ? 1 : -1
-      return 0
-    })
+    return sortByField(categories, catSortField, catSortDir)
   }, [categories, catSortField, catSortDir])
 
   const sortedItems = useMemo(() => {
-    return [...items].sort((a, b) => {
-      const aVal = a[itemSortField]
-      const bVal = b[itemSortField]
-      if (aVal == null || bVal == null) return 0
-      if (aVal < bVal) return itemSortDir === 'asc' ? -1 : 1
-      if (aVal > bVal) return itemSortDir === 'asc' ? 1 : -1
-      return 0
-    })
+    return sortByField(items, itemSortField, itemSortDir)
   }, [items, itemSortField, itemSortDir])
 
   const sortedOrders = useMemo(() => {
-    return [...orders].sort((a, b) => {
-      const aVal = a[orderSortField]
-      const bVal = b[orderSortField]
-      if (aVal == null || bVal == null) return 0
-      if (aVal < bVal) return orderSortDir === 'asc' ? -1 : 1
-      if (aVal > bVal) return orderSortDir === 'asc' ? 1 : -1
-      return 0
-    })
+    return sortOrdersByField(orders, orderSortField, orderSortDir)
   }, [orders, orderSortField, orderSortDir])
-
-  const sortIcon = (field: string, activeField: string, dir: SortDir) => {
-    if (field !== activeField) return <span className="ml-1 text-[11px] opacity-35">↕</span>
-    return <span className="ml-1 text-[11px] text-primary">{dir === 'asc' ? '▲' : '▼'}</span>
-  }
 
   return (
     <div className="min-h-screen bg-linear-to-b from-orange-50/60 to-white dark:from-zinc-900 dark:to-zinc-950 p-4 md:p-6 overflow-x-auto">
@@ -198,7 +156,7 @@ const AdminPage = () => {
             <CategoriesTable sortedCategories={sortedCategories} categories={categories} catSortField={catSortField} catSortDir={catSortDir} handleCatSort={handleCatSort} itemSortField={itemSortField} itemSortDir={itemSortDir}
               handleItemSort={handleItemSort}
               handleItemStatusToggle={handleItemStatusToggle}
-              sortIcon={sortIcon}
+              sortIcon={getSortIcon}
               handleCatDelete={handleCatDelete}
               setSelectedCategory={setSelectedCategory}
               setCreateCategoryOpen={setIsCreateCategoryOpen}
@@ -226,7 +184,7 @@ const AdminPage = () => {
               itemSortDir={itemSortDir}
               categories={categories}
               handleItemSort={handleItemSort}
-              sortIcon={sortIcon}
+              sortIcon={getSortIcon}
               setSelectedItem={setSelectedItem}
               setCreateItemOpen={setIsCreateItemOpen}
               handleItemDelete={handleItemDelete}
@@ -244,7 +202,7 @@ const AdminPage = () => {
               orderSortDir={orderSortDir}
               handleOrderSort={handleOrderSort}
               handleOrderStatusChange={handleOrderStatusChange}
-              sortIcon={sortIcon}
+              sortIcon={getSortIcon}
             />
           </div>
         )}
