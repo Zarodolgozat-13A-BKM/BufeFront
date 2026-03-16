@@ -50,7 +50,9 @@ const ItemsTable = ({
                     <tr key={item.id} className="h-14 border-b border-primary/10 dark:border-primary/20 hover:bg-orange-50/70 dark:hover:bg-zinc-800/80 transition-colors">
                         <td className="py-2 px-3 text-center">
                             {item.picture_url
-                                ? <img src={item.picture_url} alt={item.name} className="mx-auto w-10 h-10 object-cover rounded-lg border border-primary/15" />
+                                ? <a href={item.picture_url} target="_blank" rel="noopener noreferrer">
+                                    <img src={item.picture_url} alt={item.name} className="mx-auto w-10 h-10 object-cover rounded-lg border border-primary/15" />
+                                </a>
                                 : <span className="text-gray-400 dark:text-gray-600">—</span>
                             }
                         </td>
