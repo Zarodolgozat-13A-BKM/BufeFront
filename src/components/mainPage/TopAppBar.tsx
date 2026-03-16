@@ -19,7 +19,7 @@ export const TopAppBar = ({
       <div className="flex items-center gap-3">
         <div>
           <p className="text-xs text-primary font-semibold">Szia,</p>
-          <Link to="/profile" className="text-black dark:text-white text-lg font-bold leading-tight">
+          <Link to="/admin" className="text-black dark:text-white text-lg font-bold leading-tight">
             {displayName}
           </Link>
         </div>

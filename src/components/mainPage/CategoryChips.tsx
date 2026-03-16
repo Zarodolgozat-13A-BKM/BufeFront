@@ -17,7 +17,7 @@ export const CategoryChips = ({ categories, activeCategory, searchQuery = "", on
           : category.items.some(item => item.name.toLowerCase().includes(normalizedSearchQuery))
 
         if (!hasVisibleItem) {
-          return null
+          return <span key={category.id} />
         }
 
         return (

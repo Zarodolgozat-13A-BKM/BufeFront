@@ -17,7 +17,7 @@ export const CreateItem = async (postData: ItemCreateModel) => {
 };
 
 export const UpdateItem = async (id: string, postData: Partial<ItemCreateModel>) => {
-  const response = await api.put<ItemModel>(`/items/${id}`, postData);
+  const response = await api.patch<ItemModel>(`/items/${id}`, postData);
   return response.data;
 };
 
@@ -26,7 +26,12 @@ export const DeleteItem = async (id: string) => {
   return response.data;
 };
 
-export const ToggleItem = async (id: string) => {
-  const response = await api.post<ItemModel>(`/items/${id}/toggle-active`);
+export const ToggleActive = async (id: string) => {
+  const response = await api.post(`/items/${id}/toggle-active`);
+  return response.data;
+};
+
+export const ToggleFeatured = async (id: string) => {
+  const response = await api.post(`/items/${id}/toggle-featured`);
   return response.data;
 };

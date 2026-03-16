@@ -61,7 +61,7 @@ const LoginPage = () => {
                         <div className="w-16 h-16 rounded-lg bg-primary flex items-center justify-center shadow-lg mb-4 mx-auto">
                             <span className="material-symbols-outlined text-white text-4xl">restaurant</span>
                         </div>
-                        <h1 className="text-3xl font-bold text-primary dark:text-white mb-2">Jedlik Bufé</h1>
+                        <h1 className="text-3xl font-bold text-primary dark:text-white mb-2">Jedlik Büfé</h1>
                         <p className="text-slate-400">Fuel your study sessions.</p>
                     </div>
                     {error && (

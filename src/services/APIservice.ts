@@ -23,5 +23,6 @@ export const Logout = async () => {
 
 export const GetMe = async (): Promise<MeModel> => {
   const response = await api.get<MeModel>(`/account/me`);
+  console.log("Fetched user info:", response.data);
   return response.data;
 };
