@@ -1,8 +1,7 @@
-import type { Ringlist } from "../Models/RingModel";
+import type { Ringlist, RingModel } from "../Models/RingModel";
 import axios from "axios";
+import api from "./axiosInstance";
 
-const REAL_API = "https://jedlikinfo.jedlik.eu/api/api";
-const CORS_PROXY = "https://corsproxy.io/?";
 
 function todayDateString(): string {
   const d = new Date();
@@ -10,11 +9,7 @@ function todayDateString(): string {
 }
 
 export const GetRinging = async (): Promise<Ringlist[]> => {
-  const endpoint = `/timetable/ringsystem/${todayDateString()}`;
-  const url = import.meta.env.DEV
-    ? `/external-api${endpoint}`
-    : `${CORS_PROXY}${encodeURIComponent(REAL_API + endpoint)}`;
-
-  const response = await axios.get<Ringlist[]>(url, { timeout: 10000 });
-  return response.data;
+  const endpoint = `/orders/breaks/${todayDateString()}`;
+  const response = await api.get<RingModel>(endpoint);
+  return response.data.rings;
 };

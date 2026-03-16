@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { GetRinging } from '../services/RingService'
 import type { Ringlist } from '../Models/RingModel'
-import { useAppSelector } from '../store/hooks'
+import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { Link } from 'react-router'
+import { removeItemFromCart, updateItemQuantity } from '../store/cartSlice'
+import type { OrderCreateModel } from '../Models/OrderModel'
+import { CreateOrder } from '../services/OrderService'
 
 const TAX_RATE = 0.27
 const SERVICE_FEE_RATE = 0.10
@@ -10,7 +13,33 @@ const SUBTOTAL_RATE = 1 - TAX_RATE  // 0.73
 
 const CheckoutPage = () => {
     const [ringing, setRinging] = useState<Ringlist[]>([])
+    const [comment, setComment] = useState('')
+    const [isCommentOpen, setIsCommentOpen] = useState(false)
+    const dispatch = useAppDispatch()
     const cart = useAppSelector((state) => state.cart.cart)
+
+    const updateQuantity = (itemId: number, delta: number) => {
+        dispatch(updateItemQuantity({ item_id: itemId, delta }))
+    }
+
+    const removeItem = (itemId: number) => {
+        dispatch(removeItemFromCart(itemId))
+    }
+    const handleCheckout = () =>
+    {
+        const orderData: OrderCreateModel = {
+            delivery_date: new Date().toISOString().split('T')[0],
+            comment: comment,
+            items: cart.items.map((item) => ({
+                item_id: item.id,
+                quantity: item.quantity ?? 0,
+            })),
+        }
+        console.log('Order data to be sent:', orderData)
+        CreateOrder(orderData)
+        
+    }
+
     useEffect(() => {
         const fetchRinging = async () => {
             try {
@@ -87,6 +116,43 @@ const CheckoutPage = () => {
                     </div>
                     <div className="h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 my-2"></div>
                     <div className="px-4 py-4">
+                        <div className="bg-bg-light dark:bg-zinc-800/50 rounded-xl p-4 border border-[#e6e0db] dark:border-zinc-800">
+                            <button
+                                type="button"
+                                onClick={() => setIsCommentOpen((current) => !current)}
+                                className="flex w-full items-center justify-between gap-3 text-left"
+                            >
+                                <div>
+                                    <h4 className="text-text-dark dark:text-white text-lg font-bold">Megjegyzés a rendeléshez</h4>
+                                    <p className="mt-1 text-sm text-text-light dark:text-zinc-400">Opcionális kérés vagy megjegyzés a büfének.</p>
+                                </div>
+                                <span className="material-symbols-outlined text-text-light dark:text-zinc-400">
+                                    {isCommentOpen ? 'expand_less' : 'expand_more'}
+                                </span>
+                            </button>
+                            {isCommentOpen && (
+                                <div className="mt-4">
+                                    <label className="block text-sm font-medium text-text-dark dark:text-zinc-200 mb-2" htmlFor="order-comment">
+                                        Opcionális megjegyzés
+                                    </label>
+                                    <textarea
+                                        id="order-comment"
+                                        value={comment}
+                                        onChange={(e) => setComment(e.target.value)}
+                                        rows={4}
+                                        maxLength={300}
+                                        placeholder="Pl. kevesebb csipos, ne tegyetek szalvetat, kesobb megyek erte..."
+                                        className="w-full resize-none rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-3 text-sm text-text-dark dark:text-white placeholder:text-text-light dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                    />
+                                    <div className="mt-2 flex justify-end">
+                                        <span className="text-xs text-text-light dark:text-zinc-500">{comment.length}/300</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 my-2"></div>
+                    <div className="px-4 py-4">
                         <h4 className="text-text-dark dark:text-white text-lg font-bold mb-4">Rendelés összesítése</h4>
                         <div className="bg-bg-light dark:bg-zinc-800/50 rounded-xl p-4 border border-[#e6e0db] dark:border-zinc-800">
                             {cart.items.map((cartItem, index) => (
@@ -96,10 +162,32 @@ const CheckoutPage = () => {
                                         <div className="w-12 h-12 bg-gray-200 rounded-lg bg-cover bg-center shrink-0" data-alt={cartItem.name} style={{ backgroundImage: `url('${cartItem.picture_url ?? ''}')` }}></div>
                                         <div>
                                             <p className="text-text-dark dark:text-white text-sm font-medium">{cartItem.name}</p>
-                                            <p className="text-text-light dark:text-zinc-500 text-xs">x{cartItem.quantity ?? 0}</p>
+                                            <div className="mt-1 flex items-center gap-2">
+                                                <button
+                                                    onClick={() => updateQuantity(cartItem.id, -1)}
+                                                    className="w-7 h-7 flex items-center justify-center bg-white dark:bg-zinc-700 rounded-md border border-gray-200 dark:border-zinc-600 hover:bg-gray-100 dark:hover:bg-zinc-600"
+                                                >
+                                                    <span className="material-symbols-outlined text-sm">remove</span>
+                                                </button>
+                                                <span className="min-w-6 text-center text-text-dark dark:text-white text-xs font-bold">{cartItem.quantity ?? 0}</span>
+                                                <button
+                                                    onClick={() => updateQuantity(cartItem.id, 1)}
+                                                    className="w-7 h-7 flex items-center justify-center bg-white dark:bg-zinc-700 rounded-md border border-gray-200 dark:border-zinc-600 hover:bg-gray-100 dark:hover:bg-zinc-600"
+                                                >
+                                                    <span className="material-symbols-outlined text-sm">add</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <p className="text-text-dark dark:text-white text-sm font-medium">{cartItem.price * (cartItem.quantity ?? 0)}Ft</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-text-dark dark:text-white text-sm font-medium">{cartItem.price * (cartItem.quantity ?? 0)}Ft</p>
+                                        <button
+                                            onClick={() => removeItem(cartItem.id)}
+                                            className="w-7 h-7 flex items-center justify-center bg-error hover:bg-error/90 text-white rounded-md"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">close</span>
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
 
@@ -130,7 +218,7 @@ const CheckoutPage = () => {
                     </div>
                 </main>
                 <div className="fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 mx-auto z-20">
-                    <button className="w-full h-12 bg-primary hover:bg-[#e07b1a] text-white rounded-xl text-base font-bold shadow-lg shadow-orange-200 dark:shadow-none flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+                    <button onClick={handleCheckout} className="w-full h-12 bg-primary hover:bg-[#e07b1a] text-white rounded-xl text-base font-bold shadow-lg shadow-orange-200 dark:shadow-none flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
                         <span>Rendelés leadása</span>
                         <span className="w-1 h-1 rounded-full bg-white/40"></span>
                         <span>{Math.floor(baseTotal * (1 + SERVICE_FEE_RATE))}Ft</span>

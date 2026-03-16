@@ -4,3 +4,7 @@ export interface Ringlist {
   kicsengetés: string
   createdate: string
 }
+export interface RingModel {
+  date: string
+  rings: Ringlist[]
+}
