@@ -7,10 +7,10 @@ import { setCategories } from '../store/categorySlice'
 import { setOrders } from '../store/orderSlice'
 import { DeleteCategory, GetAllCategories } from './CategoryService'
 import { DeleteItem, ToggleActive, ToggleFeatured } from './ItemService'
-import { GetAllOrders, UpdateOrderStatus } from './OrderService'
+import { GetAllOrders, GetStatuses, UpdateOrderStatus } from './OrderService'
 
 export type SortDir = 'asc' | 'desc'
-export type SortableOrderField = 'id' | 'user_id' | 'order_identifier_number' | 'status' | 'delivery_date'
+export type SortableOrderField = 'id' | 'user_id' | 'order_identifier_number' | 'status' | 'delivery_date' | 'total_price'
 
 export const toggleSortDirection = <TField extends string>(
   currentField: TField,
@@ -61,6 +61,7 @@ const getOrderSortValue = (order: OrderModel, field: SortableOrderField): string
   if (field === 'order_identifier_number') return order.order_identifier_number
   if (field === 'status') return order.status
   if (field === 'delivery_date') return order.delivery_date
+  if (field === 'total_price') return order.total_price ?? 0
   return null
 }
 
@@ -87,8 +88,8 @@ export const fetchAndSetOrders = async (dispatch: AppDispatch): Promise<void> =>
 }
 
 export const initializeAdminPage = async (dispatch: AppDispatch): Promise<void> => {
+  await fetchAndSetCategories(dispatch)
   await fetchAndSetOrders(dispatch)
-  await UpdateOrderStatus(1, 'completed')
 }
 
 export const fetchAndSetCategories = async (dispatch: AppDispatch): Promise<void> => {
@@ -101,13 +102,17 @@ const ensureCategoryItems = (category: CategoryModel): CategoryModel => ({
   items: category.items ?? [],
 })
 
-const upsertCategoryLocal = (categories: CategoryModel[], category: CategoryModel): CategoryModel[] => {
+const mergeCategoryLocal = (categories: CategoryModel[], category: CategoryModel): CategoryModel[] => {
   const normalized = ensureCategoryItems(category)
   const exists = categories.some((c) => c.id === normalized.id)
-  if (!exists) return [...categories, normalized]
+
+  if (!exists) {
+    return [...categories, normalized]
+  }
 
   return categories.map((c) => {
     if (c.id !== normalized.id) return c
+
     return {
       ...c,
       ...normalized,
@@ -197,8 +202,9 @@ export const handleCategoryCreatedAction = async (
   categories: CategoryModel[],
   category: CategoryModel,
 ): Promise<void> => {
-  const optimistic = upsertCategoryLocal(categories, category)
-  dispatch(setCategories(optimistic))
+  dispatch(setCategories(mergeCategoryLocal(categories, category)))
+
+  await fetchAndSetCategories(dispatch)
 }
 
 export const handleOrderStatusChangeAction = async (
@@ -207,7 +213,10 @@ export const handleOrderStatusChangeAction = async (
   order: OrderModel,
   status: string,
 ): Promise<void> => {
-  await UpdateOrderStatus(order.id, status)
+  const statuses = await GetStatuses()
+  console.log('Available statuses:', statuses)
+  const stat = statuses.find(s => s.name === status)?.id;
+  await UpdateOrderStatus(order.id, stat? stat.toString() : status)
 
   const updated = orders.map((o) => {
     if (o.id !== order.id) return o

@@ -6,7 +6,7 @@ import { CreateCategory, UpdateCategory } from '../../services/CategoryService'
 interface CreateItemModalProps {
     isOpen: boolean
     onClose: () => void
-    onCreated: (category: CategoryModel) => void,
+    onCreated: (category: CategoryModel) => Promise<void> | void,
     category: CategoryModel | undefined
 }
 
@@ -35,7 +35,7 @@ export const CreateCatModal = ({ isOpen, onClose, onCreated, category }: CreateI
                 savedCategory = await UpdateCategory(category.id.toString(), form)
             }
             setForm('')
-            onCreated(savedCategory)
+            await onCreated(savedCategory)
             onClose()
         } catch {
             if(category)

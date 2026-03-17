@@ -111,15 +111,48 @@ export const CreateItemModal = ({ isOpen, onClose, categories, onCreated, item }
         formData.append('name', values.name)
         formData.append('description', values.description ?? '')
         formData.append('price', String(values.price))
-        formData.append('is_active', String(values.is_active))
-        formData.append('is_featured', String(values.is_featured))
+        formData.append('is_active', values.is_active === true? "1":"0")
+        formData.append('is_featured', values.is_featured === true? "1":"0")
         formData.append('default_time_to_deliver', String(values.default_time_to_deliver))
         formData.append('category_id', String(values.category_id))
         if (file) {
-            formData.append('picture', file)
-        } else if (values.picture_url) {
-            formData.append('picture_url', values.picture_url)
+            formData.append('image', file)
         }
+        return formData
+    }
+
+    const buildChangedFormData = (
+        values: ItemCreateModel,
+        original: ItemModel,
+        file: File | null,
+    ) => {
+        const formData = new FormData()
+
+        if (values.name !== original.name) {
+            formData.append('name', values.name)
+        }
+        if ((values.description ?? '') !== (original.description ?? '')) {
+            formData.append('description', values.description ?? '')
+        }
+        if (values.price !== original.price) {
+            formData.append('price', String(values.price))
+        }
+        if (values.is_active !== original.is_active) {
+            formData.append('is_active', values.is_active === true? "1":"0")
+        }
+        if (values.is_featured !== original.is_featured) {
+            formData.append('is_featured', String(values.is_featured? "1":"0"))
+        }
+        if (values.default_time_to_deliver !== original.default_time_to_deliver) {
+            formData.append('default_time_to_deliver', String(values.default_time_to_deliver))
+        }
+        if (values.category_id !== original.category_id) {
+            formData.append('category_id', String(values.category_id))
+        }
+        if (file) {
+            formData.append('image', file)
+        }
+
         return formData
     }
 
@@ -133,17 +166,18 @@ export const CreateItemModal = ({ isOpen, onClose, categories, onCreated, item }
         try {
             let savedItem: ItemModel
             if (item) {
-                if (imageFile) {
-                    savedItem = await UpdateItem(item.id.toString(), buildItemFormData(form, imageFile))
-                } else {
-                    savedItem = await UpdateItem(item.id.toString(), form)
+                const changedFormData = buildChangedFormData(form, item, imageFile)
+                
+                if ([...changedFormData.keys()].length === 0) {
+                    onClose()
+                    return
                 }
+                
+                savedItem = await UpdateItem(item.id.toString(), changedFormData)
             } else {
-                if (imageFile) {
-                    savedItem = await CreateItem(buildItemFormData(form, imageFile))
-                } else {
-                    savedItem = await CreateItem(form)
-                }
+                const formData = buildItemFormData(form, imageFile)
+                savedItem = await CreateItem(formData)
+            
             }
             setForm(EMPTY_FORM)
             setImageFile(null)
