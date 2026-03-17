@@ -1,9 +1,8 @@
 import type { CategoryModel } from "../Models/CategoryModel";
-import api from "./axiosInstance";
+import {api } from "./axiosInstance";
 
 export const GetAllCategories = async () => {
   const response = await api.get<CategoryModel[]>(`/categories`);
-  console.log('Fetched categories:', response.data);
   return response.data;
 };
 

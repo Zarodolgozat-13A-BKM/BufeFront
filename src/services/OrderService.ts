@@ -1,6 +1,6 @@
 
 import type { OrderCreateModel, OrderModel, OrderPatchModel, StatusModel } from "../Models/OrderModel";
-import api from "./axiosInstance";
+import {api} from "./axiosInstance";
 
 export const GetStatuses = async () => {
   const response = await api.get<StatusModel[]>(`/statuses`);
