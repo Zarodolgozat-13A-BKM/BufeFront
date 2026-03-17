@@ -4,6 +4,8 @@ interface MenuItemCardProps {
   item: ItemModel
   quantity: number
   showModal: (item: ItemModel) => void
+  onUpdateQuantity: (itemId: number, delta: number) => void
+
 }
 
 export const MenuItemCard = ({ item, quantity, showModal }: MenuItemCardProps) => {
@@ -40,11 +42,12 @@ export const MenuItemCard = ({ item, quantity, showModal }: MenuItemCardProps) =
             {item.price}Ft
           </span>
           <div className="flex gap-5 items-center rounded-lg overflow-hidden z-20 relative">
-            {quantity === 0 ? ('') : (
-              <button onClick={() => showModal(item)} className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-md hover:bg-primary-hover transition-all active:scale-90" >
-                <span className="text-sm font-bold">{quantity}</span>
-              </button>
-            )}
+              <button onClick={() => onupdatequantiy(item.id, 1)} className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-md hover:bg-primary-hover transition-all active:scale-90" >
+                {quantity === 0 ? (
+                  <span className="material-symbols-outlined">add</span>) : (
+                  <span className="text-sm font-bold">{quantity}</span>
+                  )}
+                </button>
           </div>
         </div>
       </div>
