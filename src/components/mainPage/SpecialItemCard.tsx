@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ItemModel } from '../../Models/ItemModel'
 import { QuantityControl } from './QuantityControl'
 
@@ -9,8 +10,10 @@ interface SpecialItemCardProps {
 }
 
 export const SpecialItemCard = ({ item, showModal, quantity, onUpdateQuantity }: SpecialItemCardProps) => {
+  const [isQtyHovered, setIsQtyHovered] = useState(false)
+
   return (
-    <div className={`snap-center shrink-0 group flex flex-col gap-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-primary/20 dark:border-primary/40 shadow-lg hover:shadow-xl min-w-65 w-65 overflow-hidden group transition-all duration-300 relative ${item.is_active ? '' : ' opacity-50 cursor-not-allowed'}`}>
+    <div className={`snap-center shrink-0 flex flex-col gap-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-primary/20 dark:border-primary/40 shadow-lg min-w-65 w-65 overflow-hidden transition-all duration-300 relative ${isQtyHovered ? '' : 'group hover:shadow-xl'}${item.is_active ? '' : ' opacity-50 cursor-not-allowed'}`}>
       <button onClick={() => item.is_active ? showModal(item) : null} className="cursor-pointer absolute inset-0 z-10 rounded-xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
         <span className="text-6xl text-white font-light material-symbols-outlined">add</span>
       </button>
@@ -34,7 +37,11 @@ export const SpecialItemCard = ({ item, showModal, quantity, onUpdateQuantity }:
         </div>
         <div className="mt-auto flex items-end justify-between">
           <p className="text-primary text-xl font-extrabold leading-normal">{item.price}Ft</p>
-          <div className="z-20 relative">
+          <div
+            className="z-20 relative"
+            onMouseEnter={() => setIsQtyHovered(true)}
+            onMouseLeave={() => setIsQtyHovered(false)}
+          >
             {item.is_active ? (
               <QuantityControl
                 quantity={quantity}
