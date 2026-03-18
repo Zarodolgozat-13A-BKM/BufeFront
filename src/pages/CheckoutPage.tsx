@@ -43,7 +43,9 @@ const CheckoutPage = () => {
                     quantity: item.quantity ?? 0,
                 })),
             }
-            console.log(orderData)
+            if (import.meta.env.DEV) {
+                console.log(orderData)
+            }
             await CreateOrder(orderData)
             window.alert('Your order has been placed successfully.')
         } catch (error) {
