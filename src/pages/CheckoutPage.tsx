@@ -36,7 +36,7 @@ const CheckoutPage = () => {
     const handleCheckout = async () => {
         try {
             const orderData: OrderCreateModel = {
-                delivery_date: deliverydatetime != ''? `${new Date().toISOString().split('T')[0]}T${deliverydatetime}`: new Date().toISOString().split('.')[0],
+                delivery_date: deliverydatetime !== '' ? `${new Date().toISOString().split('T')[0]}T${deliverydatetime}` : new Date().toISOString().split('.')[0],
                 comment: comment,
                 items: cart.items.map((item) => ({
                     item_id: item.id,
