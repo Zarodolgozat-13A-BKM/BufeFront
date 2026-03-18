@@ -1,4 +1,4 @@
-import type { Ringlist, RingModel } from "../Models/RingModel";
+import type { RingModel } from "../Models/RingModel";
 import { api } from "./axiosInstance";
 
 function todayDateString(): string {
