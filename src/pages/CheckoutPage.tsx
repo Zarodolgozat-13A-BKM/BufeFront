@@ -15,6 +15,7 @@ const CheckoutPage = () => {
     const [ringing, setRinging] = useState<Ringlist[]>([])
     const [comment, setComment] = useState('')
     const [isCommentOpen, setIsCommentOpen] = useState(false)
+    const [isCheckingOut, setIsCheckingOut] = useState(false)
     const dispatch = useAppDispatch()
     const cart = useAppSelector((state) => state.cart.cart)
 
@@ -25,19 +26,26 @@ const CheckoutPage = () => {
     const removeItem = (itemId: number) => {
         dispatch(removeItemFromCart(itemId))
     }
-    const handleCheckout = () =>
+    const handleCheckout = async () =>
     {
-        const orderData: OrderCreateModel = {
-            delivery_date: new Date().toISOString().split('T')[0],
-            comment: comment,
-            items: cart.items.map((item) => ({
-                item_id: item.id,
-                quantity: item.quantity ?? 0,
-            })),
+        setIsCheckingOut(true)
+        try {
+            const orderData: OrderCreateModel = {
+                delivery_date: new Date().toISOString().split('T')[0],
+                comment: comment,
+                items: cart.items.map((item) => ({
+                    item_id: item.id,
+                    quantity: item.quantity ?? 0,
+                })),
+            }
+            await CreateOrder(orderData)
+            window.alert('Your order has been placed successfully.')
+        } catch (error) {
+            console.error('Failed to create order:', error)
+            window.alert('Failed to place your order. Please try again.')
+        } finally {
+            setIsCheckingOut(false)
         }
-        console.log('Order data to be sent:', orderData)
-        CreateOrder(orderData)
-        
     }
 
     useEffect(() => {
