@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setCategories, selectAllItems } from '../store/categorySlice'
 import { GetAllCategories } from '../services/CategoryService'
-import { updateItemQuantity, removeItemFromCart } from '../store/cartSlice'
+import { addItemToCart, updateItemQuantity } from '../store/cartSlice'
 import type { CategoryModel } from '../Models/CategoryModel'
 import type { ItemModel } from '../Models/ItemModel'
 import { TopAppBar } from '../components/mainPage/TopAppBar'
@@ -11,7 +11,6 @@ import { CategoryChips } from '../components/mainPage/CategoryChips'
 import { SpecialItemCard } from '../components/mainPage/SpecialItemCard'
 import { MenuItemCard } from '../components/mainPage/MenuItemCard'
 import { CartBar } from '../components/mainPage/CartBar'
-import { CartModal } from '../components/modals/CartModal'
 import { AddItemModal } from '../components/modals/addItemModal'
 import { setMe } from '../store/authSlice'
 import { GetMe } from '../services/APIservice'
@@ -25,7 +24,6 @@ const MainPage = () => {
     const cartItems = useAppSelector((state) => state.cart.cart.items)
     const [searchQuery, setSearchQuery] = useState('')
     const [activeCategory, setActiveCategory] = useState<CategoryModel | null>(null)
-    const [isCartModalOpen, setIsCartModalOpen] = useState(false)
     const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState<ItemModel | null>(null)
     const scrollContainerRef = useRef<HTMLDivElement | null>(null)
@@ -67,12 +65,19 @@ const MainPage = () => {
     }, [cartItems])
 
     const updateQuantity = (itemId: number, delta: number) => {
-        dispatch(updateItemQuantity({ item_id: itemId, delta }))
-    }
+        if (delta === 0) return
 
-    // dispatching wrapper for removing an item from the cart
-    const handleRemoveItem = (itemId: number) => {
-        dispatch(removeItemFromCart(itemId))
+        const currentQuantity = itemQuantityById[itemId] ?? 0
+
+        if (currentQuantity === 0 && delta > 0) {
+            const itemToAdd = allItems.find((item) => item.id === itemId)
+            if (!itemToAdd) return
+
+            dispatch(addItemToCart({ item: itemToAdd, quantity: delta }))
+            return
+        }
+
+        dispatch(updateItemQuantity({ item_id: itemId, delta }))
     }
 
     const showModal = (item: ItemModel) => {
@@ -151,7 +156,7 @@ const MainPage = () => {
                 </div>
                 <div className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 gap-4">
                     {featuredItems.map((item: ItemModel) => (
-                        <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={itemQuantityById[item.id] ?? 0} />
+                        <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={itemQuantityById[item.id] ?? 0} onUpdateQuantity={updateQuantity}/>
                     ))
                     }
                 </div>
@@ -167,16 +172,14 @@ const MainPage = () => {
                             {category.name}
                         </h3>
                         {filteredItems.map((item) => (
-                            <MenuItemCard key={item.id} item={item} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} />
+                            <MenuItemCard key={item.id} item={item} onUpdateQuantity={updateQuantity} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} />
                         ))}
                     </div>
                 )
             })}
             <div className="h-6"></div>
 
-            <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={() => setIsCartModalOpen(true)}/>
-
-            <CartModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} removeItem={handleRemoveItem} cartItems={cartItems} onUpdateQuantity={updateQuantity} onCheckout={handleCheckout}/>
+            <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={handleCheckout}/>
 
             <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? (itemQuantityById[selectedItem.id] ?? 0) : 0}/>
         </div>

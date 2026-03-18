@@ -39,6 +39,7 @@ export type CartItemModel = ItemModel & {
 
 export interface OrderCreateModel {
   delivery_date: string
+  comment: string | null
   items: OrderItem[]
   comment?: string
 }
