@@ -1,32 +1,18 @@
 import React, { useState } from 'react'
-import { Login } from '../services/APIservice'
+import { GetMe, Login } from '../services/APIservice'
 import { useAppDispatch } from '../store/hooks'
-import { login } from '../store/authSlice'
+import { login, setMe } from '../store/authSlice'
+import type { MeModel } from '../Models/AuthModel'
 
 
 const LoginPage = () => {
     const dispatch = useAppDispatch()
-    const [username, setusername] = useState('')
+    const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [rememberMe, setRememberMe] = useState(true)
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-
-    React.useEffect(() => {
-        const style = document.createElement('style')
-        style.textContent = `
-            body {
-                font-family: 'Plus Jakarta Sans', sans-serif;
-            }
-        `
-        document.head.appendChild(style)
-
-        return () => {
-            document.head.removeChild(style)
-        }
-    }, [])
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
@@ -42,8 +28,9 @@ const LoginPage = () => {
             // }
             const token = await Login({ username, password }, rememberMe)
             if (token) {
-                dispatch(login({ token, username }))
-                console.log('Login successful')
+                dispatch(login({ token}))
+                const user: MeModel = await GetMe()
+                dispatch(setMe({ me: user }))
             }
         } catch (err: unknown) {
             console.error('Login failed:', err)
@@ -74,7 +61,7 @@ const LoginPage = () => {
                         <div className="w-16 h-16 rounded-lg bg-primary flex items-center justify-center shadow-lg mb-4 mx-auto">
                             <span className="material-symbols-outlined text-white text-4xl">restaurant</span>
                         </div>
-                        <h1 className="text-3xl font-bold text-primary dark:text-white mb-2">Jedlik Bufé</h1>
+                        <h1 className="text-3xl font-bold text-primary dark:text-white mb-2">Jedlik Büfé</h1>
                         <p className="text-slate-400">Fuel your study sessions.</p>
                     </div>
                     {error && (
@@ -92,7 +79,7 @@ const LoginPage = () => {
                                     type="text"
                                     placeholder="vezetéknév.keresztnév"
                                     value={username}
-                                    onChange={(e) => setusername(e.target.value)}
+                                    onChange={(e) => setUsername(e.target.value)}
                                     required
                                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300/50 bg-white/30 text-slate-200 placeholder-slate-200 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                                 />
@@ -121,10 +108,10 @@ const LoginPage = () => {
                                 <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="peer h-5 w-5 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-slate-300 checked:bg-slate-800 checked:border-slate-800" id="check-2" />
                                 <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"
-                                        stroke="currentColor" stroke-width="1">
-                                        <path fill-rule="evenodd"
+                                        stroke="currentColor" strokeWidth={1}>
+                                        <path fillRule="evenodd"
                                             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                            clip-rule="evenodd"></path>
+                                            clipRule="evenodd"></path>
                                     </svg>
                                 </span>
                             </label>

@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
-import { setCategories } from '../store/categorySlice'
+import { setCategories, selectAllItems } from '../store/categorySlice'
 import { GetAllCategories } from '../services/CategoryService'
-import { setItems } from '../store/itemSlice'
-import { updateItemQuantity, removeItemFromCart } from '../store/cartSlice'
+import { addItemToCart, updateItemQuantity } from '../store/cartSlice'
 import type { CategoryModel } from '../Models/CategoryModel'
 import type { ItemModel } from '../Models/ItemModel'
 import { TopAppBar } from '../components/mainPage/TopAppBar'
@@ -12,18 +11,19 @@ import { CategoryChips } from '../components/mainPage/CategoryChips'
 import { SpecialItemCard } from '../components/mainPage/SpecialItemCard'
 import { MenuItemCard } from '../components/mainPage/MenuItemCard'
 import { CartBar } from '../components/mainPage/CartBar'
-import { CartModal } from '../components/modals/CartModal'
 import { AddItemModal } from '../components/modals/addItemModal'
+import { setMe } from '../store/authSlice'
+import { GetMe } from '../services/APIservice'
+import { useNavigate } from 'react-router'
 
 const MainPage = () => {
     const dispatch = useAppDispatch()
-    const { categories } = useAppSelector((state) => ({ categories: state.category.categories }))
-    const username = useAppSelector((state) => state.auth.username)
+    const navigate = useNavigate()
+    const categories = useAppSelector((state) => state.category.categories)
+    const me = useAppSelector((state) => state.auth.me)
     const cartItems = useAppSelector((state) => state.cart.cart.items)
-
     const [searchQuery, setSearchQuery] = useState('')
     const [activeCategory, setActiveCategory] = useState<CategoryModel | null>(null)
-    const [isCartModalOpen, setIsCartModalOpen] = useState(false)
     const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState<ItemModel | null>(null)
     const scrollContainerRef = useRef<HTMLDivElement | null>(null)
@@ -39,70 +39,45 @@ const MainPage = () => {
                 console.error('Failed to fetch categories:', error)
             }
         }
-        
+        const fetchMe = async () => {
+            try {
+                const data = await GetMe()
+                dispatch(setMe({ me: data }))
+            } catch (error) {
+                console.error('Failed to fetch user data:', error)
+            }
+        }
+        if(!me)
+        {
+            fetchMe()
+        } 
         fetchCategories()
-    }, [dispatch])
+    }, [dispatch, me])
 
-    useEffect(() => {
-        if (categories.length === 0) {
-            dispatch(setItems([]))
+    const allItems = useAppSelector(selectAllItems)
+
+    const itemQuantityById = useMemo(() => {
+        const map: Record<number, number> = {}
+        for (const item of cartItems) {
+            map[item.id] = item.quantity ?? 0
+        }
+        return map
+    }, [cartItems])
+
+    const updateQuantity = (itemId: number, delta: number) => {
+        if (delta === 0) return
+
+        const currentQuantity = itemQuantityById[itemId] ?? 0
+
+        if (currentQuantity === 0 && delta > 0) {
+            const itemToAdd = allItems.find((item) => item.id === itemId)
+            if (!itemToAdd) return
+
+            dispatch(addItemToCart({ item: itemToAdd, quantity: delta }))
             return
         }
 
-        const data: ItemModel[] = categories.flatMap((category: CategoryModel) => category.items)
-        dispatch(setItems(data))
-    }, [categories, dispatch])
-
-    useEffect(() => {
-        const links = [
-            'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
-            'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap'
-        ]
-        links.forEach(href => {
-            if (!document.querySelector(`link[href="${href}"]`)) {
-                const link = document.createElement('link')
-                link.rel = 'stylesheet'
-                link.href = href
-                document.head.appendChild(link)
-            }
-        })
-
-        const style = document.createElement('style')
-        style.textContent = `
-            body {
-                font-family: 'Plus Jakarta Sans', sans-serif;
-            }
-            .no-scrollbar::-webkit-scrollbar {
-                display: none;
-            }
-            .no-scrollbar {
-                -ms-overflow-style: none;
-                scrollbar-width: none;
-            }
-            .material-symbols-outlined.filled {
-                font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            }
-        `
-        document.head.appendChild(style)
-
-        return () => {
-            document.head.removeChild(style)
-        }
-    }, [])
-
-    // Helper to get item quantity from Redux cart
-    const getItemQuantity = (itemId: number): number => {
-        const cartItem = cartItems.find(item => item.item_id === itemId)
-        return cartItem?.quantity || 0
-    }
-
-    const updateQuantity = (itemId: number, delta: number) => {
         dispatch(updateItemQuantity({ item_id: itemId, delta }))
-    }
-
-    // dispatching wrapper for removing an item from the cart
-    const handleRemoveItem = (itemId: number) => {
-        dispatch(removeItemFromCart(itemId))
     }
 
     const showModal = (item: ItemModel) => {
@@ -112,20 +87,40 @@ const MainPage = () => {
 
 
     const handleCheckout = () => {
-        console.log('Proceeding to checkout with items:', cartItems)
+        navigate('/checkout')
     }
 
-    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0)
-    const totalPrice = cartItems.reduce((sum, cartItem) => {
-        const item = categories.flatMap((category: CategoryModel) => category.items).find(i => i.id === cartItem.item_id)
-        return sum + (item ? item.price * cartItem.quantity : 0)
-    }, 0)
+    const totalItems = useMemo(
+        () => cartItems.reduce((sum, item) => sum + (item.quantity ?? 0), 0),
+        [cartItems]
+    )
 
-    const getFilteredItems = (items: ItemModel[]) => {
-        if (!searchQuery.trim()) return items
-        return items.filter(item =>
-            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
-    }
+    const totalPrice = useMemo(
+        () => cartItems.reduce((sum, item) => sum + (item.price * (item.quantity ?? 0)), 0),
+        [cartItems]
+    )
+
+    const featuredItems = useMemo(
+        () => allItems.filter((item: ItemModel) => item.is_featured),
+        [allItems]
+    )
+
+    const filteredCategories = useMemo(() => {
+        const normalizedQuery = searchQuery.trim().toLowerCase()
+        if (!normalizedQuery) {
+            return categories.map((category, categoryIndex) => ({
+                category,
+                categoryIndex,
+                filteredItems: category.items,
+            }))
+        }
+
+        return categories.map((category, categoryIndex) => ({
+            category,
+            categoryIndex,
+            filteredItems: category.items.filter((item) => item.name.toLowerCase().includes(normalizedQuery)),
+        }))
+    }, [categories, searchQuery])
 
     const scrollToCategory = useCallback((categoryIndex: number | null) => {
         const scrollContainer = scrollContainerRef.current
@@ -148,9 +143,9 @@ const MainPage = () => {
     return (
         <div ref={scrollContainerRef} className="mainpage-scrollbar relative flex h-screen w-full flex-col overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
             <div ref={stickyHeaderRef} className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm border-b border-primary/20 dark:border-primary/30">
-                <TopAppBar username={username} loyaltyPoints={150} />
+                <TopAppBar username={me?.full_name ?? 'Guest'} loyaltyPoints={150} />
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
-                <CategoryChips categories={categories} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
+                <CategoryChips categories={categories} searchQuery={searchQuery} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
             </div>
 
             <div className="pt-6 pb-2">
@@ -160,16 +155,15 @@ const MainPage = () => {
                     </h2>
                 </div>
                 <div className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 gap-4">
-                    {categories.flatMap((category: CategoryModel) => category.items).filter((item: ItemModel) => item.is_featured).map((item: ItemModel) => (
-                        <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={getItemQuantity(item.id)} />
+                    {featuredItems.map((item: ItemModel) => (
+                        <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={itemQuantityById[item.id] ?? 0} onUpdateQuantity={updateQuantity}/>
                     ))
                     }
                 </div>
             </div>
 
-            {categories.map((category: CategoryModel, categoryIndex: number) => {
-                const filteredItems = getFilteredItems(category.items)
-                if (filteredItems.length === 0) return null
+            {filteredCategories.map(({ category, categoryIndex, filteredItems }) => {
+                if (filteredItems.length === 0) return <span key={category.id} />
 
                 return (
                     <div key={category.id} ref={(el) => { categoryRefs.current[categoryIndex] = el }} className="flex flex-col gap-4 px-4 pt-6 scroll-mt-32">
@@ -178,18 +172,16 @@ const MainPage = () => {
                             {category.name}
                         </h3>
                         {filteredItems.map((item) => (
-                            <MenuItemCard key={item.id} item={item} quantity={getItemQuantity(item.id)} showModal={showModal} />
+                            <MenuItemCard key={item.id} item={item} onUpdateQuantity={updateQuantity} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} />
                         ))}
                     </div>
                 )
             })}
             <div className="h-6"></div>
 
-            <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={() => setIsCartModalOpen(true)}/>
+            <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={handleCheckout}/>
 
-            <CartModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} removeItem={handleRemoveItem} cartItems={cartItems} allItems={categories.flatMap((category: CategoryModel) => category.items)} onUpdateQuantity={updateQuantity} onCheckout={handleCheckout}/>
-
-            <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? getItemQuantity(selectedItem.id) : 0}/>
+            <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? (itemQuantityById[selectedItem.id] ?? 0) : 0}/>
         </div>
     )
 }

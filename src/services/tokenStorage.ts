@@ -1,20 +1,23 @@
 const TOKEN_KEY = 'token'
-const USERNAME_KEY = 'username'
 
 export const getStoredToken = (): string | null => {
   if (typeof window === 'undefined') {
     return null
   }
 
-  return window.localStorage.getItem(TOKEN_KEY)
+  return window.localStorage.getItem(TOKEN_KEY) ?? window.sessionStorage.getItem(TOKEN_KEY)
 }
 
-export const setStoredToken = (token: string) => {
+export const setStoredToken = (token: string, rememberMe = true) => {
   if (typeof window === 'undefined') {
     return
   }
 
-  window.localStorage.setItem(TOKEN_KEY, token)
+  if (rememberMe) {
+    window.localStorage.setItem(TOKEN_KEY, token)
+  } else {
+    window.sessionStorage.setItem(TOKEN_KEY, token)
+  }
 }
 
 export const clearStoredToken = () => {
@@ -23,28 +26,5 @@ export const clearStoredToken = () => {
   }
 
   window.localStorage.removeItem(TOKEN_KEY)
-}
-
-export const getStoredUsername = (): string | null => {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  return window.localStorage.getItem(USERNAME_KEY)
-}
-
-export const setStoredUsername = (username: string) => {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  window.localStorage.setItem(USERNAME_KEY, username)
-}
-
-export const clearStoredUsername = () => {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  window.localStorage.removeItem(USERNAME_KEY)
+  window.sessionStorage.removeItem(TOKEN_KEY)
 }

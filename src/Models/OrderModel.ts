@@ -1,42 +1,48 @@
-import type { ItemModel } from "./ItemModel";
+export interface OrderItem {
+  item_id: number
+  quantity: number
+}
+
+export interface OrderLineItem {
+  item_id: number
+  item_name: string
+  item_price: number
+  picture_url: string
+  quantity: number
+  price: number
+}
+
 export interface OrderModel {
   id: number
-  user_id: number
+  user_username: string
   order_identifier_number: number
-  status: boolean
-  delivery_date: Date | null;
-  created_at: Date
-  updated_at: Date
-  items: ItemModel[]
+  status: string
+  delivery_date: string | null
+  items: OrderLineItem[] | undefined
+  total_price?: number
+  default_completion_time?: number
+  comment: string | null
+}
+export interface OrderPatchModel{
+  message?: string,
+  order: OrderModel
+}
+
+export interface CartModel {
+  items: CartItemModel[]
+}
+
+import type { ItemModel } from './ItemModel'
+export type CartItemModel = ItemModel & {
+  quantity?: number
 }
 
 export interface OrderCreateModel {
   delivery_date: string
+  comment: string | null
   items: OrderItem[]
 }
-
-export interface OrderItem {
-  item_id: number
-  quantity: number
-  
-}
-export interface Links {
-  first: string
-  last: string
-  prev: string | null
-  next: string | null
-}
-
-export interface Meta {
-  current_page: number
-  from: number
-  last_page: number
-  per_page: number
-  to: number
-  total: number
-}
-export interface AllOrdersResponseModel {
-  data: OrderModel[]
-  links: Links
-  meta: Meta
+export interface StatusModel {
+  id: number
+  name: string
 }

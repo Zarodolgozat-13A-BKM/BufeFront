@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Modal } from './Modal'
 import type { ItemModel } from '../../Models/ItemModel'
+import { useAppDispatch } from '../../store/hooks'
+import { addItemToCart } from '../../store/cartSlice'
 
 interface AddItemModalProps {
     isOpen: boolean
@@ -26,12 +28,17 @@ export const AddItemModal = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
 }
 
 const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: AddItemModalProps & { item: ItemModel }) => {
+    const dispatch = useAppDispatch()
     const [quantity, setQuantity] = useState(qty > 0 ? qty : 1)
 
     const handleAddToCart = () => {
-        const delta = quantity - qty
-        if (delta !== 0) {
-            onUpdateQuantity(item.id, delta)
+        if (qty === 0) {
+            dispatch(addItemToCart({ item, quantity }))
+        } else {
+            const delta = quantity - qty
+            if (delta !== 0) {
+                onUpdateQuantity(item.id, delta)
+            }
         }
         onClose()
     }
@@ -114,7 +121,7 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                                     Kosaramba teszem
                                 </span>
                             ) : (
-                                'Currently Unavailable'
+                                'Jelenleg nem elérhető'
                             )}
                         </button>
                         <button onClick={onClose} className="px-6 py-3 rounded-lg font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">

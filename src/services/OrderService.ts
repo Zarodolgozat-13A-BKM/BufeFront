@@ -1,63 +1,33 @@
-import type { ItemModel } from "../Models/ItemModel";
-import type { AllOrdersResponseModel } from "../Models/OrderModel";
-import { getStoredToken } from "./tokenStorage";
-const API_URL = import.meta.env.VITE_API_URL || "http://bufeapi.jcloud.jedlik.cloud/api";
-export const GetAllOrders = async (page: number) => {
-  try {
-    const token = getStoredToken();
-    const response = await fetch(`${API_URL}/orders?page=${page}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    }); 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: AllOrdersResponseModel = await response.json();
-    return data;
-  } catch (error) {
-    throw error;
+
+import type { OrderCreateModel, OrderModel, OrderPatchModel, StatusModel } from "../Models/OrderModel";
+import {api} from "./axiosInstance";
+
+export const GetStatuses = async () => {
+  const response = await api.get<StatusModel[]>(`/statuses`);
+  if (import.meta.env.DEV) {
+    console.log('Fetched statuses:', response.data);
   }
+  return response.data;
+}
+export const GetAllOrders = async () => {
+  const response = await api.get<OrderModel[]>(`/orders`);
+  return response.data;
 };
 
-export const GetOneOrder = async (id:string) => {
-  try {
-    const token = getStoredToken();
-    const response = await fetch(`${API_URL}/orders/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    }); 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: ItemModel = await response.json();
-    return data;
-  } catch (error) {
-    throw error;
-  }
+export const GetOneOrder = async (id: string) => {
+  const response = await api.get<OrderModel>(`/orders/${id}`);
+  return response.data;
 };
-export const CreateOrder = async (postData: any) => {
-  try {
-    const token = getStoredToken();
-    const response = await fetch(`${API_URL}/orders`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify(postData),
-    }); 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    throw error;
+
+export const CreateOrder = async (postData: OrderCreateModel) => {
+  const response = await api.post<OrderModel>(`/payment/checkout`, postData);
+  return response.data;
+};
+
+export const UpdateOrderStatus = async (id: number, status: string) => {
+  const response = await api.patch<OrderPatchModel>(`/orders/${id}`, {status_id:status});
+  if (import.meta.env.DEV) {
+    console.log('Order status updated:', response.data);
   }
+  return response.data;
 };

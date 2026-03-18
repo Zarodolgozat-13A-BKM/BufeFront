@@ -1,105 +1,28 @@
 import type { CategoryModel } from "../Models/CategoryModel";
-import { store } from "../store/store";
-
-const API_URL = import.meta.env.VITE_API_URL || "https://bufeapi.jcloud.jedlik.cloud/api";
+import {api } from "./axiosInstance";
 
 export const GetAllCategories = async () => {
-  try {
-    const token = store.getState().auth.bearerToken;
-    console.log("Token in GetAllCategories:", token);
-    const response = await fetch(`${API_URL}/categories`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    }); 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: CategoryModel[] = await response.json();
-    return data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get<CategoryModel[]>(`/categories`);
+  return response.data;
 };
+
 export const GetOneCategory = async (id: string) => {
-  try {
-    const token = store.getState().auth.bearerToken;
-    const response = await fetch(`${API_URL}/categories/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    }); 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: CategoryModel = await response.json();
-    return data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get<CategoryModel>(`/categories/${id}`);
+  return response.data;
 };
+
 export const CreateCategory = async (categoryName: string) => {
-  try {
-    const token = store.getState().auth.bearerToken;
-    const postData = { name: categoryName };
-    const response = await fetch(`${API_URL}/categories`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(postData),
-        });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: CategoryModel = await response.json();
-    return data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.post<CategoryModel>(`/categories`, { name: categoryName });
+  return response.data;
 };
+
 export const DeleteCategory = async (id: string) => {
-  try {
-    const token = store.getState().auth.bearerToken;
-    const response = await fetch(`${API_URL}/categories/${id}`, {
-        method: "DELETE",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data = await response.json();
-    return data;
-    } catch (error) {
-    throw error;
-    }
+  const response = await api.delete(`/categories/${id}`);
+  return response.data;
 };
+
 export const UpdateCategory = async (id: string, categoryName: string) => {
-  try {
-    const token = store.getState().auth.bearerToken;
-    const postData = { name: categoryName };
-    const response = await fetch(`${API_URL}/categories/${id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(postData),
-    });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    const data: CategoryModel = await response.json();
-    return data;
-    } catch (error) {
-    throw error;
-    };
+  const response = await api.patch<CategoryModel>(`/categories/${id}`, { name: categoryName });
+  return response.data;
 };
+
