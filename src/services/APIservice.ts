@@ -1,5 +1,5 @@
 import type { LoginModel, MeModel } from "../Models/AuthModel";
-import api from "./axiosInstance";
+import {api}  from "./axiosInstance";
 import { clearStoredToken, setStoredToken } from "./tokenStorage";
 
 export const Login = async (postData: LoginModel, rememberMe: boolean) => {
