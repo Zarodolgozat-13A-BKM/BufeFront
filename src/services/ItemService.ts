@@ -14,8 +14,13 @@ export const GetOneItem = async (id: string) => {
 };
 
 export const CreateItem = async (postData: ItemPayload) => {
-  const response = await fileapi.post<ItemModel>(`/items`, postData);
-  return response.data;
+  if (postData instanceof FormData) {
+    const response = await fileapi.post<ItemModel>(`/items`, postData);
+    return response.data;
+  } else {
+    const response = await api.post<ItemModel>(`/items`, postData);
+    return response.data;
+  }
 };
 
 export const UpdateItem = async (id: string, postData: FormData) => {
