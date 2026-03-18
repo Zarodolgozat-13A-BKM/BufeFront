@@ -1,4 +1,4 @@
-import type { Ringlist } from "../Models/RingModel";
+import type { Ringlist, RingModel } from "../Models/RingModel";
 import { api } from "./axiosInstance";
 
 function todayDateString(): string {
@@ -6,7 +6,7 @@ function todayDateString(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export const GetRinging = async (): Promise<Ringlist[]> => {
-  const response = await api.get<Ringlist[]>(`/orders/breaks/${todayDateString()}`);
+export const GetRinging = async (): Promise<RingModel> => {
+  const response = await api.get<RingModel>(`/orders/breaks/${todayDateString()}`);
   return response.data;
 };

@@ -15,9 +15,16 @@ const CheckoutPage = () => {
     const [ringing, setRinging] = useState<Ringlist[]>([])
     const [comment, setComment] = useState('')
     const [isCommentOpen, setIsCommentOpen] = useState(false)
-    const [isCheckingOut, setIsCheckingOut] = useState(false)
+    const [deliverydatetime, setDeliverydatetime] = useState<string>('')
     const dispatch = useAppDispatch()
     const cart = useAppSelector((state) => state.cart.cart)
+
+    const isPast = (endTime: string) => {
+        const [h, m] = endTime.split(':').map((s) => Number(s))
+        const now = new Date()
+        const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m)
+        return endDate.getTime() <= now.getTime()
+    }
 
     const updateQuantity = (itemId: number, delta: number) => {
         dispatch(updateItemQuantity({ item_id: itemId, delta }))
@@ -26,25 +33,22 @@ const CheckoutPage = () => {
     const removeItem = (itemId: number) => {
         dispatch(removeItemFromCart(itemId))
     }
-    const handleCheckout = async () =>
-    {
-        setIsCheckingOut(true)
+    const handleCheckout = async () => {
         try {
             const orderData: OrderCreateModel = {
-                delivery_date: new Date().toISOString().split('T')[0],
+                delivery_date: deliverydatetime != ''? `${new Date().toISOString().split('T')[0]}T${deliverydatetime}`: new Date().toISOString().split('.')[0],
                 comment: comment,
                 items: cart.items.map((item) => ({
                     item_id: item.id,
                     quantity: item.quantity ?? 0,
                 })),
             }
+            console.log(orderData)
             await CreateOrder(orderData)
             window.alert('Your order has been placed successfully.')
         } catch (error) {
             console.error('Failed to create order:', error)
             window.alert('Failed to place your order. Please try again.')
-        } finally {
-            setIsCheckingOut(false)
         }
     }
 
@@ -52,8 +56,8 @@ const CheckoutPage = () => {
         const fetchRinging = async () => {
             try {
                 const data = await GetRinging()
-                if (Array.isArray(data) && data.length > 0) {
-                    setRinging(data)
+                if (data && Array.isArray(data.breaks) && data.breaks.length > 0) {
+                    setRinging(data.breaks)
                 } else {
                     console.error('Failed to fetch ringing data: unexpected response shape', data)
                 }
@@ -87,27 +91,21 @@ const CheckoutPage = () => {
                             <label className="flex flex-col flex-1">
                                 <p className="text-text-dark dark:text-zinc-300 text-sm font-medium leading-normal pb-2">Válassz szünetet</p>
                                 <div className="relative">
-                                    <select
+                                    <select value={deliverydatetime} onChange={(e) => setDeliverydatetime(e.target.value)}
                                         className="appearance-none flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-text-dark dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal transition-shadow"
-                                        defaultValue=""
                                     >
-                                        <option disabled value="">Válassz időpontot...</option>
-                                        <option value={`${new Date().getHours()}:${new Date().getMinutes().toString().padStart(2, '0')}`}>Most</option>
-                                        {ringing.slice(0, -1).map((ring, index) => {
-                                            const nextRing = ringing[index + 1]
+                                        <option value=''>Most</option>
+                                        {ringing.map((ring, index) => {
+                                            const disabled = isPast(ring.end)
 
                                             return (
-                                                new Date() < new Date(`${new Date().toDateString()} ${nextRing.becsengetés}`)
-                                                    ? (
-                                                        <option key={`${ring['óra']}-${ring.becsengetés}-${ring.kicsengetés}-${index}`} value={`${ring.kicsengetés}`}>
-                                                            {`${ring.kicsengetés} - ${nextRing.becsengetés}`}
-                                                        </option>
-                                                    )
-                                                    : <option key={`${ring['óra']}-${ring.becsengetés}-${ring.kicsengetés}-${index}`} value={`${ring.kicsengetés}`} disabled>
-                                                            {`${ring.kicsengetés} - ${nextRing.becsengetés}`}
-                                                        </option>
+                                                <option key={`${ring.start}-${ring.end}-${index}`} value={`${ring.start}`} disabled={disabled}>
+                                                    {`${ring.start} - ${ring.end}`}
+                                                </option>
                                             )
-                                        })}
+                                        })
+                                        }
+
                                     </select>
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-light dark:text-zinc-500">
                                         <span className="material-symbols-outlined">expand_more</span>
