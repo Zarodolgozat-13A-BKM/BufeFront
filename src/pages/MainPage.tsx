@@ -160,7 +160,7 @@ const MainPage = () => {
                             {category.name}
                         </h3>
                         {filteredItems.map((item) => (
-                            <MenuItemCard key={item.id} item={item} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} />
+                            <MenuItemCard key={item.id} item={item} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} onUpdateQuantity={updateQuantity} />
                         ))}
                     </div>
                 )
