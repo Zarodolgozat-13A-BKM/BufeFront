@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setCategories, selectAllItems } from '../store/categorySlice'
 import { GetAllCategories } from '../services/CategoryService'
-import { updateItemQuantity } from '../store/cartSlice'
+import { addItemToCart, updateItemQuantity } from '../store/cartSlice'
 import type { CategoryModel } from '../Models/CategoryModel'
 import type { ItemModel } from '../Models/ItemModel'
 import { TopAppBar } from '../components/mainPage/TopAppBar'
@@ -65,6 +65,18 @@ const MainPage = () => {
     }, [cartItems])
 
     const updateQuantity = (itemId: number, delta: number) => {
+        if (delta === 0) return
+
+        const currentQuantity = itemQuantityById[itemId] ?? 0
+
+        if (currentQuantity === 0 && delta > 0) {
+            const itemToAdd = allItems.find((item) => item.id === itemId)
+            if (!itemToAdd) return
+
+            dispatch(addItemToCart({ item: itemToAdd, quantity: delta }))
+            return
+        }
+
         dispatch(updateItemQuantity({ item_id: itemId, delta }))
     }
 
@@ -144,7 +156,7 @@ const MainPage = () => {
                 </div>
                 <div className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 gap-4">
                     {featuredItems.map((item: ItemModel) => (
-                        <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={itemQuantityById[item.id] ?? 0} />
+                        <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={itemQuantityById[item.id] ?? 0} onUpdateQuantity={updateQuantity}/>
                     ))
                     }
                 </div>
@@ -160,7 +172,7 @@ const MainPage = () => {
                             {category.name}
                         </h3>
                         {filteredItems.map((item) => (
-                            <MenuItemCard key={item.id} item={item} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} />
+                            <MenuItemCard key={item.id} item={item} onUpdateQuantity={updateQuantity} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} />
                         ))}
                     </div>
                 )
