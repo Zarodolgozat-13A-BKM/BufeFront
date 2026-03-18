@@ -6,7 +6,6 @@ import {
   setStoredToken,
 } from '../services/tokenStorage'
 import type { MeModel } from '../Models/AuthModel'
-import { Logout } from '../services/APIservice'
 
 interface AuthState {
   isLoggedIn: boolean
@@ -35,8 +34,7 @@ const authSlice = createSlice({
       state.isLoggedIn = false
       state.bearerToken = null
       state.me = null
-      localStorage.clear()
-      sessionStorage.clear()
+      clearStoredToken()
     },
     setMe: (state, action: PayloadAction<{ me: MeModel }>) => {
       state.me = action.payload.me
