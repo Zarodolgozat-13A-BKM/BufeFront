@@ -124,17 +124,15 @@ const mergeCategoryLocal = (categories: CategoryModel[], category: CategoryModel
 const upsertItemLocal = (categories: CategoryModel[], item: ItemModel): CategoryModel[] => {
   const normalizedItem = {
     ...item,
-    id: Number(item.id),
-    category_id: Number((item as any).category_id),
   }
 
   const withoutItem = categories.map((category) => ({
     ...category,
-    items: category.items.filter((i) => Number(i.id) !== normalizedItem.id),
+    items: category.items.filter((i) => i.id !== normalizedItem.id),
   }))
 
   return withoutItem.map((category) => {
-    if (Number(category.id) !== normalizedItem.category_id) return category
+    if (category.id !== normalizedItem.category_id) return category
     return {
       ...category,
       items: [...category.items, normalizedItem],
