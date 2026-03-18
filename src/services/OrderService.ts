@@ -4,7 +4,9 @@ import {api} from "./axiosInstance";
 
 export const GetStatuses = async () => {
   const response = await api.get<StatusModel[]>(`/statuses`);
-  console.log('Fetched statuses:', response.data);
+  if (import.meta.env.DEV) {
+    console.log('Fetched statuses:', response.data);
+  }
   return response.data;
 }
 export const GetAllOrders = async () => {
@@ -24,6 +26,8 @@ export const CreateOrder = async (postData: OrderCreateModel) => {
 
 export const UpdateOrderStatus = async (id: number, status: string) => {
   const response = await api.patch<OrderPatchModel>(`/orders/${id}`, {status_id:status});
-  console.log('Order status updated:', response.data);
+  if (import.meta.env.DEV) {
+    console.log('Order status updated:', response.data);
+  }
   return response.data;
 };
