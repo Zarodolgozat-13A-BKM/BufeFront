@@ -14,13 +14,14 @@ export interface OrderLineItem {
 
 export interface OrderModel {
   id: number
-  user_id: number
+  user_username: string
   order_identifier_number: number
   status: string
   delivery_date: string | null
   items: OrderLineItem[] | undefined
   total_price?: number
   default_completion_time?: number
+  comment: string | null
 }
 export interface OrderPatchModel{
   message?: string,
@@ -40,4 +41,9 @@ export interface OrderCreateModel {
   delivery_date: string
   comment: string | null
   items: OrderItem[]
+  comment?: string
+}
+export interface StatusModel {
+  id: number
+  name: string
 }

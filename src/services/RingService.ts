@@ -1,7 +1,5 @@
-import type { Ringlist, RingModel } from "../Models/RingModel";
-import axios from "axios";
-import api from "./axiosInstance";
-
+import type { Ringlist } from "../Models/RingModel";
+import { api } from "./axiosInstance";
 
 function todayDateString(): string {
   const d = new Date();
@@ -9,7 +7,6 @@ function todayDateString(): string {
 }
 
 export const GetRinging = async (): Promise<Ringlist[]> => {
-  const endpoint = `/orders/breaks/${todayDateString()}`;
-  const response = await api.get<RingModel>(endpoint);
-  return response.data.rings;
+  const response = await api.get<Ringlist[]>(`/orders/breaks/${todayDateString()}`);
+  return response.data;
 };

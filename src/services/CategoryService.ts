@@ -1,5 +1,5 @@
 import type { CategoryModel } from "../Models/CategoryModel";
-import api from "./axiosInstance";
+import {api } from "./axiosInstance";
 
 export const GetAllCategories = async () => {
   const response = await api.get<CategoryModel[]>(`/categories`);
@@ -22,7 +22,7 @@ export const DeleteCategory = async (id: string) => {
 };
 
 export const UpdateCategory = async (id: string, categoryName: string) => {
-  const response = await api.put<CategoryModel>(`/categories/${id}`, { name: categoryName });
+  const response = await api.patch<CategoryModel>(`/categories/${id}`, { name: categoryName });
   return response.data;
 };
 
