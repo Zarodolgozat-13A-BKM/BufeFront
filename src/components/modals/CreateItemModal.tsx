@@ -230,7 +230,7 @@ export const CreateItemModal = ({ isOpen, onClose, categories, onCreated, item }
                         </p>
                         {imagePreview && (
                             <div className="mt-3 rounded-lg border border-gray-200 dark:border-gray-600 p-2 w-fit bg-gray-50 dark:bg-gray-800">
-                                <img src={imagePreview} alt="Elonézet" className="h-24 w-24 object-cover rounded-md" />
+                                <img src={imagePreview} alt="Előnézet" className="h-24 w-24 object-cover rounded-md" />
                             </div>
                         )}
                     </div>
