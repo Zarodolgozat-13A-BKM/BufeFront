@@ -8,7 +8,7 @@ interface MenuItemCardProps {
 
 }
 
-export const MenuItemCard = ({ item, quantity, showModal }: MenuItemCardProps) => {
+export const MenuItemCard = ({ item, quantity, showModal, onUpdateQuantity }: MenuItemCardProps) => {
   return (
     <div className="relative flex items-center gap-4 bg-white dark:bg-gray-900 p-3 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-primary/50 transition-all group cursor-pointer">
       <button onClick={() => showModal(item)} className="cursor-pointer absolute inset-0 z-10 rounded-xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -42,7 +42,7 @@ export const MenuItemCard = ({ item, quantity, showModal }: MenuItemCardProps) =
             {item.price}Ft
           </span>
           <div className="flex gap-5 items-center rounded-lg overflow-hidden z-20 relative">
-              <button onClick={() => onupdatequantiy(item.id, 1)} className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-md hover:bg-primary-hover transition-all active:scale-90" >
+              <button onClick={() => onUpdateQuantity(item.id, 1)} className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-md hover:bg-primary-hover transition-all active:scale-90" >
                 {quantity === 0 ? (
                   <span className="material-symbols-outlined">add</span>) : (
                   <span className="text-sm font-bold">{quantity}</span>
