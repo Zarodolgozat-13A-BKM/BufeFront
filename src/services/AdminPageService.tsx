@@ -220,9 +220,13 @@ export const handleOrderStatusChangeAction = async (
   status: string,
 ): Promise<void> => {
   const statuses = await GetStatuses()
-  console.log('Available statuses:', statuses)
-  const stat = statuses.find(s => s.name === status)?.id;
-  await UpdateOrderStatus(order.id, stat? stat.toString() : status)
+  const matchedStatus = statuses.find((s) => s.name === status)
+
+  if (!matchedStatus) {
+    throw new Error(`Unable to update order status: unknown status "${status}".`)
+  }
+
+  await UpdateOrderStatus(order.id, matchedStatus.id.toString())
 
   const updated = orders.map((o) => {
     if (o.id !== order.id) return o
