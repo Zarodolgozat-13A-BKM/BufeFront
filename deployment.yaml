@@ -1,12 +1,12 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: bufe-frontend-config
-data:
-  VITE_API_URL: "https://bufeapi.jcloud.jedlik.cloud/api"
-  VITE_REVERB_HOST: "https://bufeapi-ws.jcloud.jedlik.cloud"
-  VITE_REVERB_PORT: "8080"
-  VITE_REVERB_SCHEME: "http"
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: bufe-frontend-config
+# data:
+#   VITE_API_URL: "https://bufeapi.jcloud.jedlik.cloud/api"
+#   VITE_REVERB_HOST: "https://bufeapi-ws.jcloud.jedlik.cloud"
+#   VITE_REVERB_PORT: "8080"
+#   VITE_REVERB_SCHEME: "http"
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -41,12 +41,12 @@ spec:
           imagePullPolicy: Always
 
           envFrom:
-            - configMapRef:
-                name: bufe-frontend-config
-            - secretRef:
-                name: bufeapi-reverb-secret
-            - secretRef:
-                name: bufe-api-stripe-secret
+            # - configMapRef:
+            #     name: bufe-frontend-config
+            # - secretRef:
+            #     name: bufeapi-reverb-secret
+            # - secretRef:
+            #     name: bufe-api-stripe-secret
           ports:
             - containerPort: 80
 

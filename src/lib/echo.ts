@@ -6,13 +6,13 @@ window.Pusher = Pusher;
 
 export const echo = new Echo({
   broadcaster: "reverb",
-  key: import.meta.env.REVERB_APP_KEY,
-  wsHost: import.meta.env.REVERB_HOST ?? "localhost",
+  key: "lkmdfbj4dsd2tyfuprvn",
+  wsHost: "https://bufeapi-ws.jcloud.jedlik.cloud",
   wsPort: import.meta.env.REVERB_PORT ?? 8080,
   wssPort: import.meta.env.REVERB_PORT ?? 443,
   forceTLS: (import.meta.env.REVERB_SCHEME ?? "https") === "https",
   enabledTransports: ["ws", "wss"],
-  authEndpoint: import.meta.env.REVERB_AUTH_URL,
+  authEndpoint: "https://bufeapi.jcloud.jedlik.cloud/broadcasting/auth",
   auth: {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
