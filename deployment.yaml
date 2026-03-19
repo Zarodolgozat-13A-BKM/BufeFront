@@ -44,7 +44,7 @@ spec:
             - configMapRef:
                 name: bufe-frontend-config
             - secretRef:
-                name: bufe-frontend-reverb-secret
+                name: bufeapi-reverb-secret
             - secretRef:
                 name: bufe-api-stripe-secret
           ports:
