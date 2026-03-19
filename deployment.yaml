@@ -1,3 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bufe-frontend-config
+data:
+  API_URL: "https://bufeapi.jcloud.jedlik.cloud/api"
+  WEB_SOCKET_URL: "ws://bufeapi-ws.jcloud.jedlik.cloud/ws"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: bufe-frontend-certificate
+spec:
+  secretName: bufe-frontend-certificate
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - bufe.jcloud.jedlik.cloud
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,11 +38,13 @@ spec:
           image: ghcr.io/zarodolgozat-13a-bkm/zarodolgozat-bufe-frontend
           imagePullPolicy: Always
 
-          env:
-            - name: API_URL
-              value: "https://bufeapi.jcloud.jedlik.cloud/api"
-            - name: WEB_SOCKET_URL
-              value: "ws://bufeapi-ws.jcloud.jedlik.cloud/ws"
+          envFrom:
+            - configMapRef:
+                name: bufe-frontend-config
+            - secretRef:
+                name: bufeapi-reverb-secret
+            - secretRef:
+                name: bufe-api-stripe-secret
           ports:
             - containerPort: 80
 
@@ -44,8 +66,14 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: bufe-frontend-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - bufe.jcloud.jedlik.cloud
+      secretName: bufe-frontend-certificate
 
   rules:
     - host: bufe.jcloud.jedlik.cloud

@@ -1,10 +1,8 @@
 export interface Ringlist {
-  óra: number
-  becsengetés: string
-  kicsengetés: string
-  createdate: string
+  start: string
+  end: string
 }
 export interface RingModel {
   date: string
-  rings: Ringlist[]
+  breaks: Ringlist[]
 }
