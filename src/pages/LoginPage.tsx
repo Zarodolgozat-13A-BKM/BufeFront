@@ -130,7 +130,7 @@ const LoginPage = () => {
                 </div>
 
                 <div className="text-center mt-8 text-slate-600 dark:text-slate-400">
-                    <div className="flex justify-center gap-6 text-xs uppercase tracking-widest text-slate-500 dark:text-slate-500">
+                    <div className="flex justify-center gap-6 text-xs uppercase tracking-widest text-slate-400 dark:text-slate-400">
                         <a target='_blank' href="https://gyor-jedlik.cms.intezmeny.edir.hu/uploads/GYSZC_Jedlik_Anyos_Technikum_GDPR_Adatkezelesi_es_adatvedelmi_szabalyzat_hatalyos_2022_01_01_tol_fca5c07ebb.pdf" className="hover:text-slate-700 dark:hover:text-slate-300">Adatkezelés</a>
                     </div>
                 </div>
