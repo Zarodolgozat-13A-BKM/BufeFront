@@ -3,8 +3,10 @@ kind: ConfigMap
 metadata:
   name: bufe-frontend-config
 data:
-  API_URL: "https://bufeapi.jcloud.jedlik.cloud/api"
-  WEB_SOCKET_URL: "ws://bufeapi-ws.jcloud.jedlik.cloud/ws"
+  VITE_API_URL: "https://bufeapi.jcloud.jedlik.cloud/api"
+  VITE_REVERB_HOST: "https://bufeapi-ws.jcloud.jedlik.cloud"
+  VITE_REVERB_PORT: "8080"
+  VITE_REVERB_SCHEME: "http"
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -42,7 +44,7 @@ spec:
             - configMapRef:
                 name: bufe-frontend-config
             - secretRef:
-                name: bufeapi-reverb-secret
+                name: bufe-frontend-reverb-secret
             - secretRef:
                 name: bufe-api-stripe-secret
           ports:
