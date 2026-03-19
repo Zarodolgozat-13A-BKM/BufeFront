@@ -44,7 +44,7 @@ function App() {
       />
       <Route
         path="/admin"
-        element={me != null && me.role === 'admin' ? <AdminPage /> : <Navigate to={isLoggedIn ? '/main' : '/login'} replace />}
+        element={me != null && me.role === 'admin' ? <AdminPage /> : <Navigate to={isLoggedIn ? '/me' : '/login'} replace />}
       />
     </Routes>
   )
