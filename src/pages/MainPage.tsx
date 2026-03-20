@@ -12,7 +12,7 @@ import { SpecialItemCard } from '../components/mainPage/SpecialItemCard'
 import { MenuItemCard } from '../components/mainPage/MenuItemCard'
 import { CartBar } from '../components/mainPage/CartBar'
 import { AddItemModal } from '../components/modals/addItemModal'
-import { setMe } from '../store/authSlice'
+import { logout, setMe } from '../store/authSlice'
 import { GetMe } from '../services/APIservice'
 import { useNavigate } from 'react-router'
 
@@ -37,6 +37,8 @@ const MainPage = () => {
                 dispatch(setCategories(data))
             } catch (error) {
                 console.error('Failed to fetch categories:', error)
+                localStorage.clear()
+                navigate('/login')
             }
         }
         const fetchMe = async () => {
@@ -45,6 +47,8 @@ const MainPage = () => {
                 dispatch(setMe({ me: data }))
             } catch (error) {
                 console.error('Failed to fetch user data:', error)
+                localStorage.clear()
+                navigate('/login')
             }
         }
         if(!me)
