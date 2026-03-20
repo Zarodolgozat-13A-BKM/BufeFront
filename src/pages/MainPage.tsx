@@ -12,7 +12,7 @@ import { SpecialItemCard } from '../components/mainPage/SpecialItemCard'
 import { MenuItemCard } from '../components/mainPage/MenuItemCard'
 import { CartBar } from '../components/mainPage/CartBar'
 import { AddItemModal } from '../components/modals/addItemModal'
-import { logout, setMe } from '../store/authSlice'
+import { setMe } from '../store/authSlice'
 import { GetMe } from '../services/APIservice'
 import { useNavigate } from 'react-router'
 
@@ -145,20 +145,25 @@ const MainPage = () => {
     }, [])
 
     return (
-        <div ref={scrollContainerRef} className="mainpage-scrollbar relative flex h-screen w-full flex-col overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
-            <div ref={stickyHeaderRef} className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm border-b border-primary/20 dark:border-primary/30">
-                <TopAppBar username={me?.full_name ?? 'Guest'} loyaltyPoints={150} />
+        <div className="bg-background-light dark:bg-background-dark font-display antialiased">
+            <div
+                ref={scrollContainerRef}
+                className="mainpage-scrollbar relative flex h-screen w-full mx-auto flex-col overflow-y-auto overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800"
+            >
+            <div ref={stickyHeaderRef} className="sticky top-0 z-40 bg-white dark:bg-zinc-900 border-b border-[#e6e0db] dark:border-zinc-800">
+                <TopAppBar username={me?.full_name ?? 'Guest'} />
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
                 <CategoryChips categories={categories} searchQuery={searchQuery} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
             </div>
 
-            <div className="pt-6 pb-2">
+            <main className="flex-1 pb-28">
+            <div className="pt-5 pb-2">
                 <div className="flex items-center justify-between px-4 pb-3">
-                    <h2 className="text-black dark:text-white text-[22px] font-bold leading-tight">
+                    <h2 className="text-text-dark dark:text-white tracking-tight text-2xl font-bold leading-tight">
                         <span className="text-primary"></span> Daily Specials
                     </h2>
                 </div>
-                <div className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 gap-4">
+                <div className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 gap-4 no-scrollbar">
                     {featuredItems.map((item: ItemModel) => (
                         <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={itemQuantityById[item.id] ?? 0} onUpdateQuantity={updateQuantity}/>
                     ))
@@ -166,13 +171,15 @@ const MainPage = () => {
                 </div>
             </div>
 
+            <div className="h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 my-2"></div>
+
             {filteredCategories.map(({ category, categoryIndex, filteredItems }) => {
                 if (filteredItems.length === 0) return <span key={category.id} />
 
                 return (
-                    <div key={category.id} ref={(el) => { categoryRefs.current[categoryIndex] = el }} className="flex flex-col gap-4 px-4 pt-6 scroll-mt-32">
-                        <h3 className="text-black dark:text-white text-lg font-bold leading-tight flex items-center gap-2">
-                            <span className="w-1 h-6 bg-primary rounded-full"></span>
+                    <div key={category.id} ref={(el) => { categoryRefs.current[categoryIndex] = el }} className="flex flex-col gap-3 px-4 pt-6 scroll-mt-32">
+                        <h3 className="text-text-dark dark:text-white text-lg font-bold leading-tight flex items-center gap-2">
+                            <span className="w-1 h-5 bg-primary rounded-full"></span>
                             {category.name}
                         </h3>
                         {filteredItems.map((item) => (
@@ -182,10 +189,12 @@ const MainPage = () => {
                 )
             })}
             <div className="h-6"></div>
+            </main>
 
             <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={handleCheckout}/>
 
             <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? (itemQuantityById[selectedItem.id] ?? 0) : 0}/>
+        </div>
         </div>
     )
 }

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 @source "./";
 @source "./pages/CheckoutPage.tsx";
 @source "./pages/LoginPage.tsx";
