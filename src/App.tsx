@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import MainPage from './pages/MainPage'
 import { useAppSelector } from './store/hooks'
 import LoginPage from './pages/LoginPage'
@@ -5,12 +6,17 @@ import ProfilePage from './pages/ProfilePage'
 import CheckoutPage from './pages/CheckoutPage'
 import AdminPage from './pages/AdminPage'
 import { Navigate, Route, Routes } from 'react-router'
+import { applyInitialTheme } from './services/themeService'
 import { AdminOrdersPage } from './pages/AdminOrdersPage'
 
 function App() {
   const { isLoggedIn } = useAppSelector((state) => state.auth)
   const { cart } = useAppSelector((state) => state.cart)
   const me = useAppSelector((state) => state.auth.me)
+
+  useEffect(() => {
+    applyInitialTheme()
+  }, [])
 
   return (
     <Routes>
@@ -45,9 +51,18 @@ function App() {
         />
       <Route
         path="/admin"
-        element={me != null && me.role === 'admin' ? <AdminPage /> : <Navigate to={isLoggedIn ? '/main' : '/login'} replace />}
-        />
-        <Route path="/admin/orders" element={<AdminOrdersPage />} />
+        element={
+          !isLoggedIn ? (
+            <Navigate to="/login" replace />
+          ) : me == null ? (
+            <div>Loading...</div>
+          ) : me.role === 'admin' ? (
+            <AdminPage />
+          ) : (
+            <Navigate to="/me" replace />
+          )
+        }
+      />
     </Routes>
   )
 }

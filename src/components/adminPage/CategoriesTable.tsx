@@ -69,9 +69,9 @@ const CategoriesTable = ({
     }
 
     return (
-        <div className="overflow-x-auto rounded-xl border border-primary/15">
+        <div className="overflow-x-auto rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800">
             <table className="min-w-full text-sm text-left border-collapse">
-                <thead className="bg-primary/5 dark:bg-primary/10 border-b border-primary/20 text-gray-700 dark:text-gray-200">
+            <thead className="bg-bg-light dark:bg-zinc-800/80 border-b border-[#e6e0db] dark:border-zinc-700 text-text-dark dark:text-zinc-200">
                 <tr className="h-10">
                     <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center">▼</th>
                     <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px]" onClick={() => handleCatSort('name')}>Név{sortIcon('name', catSortField, catSortDir)}</th>
@@ -86,17 +86,17 @@ const CategoriesTable = ({
 
                     return (
                         <Fragment key={rowKey}>
-                            <tr onClick={() => toggleExpanded(rowKey)} className="h-14 cursor-pointer border-b border-primary/10 dark:border-primary/20 hover:bg-orange-50/70 dark:hover:bg-zinc-800/80 transition-colors">
-                                <td className="py-2 px-3 text-center text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">
+                            <tr onClick={() => toggleExpanded(rowKey)} className="h-14 cursor-pointer border-b border-[#e6e0db] dark:border-zinc-700 hover:bg-bg-light dark:hover:bg-zinc-800/80 transition-colors">
+                                <td className="py-2 px-3 text-center text-text-light dark:text-zinc-400 font-medium whitespace-nowrap">
                                     <span className="mr-2 text-xs">{isExpanded ? '▼' : '▶'}</span>
                                     {category.id}
                                 </td>
-                                <td className="py-2 px-3 font-medium text-black dark:text-white">{category.name}</td>
-                                <td className="py-2 px-3 text-black dark:text-white text-center">{category.items.length}</td>
+                                <td className="py-2 px-3 font-medium text-text-dark dark:text-white">{category.name}</td>
+                                <td className="py-2 px-3 text-text-dark dark:text-white text-center">{category.items.length}</td>
                                 <td className="py-2 px-3">
                                     <div className="flex gap-2 float-end">
                                         <button
-                                            className="px-2.5 py-1.5 text-xs rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-semibold"
+                                            className="px-2.5 py-1.5 text-xs rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors font-semibold"
                                             onClick={(e) => {
                                                 e.stopPropagation()
                                                 setSelectedCategory(category)
@@ -119,10 +119,10 @@ const CategoriesTable = ({
                             </tr>
 
                             {isExpanded && (
-                                <tr className="bg-primary/5 dark:bg-zinc-900/70 border-b border-primary/10 dark:border-primary/20">
+                                <tr className="bg-bg-light dark:bg-zinc-900/70 border-b border-[#e6e0db] dark:border-zinc-700">
                                     <td colSpan={4} className="px-4 py-3">
                                         {category.items.length === 0 ? (
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">Nincs termék ebben a kategóriában.</p>
+                                            <p className="text-sm text-text-light dark:text-zinc-400">Nincs termék ebben a kategóriában.</p>
                                         ) : (
                                             <ItemsTable
                                                 sortedItems={sortItems(category.items, itemSortField, itemSortDir)}
