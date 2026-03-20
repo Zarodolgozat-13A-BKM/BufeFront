@@ -31,7 +31,7 @@ const CheckoutPage = () => {
         setIsCheckingOut(true)
         try {
             const orderData: OrderCreateModel = {
-                delivery_date: new Date().toISOString().split('T')[0],
+                delivery_date: new Date().toISOString().split('T')[0]+` ${ringing[ringing.length - 1].kicsengetés}:00`,
                 comment: comment,
                 items: cart.items.map((item) => ({
                     item_id: item.id,
