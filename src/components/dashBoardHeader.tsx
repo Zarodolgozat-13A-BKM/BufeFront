@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react'
-import { useDispatch } from "react-redux";
 import { Link } from "react-router";
 import { Logout as ApiLogout } from '../services/APIservice'
 import { isDarkTheme, toggleTheme } from "../services/themeService";
 import { logout } from "../store/authSlice";
 import { useEffect, useState } from "react";
+import { useAppDispatch } from "../store/hooks";
 const DashBoardHeader = ({ name }: { name: ReactNode }) => {
     const [theme, setTheme] = useState<'light' | 'dark'>('light')
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     useEffect(() => {
         setTheme(isDarkTheme() ? 'dark' : 'light')
     }, [])
