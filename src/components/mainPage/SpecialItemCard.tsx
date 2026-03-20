@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ItemModel } from '../../Models/ItemModel'
 import { QuantityControl } from './QuantityControl'
 
@@ -9,6 +10,8 @@ interface SpecialItemCardProps {
 }
 
 export const SpecialItemCard = ({ item, showModal, quantity, onUpdateQuantity }: SpecialItemCardProps) => {
+  const [isQtyHovered, setIsQtyHovered] = useState(false)
+
   return (
     <div className={`snap-center shrink-0 group flex flex-col gap-3 rounded-xl bg-bg-light dark:bg-zinc-800/50 border border-[#e6e0db] dark:border-zinc-800 min-w-65 w-65 overflow-hidden transition-all duration-300 relative ${item.is_active ? '' : ' opacity-50 cursor-not-allowed'}`}>
       <button onClick={() => item.is_active ? showModal(item) : null} className="cursor-pointer absolute inset-0 z-10 rounded-xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -34,7 +37,11 @@ export const SpecialItemCard = ({ item, showModal, quantity, onUpdateQuantity }:
         </div>
         <div className="mt-auto flex items-end justify-between">
           <p className="text-primary text-xl font-extrabold leading-normal">{item.price}Ft</p>
-          <div className="z-20 relative">
+          <div
+            className="z-20 relative"
+            onMouseEnter={() => setIsQtyHovered(true)}
+            onMouseLeave={() => setIsQtyHovered(false)}
+          >
             {item.is_active ? (
               <QuantityControl
                 quantity={quantity}

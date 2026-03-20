@@ -7,6 +7,7 @@ import CheckoutPage from './pages/CheckoutPage'
 import AdminPage from './pages/AdminPage'
 import { Navigate, Route, Routes } from 'react-router'
 import { applyInitialTheme } from './services/themeService'
+import { AdminOrdersPage } from './pages/AdminOrdersPage'
 
 function App() {
   const { isLoggedIn } = useAppSelector((state) => state.auth)
@@ -47,7 +48,7 @@ function App() {
       <Route
         path="*"
         element={<Navigate to={isLoggedIn ? '/main' : '/login'} replace />}
-      />
+        />
       <Route
         path="/admin"
         element={me != null && me.role === 'admin' ? <AdminPage /> : <Navigate to={isLoggedIn ? '/me' : '/login'} replace />}
