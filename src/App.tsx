@@ -51,7 +51,17 @@ function App() {
         />
       <Route
         path="/admin"
-        element={me != null && me.role === 'admin' ? <AdminPage /> : <Navigate to={isLoggedIn ? '/me' : '/login'} replace />}
+        element={
+          !isLoggedIn ? (
+            <Navigate to="/login" replace />
+          ) : me == null ? (
+            <div>Loading...</div>
+          ) : me.role === 'admin' ? (
+            <AdminPage />
+          ) : (
+            <Navigate to="/me" replace />
+          )
+        }
       />
     </Routes>
   )
