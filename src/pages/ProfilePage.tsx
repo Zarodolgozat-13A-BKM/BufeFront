@@ -21,7 +21,11 @@ const ProfilePage = () => {
     if (order.items === undefined) return
     dispatch(clearCart())
     order.items.forEach((item) => {
-      const cartItem = category.flatMap((i) => i.items || []).find((j) => j.id === item.item_id) as ItemModel
+      const cartItem = category.flatMap((i) => i.items || []).find((j) => j.id === item.item_id)
+      if (!cartItem) {
+        console.warn(`Item with id ${item.item_id} not found in categories; skipping reorder for this item.`)
+        return
+      }
       dispatch(addItemToCart({ item: cartItem, quantity: item.quantity }))
     })
     navigate('/checkout')
