@@ -22,6 +22,7 @@ export interface OrderModel {
   total_price?: number
   default_completion_time?: number
   comment: string | null
+  clientSecret?: string
 }
 export interface OrderPatchModel{
   message?: string,
