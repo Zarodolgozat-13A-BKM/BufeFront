@@ -7,7 +7,6 @@ import type { OrderModel } from "../Models/OrderModel"
 import OrderItem from "../components/profilePage/orderItem"
 import { addItemToCart, clearCart } from "../store/cartSlice"
 import { useNavigate } from "react-router"
-import type { ItemModel } from "../Models/ItemModel"
 import DashBoardHeader from "../components/dashBoardHeader"
 
 

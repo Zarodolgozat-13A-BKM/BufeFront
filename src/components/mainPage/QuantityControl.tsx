@@ -22,16 +22,25 @@ export const QuantityControl = ({
     return (
       <div className={`flex items-center rounded-full bg-primary text-white overflow-hidden ${shadowClassName}`}>
         <button
+          type="button"
           onClick={onDecrease}
+          aria-label="Mennyiség csökkentése"
           className={`${buttonSizeClass} flex cursor-pointer items-center justify-center hover:bg-primary-hover transition-all active:scale-90`}
         >
           <span className="material-symbols-outlined text-[18px]">remove</span>
         </button>
-        <span className={`${buttonSizeClass} ${minWidthClass} px-2 flex items-center justify-center ${textClass} font-bold border-x border-white/30`}>
-          {quantity}
-        </span>
         <button
+          type="button"
           onClick={onIncrease}
+          aria-label="Mennyiség növelése"
+          className={`${buttonSizeClass} ${minWidthClass} px-2 flex cursor-pointer items-center justify-center ${textClass} font-bold border-x border-white/30 hover:bg-primary-hover transition-all active:scale-90`}
+        >
+          {quantity}
+        </button>
+        <button
+          type="button"
+          onClick={onIncrease}
+          aria-label="Mennyiség növelése"
           className={`${buttonSizeClass} flex cursor-pointer items-center justify-center hover:bg-primary-hover transition-all active:scale-90`}
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
@@ -42,7 +51,9 @@ export const QuantityControl = ({
 
   return (
     <button
+      type="button"
       onClick={onIncrease}
+      aria-label="Hozzáadás a kosárhoz"
       className={`flex ${isSmall ? 'size-9' : 'size-10'} cursor-pointer items-center justify-center rounded-full bg-primary text-white ${shadowClassName} hover:bg-primary-hover transition-all active:scale-90`}
     >
       <span className="material-symbols-outlined">add</span>

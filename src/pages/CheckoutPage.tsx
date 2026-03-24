@@ -3,7 +3,7 @@ import { GetRinging } from '../services/RingService'
 import type { Ringlist } from '../Models/RingModel'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { Link } from 'react-router'
-import { removeItemFromCart, updateItemQuantity } from '../store/cartSlice'
+import { removeItemFromCart, updateItemQuantity, clearCart } from '../store/cartSlice'
 import type { OrderCreateModel } from '../Models/OrderModel'
 import { CreateOrder } from '../services/OrderService'
 
@@ -47,7 +47,7 @@ const CheckoutPage = () => {
                 console.log(orderData)
             }
             await CreateOrder(orderData)
-            window.alert('Your order has been placed successfully.')
+            dispatch(clearCart())
         } catch (error) {
             console.error('Failed to create order:', error)
             window.alert('Failed to place your order. Please try again.')
@@ -94,7 +94,7 @@ const CheckoutPage = () => {
                                 <p className="text-text-dark dark:text-zinc-300 text-sm font-medium leading-normal pb-2">Válassz szünetet</p>
                                 <div className="relative">
                                     <select value={deliverydatetime} onChange={(e) => setDeliverydatetime(e.target.value)}
-                                        className="appearance-none flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-text-dark dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal transition-shadow"
+                                        className="appearance-none w-full rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal text-text-dark dark:text-white transition-shadow outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
                                     >
                                         <option value=''>Most</option>
                                         {ringing.map((ring, index) => {
@@ -109,7 +109,7 @@ const CheckoutPage = () => {
                                         }
 
                                     </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-light dark:text-zinc-500">
+                                    <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-light dark:text-zinc-500">
                                         <span className="material-symbols-outlined">expand_more</span>
                                     </div>
                                 </div>

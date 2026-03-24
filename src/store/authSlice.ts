@@ -1,7 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import {
-  clearStoredToken,
   getStoredToken,
   setStoredToken,
 } from '../services/tokenStorage'
