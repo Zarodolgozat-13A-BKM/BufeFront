@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - 11-make-cicd
+      - deployment-env-issues
 
 jobs:
   build-and-push:
