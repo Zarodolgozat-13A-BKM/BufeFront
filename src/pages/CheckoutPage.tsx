@@ -10,14 +10,24 @@ import { CreateOrder } from '../services/OrderService'
 const TAX_RATE = 0.27
 const SERVICE_FEE_RATE = 0.10
 const SUBTOTAL_RATE = 1 - TAX_RATE  // 0.73
+const ORDER_CUTOFF_HOUR = 14
+const ORDER_CUTOFF_MINUTE = 30
+
+const isAfterOrderCutoff = (date: Date) => {
+    const currentMinutes = date.getHours() * 60 + date.getMinutes()
+    const cutoffMinutes = ORDER_CUTOFF_HOUR * 60 + ORDER_CUTOFF_MINUTE
+    return currentMinutes >= cutoffMinutes
+}
 
 const CheckoutPage = () => {
     const [ringing, setRinging] = useState<Ringlist[]>([])
     const [comment, setComment] = useState('')
     const [isCommentOpen, setIsCommentOpen] = useState(false)
     const [deliverydatetime, setDeliverydatetime] = useState<string>('')
+    const [now, setNow] = useState(() => new Date())
     const dispatch = useAppDispatch()
     const cart = useAppSelector((state) => state.cart.cart)
+    const orderingClosed = isAfterOrderCutoff(now)
 
     const isPast = (endTime: string) => {
         const [h, m] = endTime.split(':').map((s) => Number(s))
@@ -34,6 +44,11 @@ const CheckoutPage = () => {
         dispatch(removeItemFromCart(itemId))
     }
     const handleCheckout = async () => {
+        if (isAfterOrderCutoff(new Date())) {
+            window.alert('Rendelest 14:30 utan mar nem lehet leadni.')
+            return
+        }
+
         try {
             const orderData: OrderCreateModel = {
                 delivery_date: deliverydatetime !== '' ? `${new Date().toISOString().split('T')[0]}T${deliverydatetime}` : new Date().toISOString().split('.')[0],
@@ -70,6 +85,16 @@ const CheckoutPage = () => {
         fetchRinging()
     }, [])
 
+    useEffect(() => {
+        const intervalId = window.setInterval(() => {
+            setNow(new Date())
+        }, 30000)
+
+        return () => {
+            window.clearInterval(intervalId)
+        }
+    }, [])
+
     const baseTotal = useMemo(
         () => cart.items.reduce((total, item) => total + item.price * (item.quantity ?? 0), 0),
         [cart.items]
@@ -96,7 +121,12 @@ const CheckoutPage = () => {
                                     <select value={deliverydatetime} onChange={(e) => setDeliverydatetime(e.target.value)}
                                         className="appearance-none w-full rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal text-text-dark dark:text-white transition-shadow outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
                                     >
-                                        <option value=''>Most</option>
+                                        { orderingClosed? <option value='' selected disabled={!orderingClosed}>
+                                            Ma már nem lehet rendelni, kérlek térj vissza holnap!
+                                        </option>: null}
+                                        <option value='' disabled={orderingClosed}>
+                                            Lehető leghamarabb
+                                        </option>
                                         {ringing.map((ring, index) => {
                                             const disabled = isPast(ring.end)
 
@@ -120,6 +150,12 @@ const CheckoutPage = () => {
                                 <span className="material-symbols-outlined text-primary text-xl">storefront</span>
                                 <p className="text-text-dark dark:text-zinc-200 text-sm font-medium leading-normal ">Átvétel az iskolai büfében.</p>
                             </div>
+                            {orderingClosed && (
+                                <div className="flex items-center gap-2 p-3 rounded-lg">
+                                    <span className="material-symbols-outlined text-red-500 dark:text-red-400 text-xl">schedule</span>
+                                    <p className="text-red-700 dark:text-red-400 text-sm font-medium leading-normal">A rendelésfelvétel mára véget ért (14:30). Kérünk, gyere vissza holnap.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 my-2"></div>
@@ -226,9 +262,15 @@ const CheckoutPage = () => {
                     </div> */}
                 </main>
                 <div className="fixed bottom-0 left-1/2 w-full max-w-5xl -translate-x-1/2 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 z-20">
-                    <button onClick={handleCheckout} className="w-full h-12 bg-primary hover:bg-[#e07b1a] text-white rounded-xl text-base font-bold shadow-lg shadow-orange-200 dark:shadow-none flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+                    <button
+                        onClick={handleCheckout}
+                        disabled={orderingClosed}
+                        className={"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " + (orderingClosed
+                            ? "bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
+                            : "bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]")}
+                    >
                         <span>Rendelés leadása</span>
-                        <span className="w-1 h-1 rounded-full bg-white/40"></span>
+                        <span className={"w-1 h-1 rounded-full " + (orderingClosed ? "bg-current/40" : "bg-white/40")}></span>
                         <span>{Math.floor(baseTotal * (1 + SERVICE_FEE_RATE))}Ft</span>
                     </button>
                 </div>
