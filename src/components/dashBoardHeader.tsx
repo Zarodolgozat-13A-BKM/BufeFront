@@ -4,9 +4,10 @@ import { Logout as ApiLogout } from '../services/APIservice'
 import { isDarkTheme, toggleTheme } from "../services/themeService";
 import { logout } from "../store/authSlice";
 import { useEffect, useState } from "react";
-import { useAppDispatch } from "../store/hooks";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 const DashBoardHeader = ({ name }: { name: ReactNode }) => {
     const [theme, setTheme] = useState<'light' | 'dark'>('light')
+    const me = useAppSelector((state) => state.auth.me)
     const dispatch = useAppDispatch();
     useEffect(() => {
         setTheme(isDarkTheme() ? 'dark' : 'light')
@@ -30,6 +31,9 @@ const DashBoardHeader = ({ name }: { name: ReactNode }) => {
                 </Link>
                 <h2 className="text-text-dark dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">{name}</h2>
                 <div className="absolute right-0 flex items-center gap-1 shrink-0">
+                    {me?.role == "admin" ?
+                        <Link to="/orders" className="text-text-dark dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors"><span className="material-symbols-outlined">order_play</span></Link> :""
+                    }
                     <button
                         onClick={handleThemeToggle}
                         aria-label="Dark mode váltása"

@@ -55,7 +55,7 @@ function App() {
           !isLoggedIn ? (
             <Navigate to="/login" replace />
           ) : me == null ? (
-            <div>Loading...</div>
+            <Navigate to="/login" replace />
           ) : me.role === 'admin' ? (
             <AdminPage />
           ) : (
@@ -63,6 +63,20 @@ function App() {
           )
         }
       />
+      <Route
+      path='/orders'
+              element={
+          !isLoggedIn ? (
+            <Navigate to="/login" replace />
+          ) : me == null ? (
+            <Navigate to="/login" replace />
+          ) : me.role === 'admin' ? (
+            <AdminOrdersPage />
+          ) : (
+            <Navigate to="/me" replace />
+          )
+        }
+        />
     </Routes>
   )
 }

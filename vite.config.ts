@@ -9,13 +9,5 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    proxy: {
-      '/external-api': {
-        target: 'https://jedlikinfo.jedlik.eu/api/api',
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/external-api/, ''),
-      },
-    },
   },
 })
