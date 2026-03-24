@@ -150,7 +150,7 @@ const MainPage = () => {
                 ref={scrollContainerRef}
                 className="mainpage-scrollbar relative flex h-screen w-full mx-auto flex-col overflow-y-auto overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800"
             >
-            <div ref={stickyHeaderRef} className="sticky top-0 z-40 bg-white dark:bg-zinc-900 border-b border-[#e6e0db] dark:border-zinc-800">
+            <div ref={stickyHeaderRef} className="sticky top-0 z-50 bg-white dark:bg-zinc-900 border-b border-[#e6e0db] dark:border-zinc-800">
                 <TopAppBar username={me?.full_name ?? 'Guest'} />
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
                 <CategoryChips categories={categories} searchQuery={searchQuery} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />

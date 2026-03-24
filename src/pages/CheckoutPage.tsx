@@ -3,7 +3,7 @@ import { GetRinging } from '../services/RingService'
 import type { Ringlist } from '../Models/RingModel'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { Link } from 'react-router'
-import { removeItemFromCart, updateItemQuantity } from '../store/cartSlice'
+import { removeItemFromCart, updateItemQuantity, clearCart } from '../store/cartSlice'
 import type { OrderCreateModel } from '../Models/OrderModel'
 import { CreateOrder } from '../services/OrderService'
 
@@ -47,7 +47,7 @@ const CheckoutPage = () => {
                 console.log(orderData)
             }
             await CreateOrder(orderData)
-            window.alert('Your order has been placed successfully.')
+            dispatch(clearCart())
         } catch (error) {
             console.error('Failed to create order:', error)
             window.alert('Failed to place your order. Please try again.')
@@ -77,7 +77,7 @@ const CheckoutPage = () => {
 
     return (
         <div className="bg-background-light dark:bg-background-dark font-display antialiased">
-            <div className="relative flex h-full min-h-screen w-full mx-auto flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
+            <div className="relative flex h-full min-h-screen w-full max-w-5xl mx-auto flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
                 <div className="flex items-center bg-white dark:bg-zinc-900 p-4 pb-2 justify-between sticky top-0 z-10">
                     <Link to="/main" className="text-text-dark dark:text-white flex size-12 shrink-0 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
                         <span className="material-symbols-outlined">arrow_back</span>
@@ -94,7 +94,7 @@ const CheckoutPage = () => {
                                 <p className="text-text-dark dark:text-zinc-300 text-sm font-medium leading-normal pb-2">Válassz szünetet</p>
                                 <div className="relative">
                                     <select value={deliverydatetime} onChange={(e) => setDeliverydatetime(e.target.value)}
-                                        className="appearance-none flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-text-dark dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal transition-shadow"
+                                        className="appearance-none w-full rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal text-text-dark dark:text-white transition-shadow outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
                                     >
                                         <option value=''>Most</option>
                                         {ringing.map((ring, index) => {
@@ -109,22 +109,22 @@ const CheckoutPage = () => {
                                         }
 
                                     </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-light dark:text-zinc-500">
+                                    <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-light dark:text-zinc-500">
                                         <span className="material-symbols-outlined">expand_more</span>
                                     </div>
                                 </div>
                             </label>
                         </div>
                         <div className="px-4 pb-4">
-                            <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
+                            <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border mt-5 mb-4 border-primary/20">
                                 <span className="material-symbols-outlined text-primary text-xl">storefront</span>
-                                <p className="text-text-dark dark:text-zinc-200 text-sm font-medium leading-normal">Átvétel az iskolai büfében.</p>
+                                <p className="text-text-dark dark:text-zinc-200 text-sm font-medium leading-normal ">Átvétel az iskolai büfében.</p>
                             </div>
                         </div>
                     </div>
                     <div className="h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 my-2"></div>
                     <div className="px-4 py-4">
-                        <div className="bg-bg-light dark:bg-zinc-800/50 rounded-xl p-4 border border-[#e6e0db] dark:border-zinc-800">
+                        <div className="bg-bg-light dark:bg-zinc-800/50 rounded-xl p-4 border border-[#e6e0db] dark:border-zinc-800 mb-8">
                             <button
                                 type="button"
                                 onClick={() => setIsCommentOpen((current) => !current)}
@@ -218,14 +218,14 @@ const CheckoutPage = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="px-4 pb-6">
+                    {/* <div className="px-4 pb-6">
                         <div className="flex items-center justify-center gap-2 py-2 px-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-full border border-yellow-100 dark:border-yellow-900/40 mx-auto w-fit">
                             <span className="material-symbols-outlined text-amber-500 dark:text-amber-400 text-lg">stars</span>
                             <p className="text-amber-700 dark:text-amber-400 text-xs font-bold uppercase tracking-wide">+{Math.floor(baseTotal * SERVICE_FEE_RATE * 1.1)} pontot kapsz!</p>
                         </div>
-                    </div>
+                    </div> */}
                 </main>
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 mx-auto z-20">
+                <div className="fixed bottom-0 left-1/2 w-full max-w-5xl -translate-x-1/2 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 z-20">
                     <button onClick={handleCheckout} className="w-full h-12 bg-primary hover:bg-[#e07b1a] text-white rounded-xl text-base font-bold shadow-lg shadow-orange-200 dark:shadow-none flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
                         <span>Rendelés leadása</span>
                         <span className="w-1 h-1 rounded-full bg-white/40"></span>

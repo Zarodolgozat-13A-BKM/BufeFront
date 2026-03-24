@@ -1,7 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import {
-  clearStoredToken,
   getStoredToken,
   setStoredToken,
 } from '../services/tokenStorage'
@@ -34,7 +33,7 @@ const authSlice = createSlice({
       state.isLoggedIn = false
       state.bearerToken = null
       state.me = null
-      clearStoredToken()
+      localStorage.clear()
     },
     setMe: (state, action: PayloadAction<{ me: MeModel }>) => {
       state.me = action.payload.me

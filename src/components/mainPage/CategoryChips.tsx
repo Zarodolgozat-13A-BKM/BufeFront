@@ -10,7 +10,7 @@ export const CategoryChips = ({ categories, activeCategory, searchQuery = "", on
   const normalizedSearchQuery = searchQuery.toLowerCase().trim()
 
   return (
-    <div className="flex gap-2 px-4 py-2 overflow-x-auto overflow-y-visible no-scrollbar items-center min-h-11">
+    <div className="flex gap-2 px-4 py-2 overflow-x-auto overflow-y-hidden no-scrollbar items-center min-h-11">
       {categories.map((category: CategoryModel, categoryIndex: number) => {
         const hasVisibleItem = normalizedSearchQuery.length === 0
           ? category.items.length > 0
