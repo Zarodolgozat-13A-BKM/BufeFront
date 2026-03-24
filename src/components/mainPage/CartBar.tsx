@@ -8,17 +8,17 @@ export const CartBar = ({ totalItems, totalPrice, onClick }: CartBarProps) => {
   if (totalItems === 0) return null
 
   return (
-    <div className="sticky bottom-0 left-0 right-0 p-4 z-50">
-      <button onClick={onClick} className="w-full bg-primary hover:bg-primary-hover text-white rounded-2xl h-16 flex items-center justify-between px-6 shadow-2xl transition-all active:scale-[0.98] border-2 border-primary">
+    <div className="sticky bottom-0 left-0 right-0 p-4 z-50 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800">
+      <button onClick={onClick} className="w-full h-12 bg-primary hover:bg-[#e07b1a] text-white rounded-xl text-base font-bold flex items-center justify-between px-4 transition-all active:scale-[0.98]">
         <div className="flex items-center gap-3">
-          <div className="bg-white/30 backdrop-blur-sm rounded-xl px-3 py-1.5 text-base font-bold shadow-lg">
+          <div className="bg-white/30 rounded-md px-2 py-0.5 text-sm font-bold">
             {totalItems}
           </div>
-          <span className="text-base font-bold">Kosarad</span>
+          <span className="text-sm font-bold">Kosarad</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xl font-extrabold">{totalPrice}Ft</span>
-          <span className="material-symbols-outlined text-2xl">arrow_forward</span>
+          <span className="text-sm font-bold">{totalPrice}Ft</span>
+          <span className="material-symbols-outlined text-lg">arrow_forward</span>
         </div>
       </button>
     </div>
