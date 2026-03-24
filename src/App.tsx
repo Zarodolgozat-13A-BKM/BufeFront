@@ -10,6 +10,8 @@ import { applyInitialTheme } from './services/themeService'
 import { AdminOrdersPage } from './pages/AdminOrdersPage'
 import { GetMe } from './services/APIservice'
 import { logout, setMe } from './store/authSlice'
+import PaymentPage from './pages/paymentPage'
+import PostPaymentPage from './pages/PostPaymentPage'
 
 function App() {
   const dispatch = useAppDispatch()
@@ -117,6 +119,30 @@ function App() {
           ) : (
             <Navigate to="/me" replace />
           )
+        }
+        />
+              <Route
+      path='/payment'
+              element={
+          !isLoggedIn ? (
+            <Navigate to="/login" replace />
+          ) : isMeLoading ? (
+            <div className="min-h-screen bg-background-light dark:bg-background-dark" />
+          ) : me == null ? (
+            <Navigate to="/login" replace />
+          ) : <PaymentPage/>
+        }
+        />
+                      <Route
+      path='/orderstatus'
+              element={
+          !isLoggedIn ? (
+            <Navigate to="/login" replace />
+          ) : isMeLoading ? (
+            <div className="min-h-screen bg-background-light dark:bg-background-dark" />
+          ) : me == null ? (
+            <Navigate to="/login" replace />
+          ) : <PostPaymentPage/>
         }
         />
     </Routes>

@@ -30,6 +30,7 @@ export const GetOneOrder = async (id: string) => {
 export const CreateOrder = async (postData: OrderCreateModel) => {
   console.log("Creating order with data:", postData);
   const response = await api.post<OrderModel>(`/payment/checkout`, postData);
+  console.log("Order created:", response.data);
   return response.data;
 };
 
