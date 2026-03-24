@@ -10,7 +10,7 @@ import { applyInitialTheme } from './services/themeService'
 import { AdminOrdersPage } from './pages/AdminOrdersPage'
 import { GetMe } from './services/APIservice'
 import { logout, setMe } from './store/authSlice'
-import PaymentPage from './pages/paymentPage'
+import PaymentPage from './pages/PaymentPage'
 import PostPaymentPage from './pages/PostPaymentPage'
 
 function App() {
