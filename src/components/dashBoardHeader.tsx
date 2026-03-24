@@ -5,7 +5,7 @@ import { isDarkTheme, toggleTheme } from "../services/themeService";
 import { logout } from "../store/authSlice";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-const DashBoardHeader = ({ name }: { name: ReactNode }) => {
+const DashBoardHeader = ({ name, showAdmin, backTo }: { name: ReactNode; showAdmin: boolean; backTo: string }) => {
     const [theme, setTheme] = useState<'light' | 'dark'>('light')
     const me = useAppSelector((state) => state.auth.me)
     const dispatch = useAppDispatch();
@@ -26,12 +26,12 @@ const DashBoardHeader = ({ name }: { name: ReactNode }) => {
     return (
         <div className="sticky top-0 z-20 border-b border-[#e6e0db] bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="relative flex items-center justify-center">
-                <Link to='/main' className="absolute left-0 text-text-dark dark:text-white flex size-12 shrink-0 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+                <Link to={backTo} className="absolute left-0 text-text-dark dark:text-white flex size-12 shrink-0 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
                     <span className="material-symbols-outlined">arrow_back</span>
                 </Link>
                 <h2 className="text-text-dark dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">{name}</h2>
                 <div className="absolute right-0 flex items-center gap-1 shrink-0">
-                    {me?.role == "admin" ?
+                    {showAdmin && me?.role === 'admin' ?
                         <Link to="/orders" className="text-text-dark dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors"><span className="material-symbols-outlined">order_play</span></Link> :""
                     }
                     <button

@@ -131,7 +131,7 @@ const AdminPage = () => {
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-display antialiased">
       <div className="relative mx-auto flex min-h-screen w-full flex-col overflow-x-auto shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
-        <DashBoardHeader name={(<div className="rounded-xl p-4">
+        <DashBoardHeader showAdmin={true} backTo="/main" name={(<div className="rounded-xl p-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-text-dark dark:text-white">Admin Dashboard</h1>

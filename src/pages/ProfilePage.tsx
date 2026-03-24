@@ -62,7 +62,7 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
       <div className="relative mx-auto flex min-h-screen w-full flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
-        {me && <DashBoardHeader name={me.full_name} />}
+        {me && <DashBoardHeader name={me.full_name} showAdmin={false} backTo="/main" />}
         <div className="px-4 pb-8 pt-5 sm:px-6">
           <div className="rounded-xl border border-[#e6e0db] bg-bg-light p-6 dark:border-zinc-800 dark:bg-zinc-800/50">
             <div className="flex w-full flex-col items-center gap-4">

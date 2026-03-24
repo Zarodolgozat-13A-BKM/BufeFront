@@ -34,7 +34,7 @@ const authSlice = createSlice({
       state.isLoggedIn = false
       state.bearerToken = null
       state.me = null
-      clearStoredToken()
+      localStorage.clear()
     },
     setMe: (state, action: PayloadAction<{ me: MeModel }>) => {
       state.me = action.payload.me
