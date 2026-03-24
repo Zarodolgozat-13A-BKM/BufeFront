@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { GetRinging } from '../services/RingService'
 import type { Ringlist } from '../Models/RingModel'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { removeItemFromCart, updateItemQuantity, clearCart } from '../store/cartSlice'
 import type { OrderCreateModel } from '../Models/OrderModel'
 import { CreateOrder } from '../services/OrderService'
@@ -20,6 +20,7 @@ const isAfterOrderCutoff = (date: Date) => {
 }
 
 const CheckoutPage = () => {
+    const navigate = useNavigate()
     const [ringing, setRinging] = useState<Ringlist[]>([])
     const [comment, setComment] = useState('')
     const [isCommentOpen, setIsCommentOpen] = useState(false)
@@ -61,8 +62,9 @@ const CheckoutPage = () => {
             if (import.meta.env.DEV) {
                 console.log(orderData)
             }
-            await CreateOrder(orderData)
-            dispatch(clearCart())
+            const orderResponse = await CreateOrder(orderData)
+            const clientSecret = (orderResponse as any).clientSecret
+            navigate('/payment', { state: { clientSecret }, replace: true })
         } catch (error) {
             console.error('Failed to create order:', error)
             window.alert('Failed to place your order. Please try again.')
