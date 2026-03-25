@@ -3,7 +3,7 @@ import { GetRinging } from '../services/RingService'
 import type { Ringlist } from '../Models/RingModel'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { Link, useNavigate } from 'react-router'
-import { removeItemFromCart, updateItemQuantity, clearCart } from '../store/cartSlice'
+import { removeItemFromCart, updateItemQuantity } from '../store/cartSlice'
 import type { OrderCreateModel } from '../Models/OrderModel'
 import { CreateOrder } from '../services/OrderService'
 
@@ -24,6 +24,7 @@ const CheckoutPage = () => {
     const [ringing, setRinging] = useState<Ringlist[]>([])
     const [comment, setComment] = useState('')
     const [isCommentOpen, setIsCommentOpen] = useState(false)
+    const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
     const [deliverydatetime, setDeliverydatetime] = useState<string>('')
     const [now, setNow] = useState(() => new Date())
     const dispatch = useAppDispatch()
@@ -45,10 +46,16 @@ const CheckoutPage = () => {
         dispatch(removeItemFromCart(itemId))
     }
     const handleCheckout = async () => {
+        if (isSubmittingOrder) {
+            return
+        }
+
         if (isAfterOrderCutoff(new Date())) {
             window.alert('Rendelest 14:30 utan mar nem lehet leadni.')
             return
         }
+
+        setIsSubmittingOrder(true)
 
         try {
             const orderData: OrderCreateModel = {
@@ -68,6 +75,7 @@ const CheckoutPage = () => {
         } catch (error) {
             console.error('Failed to create order:', error)
             window.alert('Failed to place your order. Please try again.')
+            setIsSubmittingOrder(false)
         }
     }
 
@@ -266,14 +274,23 @@ const CheckoutPage = () => {
                 <div className="fixed bottom-0 left-1/2 w-full max-w-5xl -translate-x-1/2 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 z-20">
                     <button
                         onClick={handleCheckout}
-                        disabled={orderingClosed}
-                        className={"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " + (orderingClosed
+                        disabled={orderingClosed || isSubmittingOrder}
+                        className={"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " + (orderingClosed || isSubmittingOrder
                             ? "bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
                             : "bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]")}
                     >
-                        <span>Rendelés leadása</span>
-                        <span className={"w-1 h-1 rounded-full " + (orderingClosed ? "bg-current/40" : "bg-white/40")}></span>
-                        <span>{Math.floor(baseTotal * (1 + SERVICE_FEE_RATE))}Ft</span>
+                        {isSubmittingOrder ? (
+                            <>
+                                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden="true"></span>
+                                <span>Rendelés feldolgozása...</span>
+                            </>
+                        ) : (
+                            <>
+                                <span>Rendelés leadása</span>
+                                <span className={"w-1 h-1 rounded-full " + (orderingClosed ? "bg-current/40" : "bg-white/40")}></span>
+                                <span>{Math.floor(baseTotal * (1 + SERVICE_FEE_RATE))}Ft</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
