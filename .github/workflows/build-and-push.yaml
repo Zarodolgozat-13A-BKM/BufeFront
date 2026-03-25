@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - deployment-env-issues
+      - 87-add-paymentpage
 
 jobs:
   build-and-push:
