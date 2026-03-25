@@ -58,12 +58,6 @@ export const AdminOrdersPage = () => {
     return nextBreak ?? null;
   }, [ringing]);
 
-  useEffect(() => {
-    if (!nextBreakStart && orderFilter === "upcoming-break") {
-      setOrderFilter("whole-day");
-    }
-  }, [nextBreakStart, orderFilter]);
-
   const filteredOrders = useMemo(() => {
     if (orderFilter === "whole-day") {
       return activeOrders;
@@ -119,7 +113,11 @@ export const AdminOrdersPage = () => {
             {filteredOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800">
                 <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">receipt_long</span>
-                <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">{orderFilter === "upcoming-break" ? "Jelenleg nincs rendelés a következő szünetig." : "Jelenleg nincs aktív rendelés."}</p>
+                <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">
+                  {orderFilter === "upcoming-break"
+                    ? (nextBreakStart ? "Jelenleg nincs rendelés a következő szünetig." : "Mára nincs több szünet.")
+                    : "Jelenleg nincs aktív rendelés."}
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">

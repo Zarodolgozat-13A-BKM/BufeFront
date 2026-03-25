@@ -9,11 +9,18 @@ import { Navigate, Route, Routes } from 'react-router'
 import { applyInitialTheme } from './services/themeService'
 import { AdminOrdersPage } from './pages/AdminOrdersPage'
 import { GetMe } from './services/APIservice'
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import { logout, setMe } from './store/authSlice'
 import PaymentPage from './pages/PaymentPage'
 import PostPaymentPage from './pages/PostPaymentPage'
 
+const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+  : null;
+
 function App() {
+
   const dispatch = useAppDispatch()
   const { isLoggedIn } = useAppSelector((state) => state.auth)
   const { cart } = useAppSelector((state) => state.cart)
@@ -59,93 +66,101 @@ function App() {
   }, [isLoggedIn, me, dispatch])
 
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={<Navigate to={isLoggedIn ? '/main' : '/login'} replace />}
-      />
-      <Route
-        path="/login"
-        element={isLoggedIn ? <Navigate to="/main" replace /> : <LoginPage />}
-      />
-      <Route
-        path="/main"
-        element={isLoggedIn ? <MainPage /> : <Navigate to="/login" replace />}
+    <>
+      <Routes>
+        <Route
+          path="/"
+          element={<Navigate to={isLoggedIn ? '/main' : '/login'} replace />}
         />
-        
-      <Route
-        path="/me"
-        element={isLoggedIn ? <ProfilePage /> : <Navigate to="/login" replace />}
-      />
-      <Route
-        path="/checkout"
-        element={
-          isLoggedIn
-            ? (cart.items.length > 0 ? <CheckoutPage /> : <Navigate to="/main" replace />)
-            : <Navigate to="/login" replace />
-        }
-      />
-      <Route
-        path="*"
-        element={<Navigate to={isLoggedIn ? '/main' : '/login'} replace />}
+        <Route
+          path="/login"
+          element={isLoggedIn ? <Navigate to="/main" replace /> : <LoginPage />}
         />
-      <Route
-        path="/admin"
-        element={
-          !isLoggedIn ? (
-            <Navigate to="/login" replace />
-          ) : isMeLoading ? (
-            <div className="min-h-screen bg-background-light dark:bg-background-dark" />
-          ) : me == null ? (
-            <Navigate to="/login" replace />
-          ) : me.role === 'admin' ? (
-            <AdminPage />
-          ) : (
-            <Navigate to="/me" replace />
-          )
-        }
-      />
-      <Route
-      path='/orders'
-              element={
-          !isLoggedIn ? (
-            <Navigate to="/login" replace />
-          ) : isMeLoading ? (
-            <div className="min-h-screen bg-background-light dark:bg-background-dark" />
-          ) : me == null ? (
-            <Navigate to="/login" replace />
-          ) : me.role === 'admin' ? (
-            <AdminOrdersPage />
-          ) : (
-            <Navigate to="/me" replace />
-          )
-        }
+        <Route
+          path="/main"
+          element={isLoggedIn ? <MainPage /> : <Navigate to="/login" replace />}
         />
-              <Route
-      path='/payment'
-              element={
-          !isLoggedIn ? (
-            <Navigate to="/login" replace />
-          ) : isMeLoading ? (
-            <div className="min-h-screen bg-background-light dark:bg-background-dark" />
-          ) : me == null ? (
-            <Navigate to="/login" replace />
-          ) : <PaymentPage/>
-        }
+
+        <Route
+          path="/me"
+          element={isLoggedIn ? <ProfilePage /> : <Navigate to="/login" replace />}
         />
-                      <Route
-      path='/orderstatus'
-              element={
-          !isLoggedIn ? (
-            <Navigate to="/login" replace />
-          ) : isMeLoading ? (
-            <div className="min-h-screen bg-background-light dark:bg-background-dark" />
-          ) : me == null ? (
-            <Navigate to="/login" replace />
-          ) : <PostPaymentPage/>
-        }
+        <Route
+          path="/checkout"
+          element={
+            isLoggedIn
+              ? (cart.items.length > 0 ? <CheckoutPage /> : <Navigate to="/main" replace />)
+              : <Navigate to="/login" replace />
+          }
         />
-    </Routes>
+        <Route
+          path="/admin"
+          element={
+            !isLoggedIn ? (
+              <Navigate to="/login" replace />
+            ) : isMeLoading ? (
+              <div className="min-h-screen bg-background-light dark:bg-background-dark" />
+            ) : me == null ? (
+              <Navigate to="/login" replace />
+            ) : me.role === 'admin' ? (
+              <AdminPage />
+            ) : (
+              <Navigate to="/me" replace />
+            )
+          }
+        />
+        <Route
+          path='/orders'
+          element={
+            !isLoggedIn ? (
+              <Navigate to="/login" replace />
+            ) : isMeLoading ? (
+              <div className="min-h-screen bg-background-light dark:bg-background-dark" />
+            ) : me == null ? (
+              <Navigate to="/login" replace />
+            ) : me.role === 'admin' ? (
+              <AdminOrdersPage />
+            ) : (
+              <Navigate to="/me" replace />
+            )
+          }
+        />
+        <Route
+          path='/payment'
+          element={
+            !isLoggedIn ? (
+              <Navigate to="/login" replace />
+            ) : isMeLoading ? (
+              <div className="min-h-screen bg-background-light dark:bg-background-dark" />
+            ) : me == null ? (
+              <Navigate to="/login" replace />
+            ) : stripePromise!=null ? (
+              <Elements stripe={stripePromise}>
+                <PaymentPage />
+              </Elements>
+            ) : (
+              <Navigate to="/checkout" replace />
+            )
+          }
+        />
+        <Route
+          path='/orderstatus'
+          element={
+            !isLoggedIn ? (
+              <Navigate to="/login" replace />
+            ) : isMeLoading ? (
+              <div className="min-h-screen bg-background-light dark:bg-background-dark" />
+            ) : me == null ? (
+              <Navigate to="/login" replace />
+            ) : <PostPaymentPage />
+          }
+        />
+        <Route
+          path="*"
+          element={<Navigate to={isLoggedIn ? '/main' : '/login'} replace />}
+        />
+      </Routes>
+    </>
   )
 }
 
