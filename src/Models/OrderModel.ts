@@ -40,7 +40,7 @@ export type CartItemModel = ItemModel & {
 
 export interface OrderCreateModel {
   delivery_date: string
-  comment: string | null
+  comment: string | null | undefined
   items: OrderItem[]
 }
 export interface StatusModel {

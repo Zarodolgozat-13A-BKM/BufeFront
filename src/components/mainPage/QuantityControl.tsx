@@ -31,9 +31,9 @@ export const QuantityControl = ({
         </button>
         <button
           type="button"
-          onClick={onIncrease}
+          disabled={true}
           aria-label="Mennyiség növelése"
-          className={`${buttonSizeClass} ${minWidthClass} px-2 flex cursor-pointer items-center justify-center ${textClass} font-bold border-x border-white/30 hover:bg-primary-hover transition-all active:scale-90`}
+          className={`${buttonSizeClass} ${minWidthClass} px-2 flex cursor-pointer items-center justify-center ${textClass} font-bold border-x border-white/30 `}
         >
           {quantity}
         </button>
