@@ -280,7 +280,8 @@ const CheckoutPage = () => {
 										<div className='mt-1 flex items-center gap-2 float-end'>
 											<QuantityControl
 												size='sm'
-												quantity={cartItem.quantity ?? 0}
+										
+                                                quantity={cartItem.quantity ?? 0}
 												onIncrease={() => updateQuantity(cartItem.id, 1)}
 												onDecrease={() => updateQuantity(cartItem.id, -1)}
 											/>
@@ -296,7 +297,7 @@ const CheckoutPage = () => {
 									</div>
 								</div>
 							))}
-                            <hr className="pt-4 pb-4 text-text-light"/>
+							<hr className='pt-4 pb-4 text-text-light' />
 							<div className='h-px bg-gray-200 dark:bg-zinc-700 my-3'></div>
 							<div className='flex justify-between items-center mb-1'>
 								<p className='text-text-light dark:text-zinc-400 text-sm'>Részösszeg</p>
@@ -310,7 +311,7 @@ const CheckoutPage = () => {
 									{Math.ceil(baseTotal * TAX_RATE)}Ft
 								</p>
 							</div>
-                            <hr className="pt-4 pb-4 text-text-light"/>
+							<hr className='pt-4 pb-4 text-text-light' />
 							<div className='flex justify-between items-center pt-1'>
 								<p className='text-text-dark dark:text-white text-base font-bold'>Összesen</p>
 								<p className='text-text-dark dark:text-white text-xl font-bold'>
