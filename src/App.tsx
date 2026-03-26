@@ -15,10 +15,16 @@ import { logout, setMe } from './store/authSlice'
 import PaymentPage from './pages/PaymentPage'
 import PostPaymentPage from './pages/PostPaymentPage'
 
-const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
-  : null;
-
+const stripePromise = loadStripe("pk_test_51TA3EGGgiPPFOSXmor9Q8gLotODmBE2VNMgzMlVbpwybuCBNJCLxewp0FEd90cgZi9WnczQXqmRhYnI8Lsv0Vs7b00Vsijv7hr").then((stripe) => {
+  if (!stripe) {
+    console.error('Failed to load Stripe with the provided publishable key.')
+  }
+  console.log('Stripe loaded successfully:', stripe)
+  return stripe
+}).catch((error) => {
+  console.error('Error loading Stripe:', error)
+  return null
+})
 function App() {
 
   const dispatch = useAppDispatch()
@@ -73,6 +79,24 @@ function App() {
           element={<Navigate to={isLoggedIn ? '/main' : '/login'} replace />}
         />
         <Route
+          path='/payment'
+          element={
+            !isLoggedIn ? (
+              <Navigate to="/login" replace />
+            ) : isMeLoading ? (
+              <div className="min-h-screen bg-background-light dark:bg-background-dark" />
+            ) : me == null ? (
+              <Navigate to="/login" replace />
+            ) : stripePromise != null ? (
+              <Elements stripe={stripePromise}>
+                <PaymentPage />
+              </Elements>
+            ) : (
+              <Navigate to="/checkout" replace />
+            )
+          }
+        />
+        <Route
           path="/login"
           element={isLoggedIn ? <Navigate to="/main" replace /> : <LoginPage />}
         />
@@ -122,24 +146,6 @@ function App() {
               <AdminOrdersPage />
             ) : (
               <Navigate to="/me" replace />
-            )
-          }
-        />
-        <Route
-          path='/payment'
-          element={
-            !isLoggedIn ? (
-              <Navigate to="/login" replace />
-            ) : isMeLoading ? (
-              <div className="min-h-screen bg-background-light dark:bg-background-dark" />
-            ) : me == null ? (
-              <Navigate to="/login" replace />
-            ) : stripePromise!=null ? (
-              <Elements stripe={stripePromise}>
-                <PaymentPage />
-              </Elements>
-            ) : (
-              <Navigate to="/checkout" replace />
             )
           }
         />

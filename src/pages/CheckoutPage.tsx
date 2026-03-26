@@ -84,7 +84,12 @@ const CheckoutPage = () => {
 				console.log(orderData);
 			}
 			const orderResponse = await CreateOrder(orderData);
-			const clientSecret = (orderResponse as any).clientSecret;
+			console.log("Order creation response:", orderResponse);
+			const clientSecret = (orderResponse as any).client_secret;
+
+			if (!clientSecret) {
+				throw new Error('No client secret received from server. Payment initialization failed.');
+			}
 
 			const elapsed = Date.now() - submitStartedAt;
 			if (elapsed < MIN_SPINNER_DISPLAY_MS) {
@@ -94,7 +99,6 @@ const CheckoutPage = () => {
 			}
 
 			navigate("/payment", { state: { clientSecret }, replace: true });
-			dispatch(clearCart());
 		} catch (error) {
 			console.error("Failed to create order:", error);
 			window.alert("Failed to place your order. Please try again.");
@@ -350,7 +354,7 @@ const CheckoutPage = () => {
 							<>
 								<span>Rendelés leadása</span>
 								{/* <span className={"w-1 h-1 rounded-full " + (orderingClosed ? "bg-current/40" : "bg-white/40")}></span> */}
-								<span>{Math.floor(baseTotal * (1 + SERVICE_FEE_RATE))}Ft</span>
+								<span>{baseTotal}Ft</span>
 							</>
 						)}
 					</button>
