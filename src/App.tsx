@@ -15,7 +15,7 @@ import { logout, setMe } from './store/authSlice'
 import PaymentPage from './pages/PaymentPage'
 import PostPaymentPage from './pages/PostPaymentPage'
 
-const stripePromise = loadStripe("pk_test_51TA3EGGgiPPFOSXmor9Q8gLotODmBE2VNMgzMlVbpwybuCBNJCLxewp0FEd90cgZi9WnczQXqmRhYnI8Lsv0Vs7b00Vsijv7hr").then((stripe) => {
+const stripePromise = loadStripe("Q8gLotODmBE2VNMgzMlVbpwybuCBNJCLxewp0FEd90cgZi9WnczQXqmRhYnI8Lsv0Vs7b00Vsijv7hr").then((stripe) => {
   if (!stripe) {
     console.error('Failed to load Stripe with the provided publishable key.')
   }
