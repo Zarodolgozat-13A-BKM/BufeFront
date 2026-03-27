@@ -9,22 +9,10 @@ import { Navigate, Route, Routes } from 'react-router'
 import { applyInitialTheme } from './services/themeService'
 import { AdminOrdersPage } from './pages/AdminOrdersPage'
 import { GetMe } from './services/APIservice'
-import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
 import { logout, setMe } from './store/authSlice'
 import PaymentPage from './pages/PaymentPage'
 import PostPaymentPage from './pages/PostPaymentPage'
 
-const stripePromise = loadStripe("Q8gLotODmBE2VNMgzMlVbpwybuCBNJCLxewp0FEd90cgZi9WnczQXqmRhYnI8Lsv0Vs7b00Vsijv7hr").then((stripe) => {
-  if (!stripe) {
-    console.error('Failed to load Stripe with the provided publishable key.')
-  }
-  console.log('Stripe loaded successfully:', stripe)
-  return stripe
-}).catch((error) => {
-  console.error('Error loading Stripe:', error)
-  return null
-})
 function App() {
 
   const dispatch = useAppDispatch()
@@ -87,12 +75,8 @@ function App() {
               <div className="min-h-screen bg-background-light dark:bg-background-dark" />
             ) : me == null ? (
               <Navigate to="/login" replace />
-            ) : stripePromise != null ? (
-              <Elements stripe={stripePromise}>
-                <PaymentPage />
-              </Elements>
             ) : (
-              <Navigate to="/checkout" replace />
+              <PaymentPage />
             )
           }
         />

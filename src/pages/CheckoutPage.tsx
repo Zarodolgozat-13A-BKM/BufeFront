@@ -78,7 +78,9 @@ const CheckoutPage = () => {
 				items: cart.items.map((item) => ({
 					item_id: item.id,
 					quantity: item.quantity ?? 0,
+				
 				})),
+				cash: false,
 			};
 			if (import.meta.env.DEV) {
 				console.log(orderData);
@@ -139,7 +141,7 @@ const CheckoutPage = () => {
 
 	return (
 		<div className='bg-background-light dark:bg-background-dark font-display antialiased'>
-			<div className='relative flex h-full min-h-screen w-full max-w-5xl mx-auto flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800'>
+			<div className='relative flex h-full min-h-screen w-full mx-auto flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800'>
 				<div className='flex items-center bg-white dark:bg-zinc-900 p-4 pb-2 justify-between sticky top-0 z-10'>
 					<Link
 						to='/main'
@@ -331,7 +333,7 @@ const CheckoutPage = () => {
                         </div>
                     </div> */}
 				</main>
-				<div className='fixed bottom-0 left-1/2 w-full max-w-5xl -translate-x-1/2 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 z-20'>
+				<div className='fixed bottom-0 left-1/2 w-full -translate-x-1/2 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 z-20'>
 					<button
 						onClick={handleCheckout}
 						disabled={orderingClosed || isSubmittingOrder}

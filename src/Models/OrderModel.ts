@@ -42,6 +42,7 @@ export interface OrderCreateModel {
   delivery_date: string
   comment: string | null | undefined
   items: OrderItem[]
+  cash: boolean
 }
 export interface StatusModel {
   id: number
