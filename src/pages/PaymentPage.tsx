@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   Elements,
-  ExpressCheckoutElement,
-  LinkAuthenticationElement,
+  // ExpressCheckoutElement,
   PaymentElement,
   useElements,
   useStripe,
@@ -11,6 +10,7 @@ import { loadStripe, type StripeElementsOptions } from "@stripe/stripe-js";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { clearCart } from "../store/cartSlice";
+import { getResolvedTheme, getThemePreference } from "../services/themeService";
 
 type PaymentLocationState = {
   clientSecret?: string;
@@ -26,7 +26,7 @@ const PaymentForm = () => {
   const elements = useElements();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const me = useAppSelector((state) => state.auth.me);
+  // const me = useAppSelector((state) => state.auth.me);
   const cart = useAppSelector((state) => state.cart.cart);
   const total = useMemo(
     () => cart.items.reduce((acc, item) => acc + item.price * (item.quantity ?? 0), 0),
@@ -38,7 +38,7 @@ const PaymentForm = () => {
 
   const confirmPayment = async (): Promise<void> => {
     if (!stripe || !elements) {
-      setErrorMessage("A fizetesi felulet betoltese folyamatban van. Kerlek varj egy pillanatot.");
+      setErrorMessage("A fizetési felület betöltése folyamatban van. Kérlek várj egy pillanatot.");
       return;
     }
 
@@ -54,7 +54,7 @@ const PaymentForm = () => {
     });
 
     if (result.error) {
-      setErrorMessage(result.error.message ?? "Sikertelen fizetes. Kerlek probald ujra.");
+      setErrorMessage(result.error.message ?? "Sikertelen fizetés. Kérlek próbáld újra.");
       setPaymentProcessing(false);
       return;
     }
@@ -73,12 +73,12 @@ const PaymentForm = () => {
     await confirmPayment();
   };
 
-  const handleExpressCheckoutConfirm = async (): Promise<void> => {
-    await confirmPayment();
-  };
+  // const handleExpressCheckoutConfirm = async (): Promise<void> => {
+  //   await confirmPayment();
+  // };
 
   return (
-    <div className='bg-background-light dark:bg-background-dark min-h-screen font-display antialiased'>
+    <div className='bg-white dark:bg-zinc-900 min-h-screen font-display antialiased w-full'>
       <div className='mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-4 py-8'>
         <div className='grid w-full gap-4 lg:grid-cols-[1.1fr_0.9fr]'>
           <section className='rounded-2xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900'>
@@ -92,8 +92,8 @@ const PaymentForm = () => {
             </div>
 
             <form onSubmit={handleCardSubmit} className='space-y-4'>
-              <div className='rounded-xl border border-gray-200 px-4 py-3 dark:border-zinc-700'>
-                <p className='text-text-light dark:text-zinc-400 mb-3 text-xs font-medium'>Gyors fizetes</p>
+              {/* <div className='rounded-xl border border-gray-200 px-4 py-3 dark:border-zinc-700'>
+                <p className='text-text-light dark:text-zinc-400 mb-3 text-xs font-medium'>Gyors fizetés</p>
                 <ExpressCheckoutElement
                   onConfirm={handleExpressCheckoutConfirm}
                   options={{
@@ -110,50 +110,46 @@ const PaymentForm = () => {
                 <p className='text-text-light dark:text-zinc-500 mt-2 text-xs'>
                   Apple Pay es Google Pay csak tamogatott eszkozokon jelenik meg.
                 </p>
-              </div>
+              </div> */}
 
-              <div className='relative py-1'>
+              {/* <div className='relative py-1'>
                 <div className='absolute inset-0 flex items-center'>
                   <div className='h-px w-full bg-gray-200 dark:bg-zinc-700' />
                 </div>
                 <div className='relative flex justify-center'>
                   <span className='text-text-light dark:text-zinc-500 bg-white px-2 text-xs dark:bg-zinc-900'>
-                    vagy kartyaval
+                    vagy kártyával
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               <div className='rounded-xl border border-gray-200 px-4 py-3 dark:border-zinc-700'>
-                <p className='text-text-light dark:text-zinc-400 mb-3 text-xs font-medium'>Email</p>
-                <LinkAuthenticationElement options={{ defaultValues: { email: me?.email ?? "" } }} />
+                <p className='text-text-light dark:text-zinc-400 mb-3 text-xs font-medium'>Kártya adatok</p>
+                <PaymentElement options={{ layout: {radios: "auto",type:"auto", defaultCollapsed:true, spacedAccordionItems:true, visibleAccordionItemsCount:3, paymentMethodLogoPosition:"end" }, wallets: { applePay: "auto", googlePay: "auto" } }} />
+
               </div>
 
-              <div className='rounded-xl border border-gray-200 px-4 py-3 dark:border-zinc-700'>
-                <p className='text-text-light dark:text-zinc-400 mb-3 text-xs font-medium'>Kartya adatok</p>
-                <PaymentElement options={{ layout: "tabs" }} />
-              </div>
-
-              {errorMessage ? (
+              {/* {errorMessage ? (
                 <div className='border-error-border bg-error/5 text-error rounded-xl border px-3 py-2 text-sm'>
                   {errorMessage}
                 </div>
-              ) : null}
+              ) : null} */}
 
               <button
                 type='submit'
                 disabled={!stripe || paymentProcessing}
                 className='bg-primary hover:bg-primary-hover h-12 w-full rounded-xl text-base font-bold text-white disabled:cursor-not-allowed disabled:opacity-70'>
-                {paymentProcessing ? "Fizetes feldolgozasa..." : `Fizetes (${total} Ft)`}
+                {paymentProcessing ? "Fizetés feldolgozása..." : `Fizetés (${total} Ft)`}
               </button>
 
               <p className='text-text-light dark:text-zinc-500 text-center text-xs'>
-                A fizetest a Stripe dolgozza fel PCI-kompatibilis biztonsaggal.
+                A fizetést a Stripe dolgozza fel PCI-kompatibilis biztonsággal.
               </p>
             </form>
           </section>
 
           <aside className='rounded-2xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900'>
-            <h2 className='text-text-dark dark:text-white text-lg font-bold'>Rendeles osszegzes</h2>
+            <h2 className='text-text-dark dark:text-white text-lg font-bold'>Rendelés összegzés</h2>
             <div className='mt-4 space-y-3'>
               {cart.items.map((item, index) => (
                 <div key={`${item.id}-${index}`} className='flex items-center justify-between gap-3'>
@@ -177,13 +173,13 @@ const PaymentForm = () => {
             <div className='my-4 h-px bg-gray-200 dark:bg-zinc-700' />
 
             <div className='flex items-center justify-between'>
-              <p className='text-text-dark dark:text-white text-base font-bold'>Vegosszeg</p>
+              <p className='text-text-dark dark:text-white text-base font-bold'>Végösszeg</p>
               <p className='text-text-dark dark:text-white text-xl font-bold'>{total} Ft</p>
             </div>
 
             <Link
               to='/checkout'
-              className='text-primary mt-5 inline-flex items-center gap-1 text-sm font-semibold hover:underline'>
+              className='text-primary mt-5 inline-flex items-center gap-1 text-sm font-semibold hover:none'>
               <span className='material-symbols-outlined text-base'>arrow_back</span>
               Vissza a kosarhoz
             </Link>
@@ -198,15 +194,17 @@ const PaymentPage = () => {
   const location = useLocation();
   const state = (location.state as PaymentLocationState | null) ?? null;
   const clientSecret = state?.clientSecret?.trim() ?? "";
+  const resolvedTheme = getResolvedTheme(getThemePreference());
+
 
   const elementsOptions = useMemo<StripeElementsOptions>(
     () => ({
       clientSecret,
       appearance: {
-        theme: "stripe",
+        theme: resolvedTheme === "dark" ? "night" : "stripe",
       },
     }),
-    [clientSecret],
+    [clientSecret, resolvedTheme],
   );
 
   if (!clientSecret) {
@@ -215,12 +213,12 @@ const PaymentPage = () => {
         <div className='w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-900'>
           <h2 className='text-text-dark dark:text-white text-xl font-bold'>Nincs aktiv fizetes</h2>
           <p className='text-text-light dark:text-zinc-400 mt-2 text-sm'>
-            Eloszor veglegesitsd a rendelest, hogy elinduljon a fizetes.
+            Először véglegesítsd a rendelést, hogy elinduljon a fizetés.
           </p>
           <Link
             to='/checkout'
             className='bg-primary hover:bg-primary-hover mt-4 inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-bold text-white'>
-            Ugras a penztarhoz
+            Ugrás a pénztárhoz
           </Link>
         </div>
       </div>

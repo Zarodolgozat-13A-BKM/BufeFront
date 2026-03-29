@@ -3,13 +3,13 @@ import { GetRinging } from "../services/RingService";
 import type { Ringlist } from "../Models/RingModel";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Link, useNavigate } from "react-router";
-import { clearCart, removeItemFromCart, updateItemQuantity } from "../store/cartSlice";
+import { removeItemFromCart, updateItemQuantity } from "../store/cartSlice";
 import type { OrderCreateModel } from "../Models/OrderModel";
 import { CreateOrder } from "../services/OrderService";
 import { QuantityControl } from "../components/mainPage/QuantityControl";
 
 const TAX_RATE = 0.27;
-const SERVICE_FEE_RATE = 0.1;
+// const SERVICE_FEE_RATE = 0.1;
 const SUBTOTAL_RATE = 1 - TAX_RATE; // 0.73
 const ORDER_CUTOFF_HOUR = 14;
 const ORDER_CUTOFF_MINUTE = 30;

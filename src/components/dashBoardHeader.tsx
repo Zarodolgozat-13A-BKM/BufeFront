@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react'
 import { Link } from "react-router";
 import { Logout as ApiLogout } from '../services/APIservice'
-import { isDarkTheme, toggleTheme } from "../services/themeService";
+import { getThemePreference, toggleTheme, type ThemePreference } from "../services/themeService";
 import { logout } from "../store/authSlice";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 const DashBoardHeader = ({ name, showAdmin, backTo }: { name: ReactNode; showAdmin: boolean; backTo: string }) => {
-    const [theme, setTheme] = useState<'light' | 'dark'>('light')
+    const [theme, setTheme] = useState<ThemePreference>('system')
     const me = useAppSelector((state) => state.auth.me)
     const dispatch = useAppDispatch();
     useEffect(() => {
-        setTheme(isDarkTheme() ? 'dark' : 'light')
+        setTheme(getThemePreference())
     }, [])
     const handleThemeToggle = () => {
         setTheme(toggleTheme())
@@ -36,12 +36,12 @@ const DashBoardHeader = ({ name, showAdmin, backTo }: { name: ReactNode; showAdm
                     }
                     <button
                         onClick={handleThemeToggle}
-                        aria-label="Dark mode váltása"
-                        title="Dark mode váltása"
+                        aria-label="Téma váltása"
+                        title="Téma váltása"
                         className="text-text-dark dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
                     >
                         <span className="material-symbols-outlined">
-                            {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+                            {theme === 'dark' ? 'dark_mode' : theme === 'light' ? 'light_mode' : 'computer'}
                         </span>
                     </button>
                     <button onClick={() => { if (confirm('Kijelentkezés megerősítése')) { handleLogout() } }} className="text-text-dark dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
