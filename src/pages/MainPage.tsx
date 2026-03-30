@@ -160,7 +160,7 @@ const MainPage = () => {
             <div className="pt-5 pb-2">
                 <div className="flex items-center justify-between px-4 pb-3">
                     <h2 className="text-text-dark dark:text-white tracking-tight text-2xl font-bold leading-tight">
-                        <span className="text-primary"></span> Daily Specials
+                        <span className="text-primary"></span> Napi válogatás
                     </h2>
                 </div>
                 <div className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 gap-4 no-scrollbar">

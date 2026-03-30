@@ -54,7 +54,7 @@ const CheckoutPage = () => {
 	const removeItem = (itemId: number) => {
 		dispatch(removeItemFromCart(itemId));
 	};
-	const handleCheckout = async () => {
+	const handleCheckout = async (cash: boolean) => {
 		if (isSubmittingOrder) {
 			return;
 		}
@@ -67,40 +67,44 @@ const CheckoutPage = () => {
 		setIsSubmittingOrder(true);
 		const submitStartedAt = Date.now();
 		await waitForNextPaint();
-
 		try {
 			const orderData: OrderCreateModel = {
 				delivery_date:
 					deliverydatetime !== ""
-						? `${new Date().toISOString().split("T")[0]}T${deliverydatetime}`
-						: new Date().toISOString().split(".")[0],
+						? `${new Date().toLocaleDateString().replace(".", "-")}T${deliverydatetime}`
+						: new Date().toLocaleString().replace(". ", "-").replace(". ", "-").replace(". ", "T"),
 				comment: comment,
 				items: cart.items.map((item) => ({
 					item_id: item.id,
 					quantity: item.quantity ?? 0,
-				
+
 				})),
-				cash: false,
+				cash: cash,
 			};
 			if (import.meta.env.DEV) {
 				console.log(orderData);
 			}
 			const orderResponse = await CreateOrder(orderData);
 			console.log("Order creation response:", orderResponse);
-			const clientSecret = (orderResponse as any).client_secret;
+			if (!cash) {
+				const clientSecret = (orderResponse as any).client_secret;
 
-			if (!clientSecret) {
-				throw new Error('No client secret received from server. Payment initialization failed.');
+				if (!clientSecret) {
+					throw new Error('No client secret received from server. Payment initialization failed.');
+				}
+
+				const elapsed = Date.now() - submitStartedAt;
+				if (elapsed < MIN_SPINNER_DISPLAY_MS) {
+					await new Promise((resolve) =>
+						window.setTimeout(resolve, MIN_SPINNER_DISPLAY_MS - elapsed),
+					);
+				}
+
+				navigate("/payment", { state: { clientSecret }, replace: true });
 			}
-
-			const elapsed = Date.now() - submitStartedAt;
-			if (elapsed < MIN_SPINNER_DISPLAY_MS) {
-				await new Promise((resolve) =>
-					window.setTimeout(resolve, MIN_SPINNER_DISPLAY_MS - elapsed),
-				);
+			else{
+				navigate("/orderstatus", {replace: true})
 			}
-
-			navigate("/payment", { state: { clientSecret }, replace: true });
 		} catch (error) {
 			console.error("Failed to create order:", error);
 			window.alert("Failed to place your order. Please try again.");
@@ -286,8 +290,8 @@ const CheckoutPage = () => {
 										<div className='mt-1 flex items-center gap-2 float-end'>
 											<QuantityControl
 												size='sm'
-										
-                                                quantity={cartItem.quantity ?? 0}
+
+												quantity={cartItem.quantity ?? 0}
 												onIncrease={() => updateQuantity(cartItem.id, 1)}
 												onDecrease={() => updateQuantity(cartItem.id, -1)}
 											/>
@@ -333,9 +337,9 @@ const CheckoutPage = () => {
                         </div>
                     </div> */}
 				</main>
-				<div className='fixed bottom-0 left-1/2 w-full -translate-x-1/2 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 z-20'>
+				<div className='flex gap-5 fixed bottom-0 left-1/2 w-full -translate-x-1/2 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 z-20'>
 					<button
-						onClick={handleCheckout}
+						onClick={() => handleCheckout(true)}
 						disabled={orderingClosed || isSubmittingOrder}
 						className={
 							"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " +
@@ -354,9 +358,31 @@ const CheckoutPage = () => {
 							</>
 						) : (
 							<>
-								<span>Rendelés leadása</span>
-								{/* <span className={"w-1 h-1 rounded-full " + (orderingClosed ? "bg-current/40" : "bg-white/40")}></span> */}
-								<span>{baseTotal}Ft</span>
+								<span>Fizetés átvételkor</span>
+							</>
+						)}
+					</button>
+					<button
+						onClick={() => handleCheckout(false)}
+						disabled={orderingClosed || isSubmittingOrder}
+						className={
+							"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " +
+							(orderingClosed
+								? "bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
+								: isSubmittingOrder
+									? "bg-primary/90 text-white cursor-wait"
+									: "bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]")
+						}>
+						{isSubmittingOrder ? (
+							<>
+								<span
+									className='inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-r-transparent'
+									aria-hidden='true'></span>
+								<span>Rendelés feldolgozása...</span>
+							</>
+						) : (
+							<>
+								<span>Bankkártyás fizetés</span>
 							</>
 						)}
 					</button>
