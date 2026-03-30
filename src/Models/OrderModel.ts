@@ -23,6 +23,7 @@ export interface OrderModel {
   default_completion_time?: number
   comment: string | null
   clientSecret?: string
+  payment_intent_id?: string
 }
 export interface OrderPatchModel{
   message?: string,
@@ -40,8 +41,9 @@ export type CartItemModel = ItemModel & {
 
 export interface OrderCreateModel {
   delivery_date: string
-  comment: string | null
+  comment: string | null | undefined
   items: OrderItem[]
+  cash: boolean
 }
 export interface StatusModel {
   id: number

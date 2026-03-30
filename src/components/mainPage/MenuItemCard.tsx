@@ -13,7 +13,7 @@ export const MenuItemCard = ({ item, quantity, showModal, onUpdateQuantity }: Me
   return (
     <div className={"relative flex items-center gap-4 bg-bg-light dark:bg-zinc-800/50 p-3 rounded-xl border border-[#e6e0db] dark:border-zinc-800 transition-all cursor-pointer overflow-hidden" + (item.is_active ? "" : " opacity-50 cursor-not-allowed")}>
       <button onClick={() => item.is_active? showModal(item) : null} className="cursor-pointer text-white text-4xl absolute inset-0 z-10 rounded-xl bg-black/40 opacity-0 hover:opacity-100 focus-visible:opacity-100 transition-opacity flex items-center justify-center">
-      +
+        <span className="text-6xl text-white font-light material-symbols-outlined">add</span>
       </button>
 
       <div className="relative">

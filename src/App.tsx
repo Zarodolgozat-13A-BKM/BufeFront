@@ -9,15 +9,9 @@ import { Navigate, Route, Routes } from 'react-router'
 import { applyInitialTheme } from './services/themeService'
 import { AdminOrdersPage } from './pages/AdminOrdersPage'
 import { GetMe } from './services/APIservice'
-import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
 import { logout, setMe } from './store/authSlice'
 import PaymentPage from './pages/PaymentPage'
 import PostPaymentPage from './pages/PostPaymentPage'
-
-const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
-  : null;
 
 function App() {
 
@@ -73,6 +67,20 @@ function App() {
           element={<Navigate to={isLoggedIn ? '/main' : '/login'} replace />}
         />
         <Route
+          path='/payment'
+          element={
+            !isLoggedIn ? (
+              <Navigate to="/login" replace />
+            ) : isMeLoading ? (
+              <div className="min-h-screen bg-background-light dark:bg-background-dark" />
+            ) : me == null ? (
+              <Navigate to="/login" replace />
+            ) : (
+              <PaymentPage />
+            )
+          }
+        />
+        <Route
           path="/login"
           element={isLoggedIn ? <Navigate to="/main" replace /> : <LoginPage />}
         />
@@ -122,24 +130,6 @@ function App() {
               <AdminOrdersPage />
             ) : (
               <Navigate to="/me" replace />
-            )
-          }
-        />
-        <Route
-          path='/payment'
-          element={
-            !isLoggedIn ? (
-              <Navigate to="/login" replace />
-            ) : isMeLoading ? (
-              <div className="min-h-screen bg-background-light dark:bg-background-dark" />
-            ) : me == null ? (
-              <Navigate to="/login" replace />
-            ) : stripePromise!=null ? (
-              <Elements stripe={stripePromise}>
-                <PaymentPage />
-              </Elements>
-            ) : (
-              <Navigate to="/checkout" replace />
             )
           }
         />

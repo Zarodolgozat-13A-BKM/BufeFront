@@ -132,20 +132,20 @@ const AdminPage = () => {
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-display antialiased">
       <div className="relative mx-auto flex min-h-screen w-full flex-col overflow-x-auto shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
         <DashBoardHeader showAdmin={true} backTo="/main" name={(<div className="rounded-xl p-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-text-dark dark:text-white">Admin Dashboard</h1>
-              </div>
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-                <button onClick={() => { setCategoryTableVisible(true); setItemTableVisible(false); setOrderTableVisible(false) }} className={"shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " + (CategoryTableVisible ? "border-primary bg-primary text-white" : "border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-text-dark dark:text-zinc-200")}>
-                  Kategóriák
-                </button>
-                <button onClick={() => { setCategoryTableVisible(false); setItemTableVisible(true); setOrderTableVisible(false) }} className={"shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " + (ItemTableVisible ? "border-primary bg-primary text-white" : "border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-text-dark dark:text-zinc-200")}>
-                  Termékek
-                </button>
-                <button onClick={() => { setCategoryTableVisible(false); setItemTableVisible(false); setOrderTableVisible(true) }} className={"shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " + (orderTableVisible ? "border-primary bg-primary text-white" : "border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-text-dark dark:text-zinc-200")}>
-                  Rendelések
-                </button>
+                <h1 className="text-2xl text-center font-bold tracking-tight text-text-dark dark:text-white mb-5">Admin Dashboard</h1>
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                  <button onClick={() => { setCategoryTableVisible(true); setItemTableVisible(false); setOrderTableVisible(false) }} className={"shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " + (CategoryTableVisible ? "border-primary bg-primary text-white" : "border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-text-dark dark:text-zinc-200")}>
+                    Kategóriák
+                  </button>
+                  <button onClick={() => { setCategoryTableVisible(false); setItemTableVisible(true); setOrderTableVisible(false) }} className={"shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " + (ItemTableVisible ? "border-primary bg-primary text-white" : "border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-text-dark dark:text-zinc-200")}>
+                    Termékek
+                  </button>
+                  <button onClick={() => { setCategoryTableVisible(false); setItemTableVisible(false); setOrderTableVisible(true) }} className={"shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " + (orderTableVisible ? "border-primary bg-primary text-white" : "border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-text-dark dark:text-zinc-200")}>
+                    Rendelések
+                  </button>
+                </div>
               </div>
             </div>
           </div>)} />
