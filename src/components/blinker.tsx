@@ -1,4 +1,10 @@
-const BlinkingCircle = ({ color = 'red', size = '20px', speed = '1s' }) => {
+interface BlinkingCircleProps {
+  color?: string;
+  size?: string;
+  speed?: string;
+}
+
+const BlinkingCircle = ({ color = 'red', size = '20px', speed = '1s' }: BlinkingCircleProps) => {
   const circleStyle = {
     width: size,
     height: size,
