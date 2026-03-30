@@ -89,7 +89,7 @@ const ProfilePage = () => {
                   <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">Még nem adtál le rendelést.</p>
                 </div>
               ) : (
-                orders.sort((a, b) => b.id - a.id).filter((x)=>x.payment_intent_id ==null || (x.payment_intent_id!= null && x.status!= "Fizetésre vár")).map((order) => (
+                orders.slice().sort((a, b) => b.id - a.id).filter((x)=>x.payment_intent_id ==null || (x.payment_intent_id!= null && x.status!= "Fizetésre vár")).map((order) => (
                   <OrderItem key={order.id} handleOrder={handleOrder} order={order} />
                 ))
               )}
