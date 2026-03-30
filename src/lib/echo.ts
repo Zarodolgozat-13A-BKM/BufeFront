@@ -10,7 +10,7 @@ export const echo = new Echo({
   wsHost: "bufeapi-ws.jcloud.jedlik.cloud",
   wsPort: import.meta.env.REVERB_PORT ?? 8080,
   wssPort: import.meta.env.REVERB_PORT ?? 443,
-  forceTLS: (import.meta.env.REVERB_SCHEME ?? "https") === "https",
+  forceTLS: true,
   enabledTransports: ["ws", "wss"],
   authEndpoint: "https://bufeapi.jcloud.jedlik.cloud/broadcasting/auth",
   auth: {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { OrderModel } from "../Models/OrderModel";
-import { GetAllActiveOrders } from "../services/OrderService";
+import { GetAllActiveOrders, GetOneOrder } from "../services/OrderService";
 import { echo } from "../lib/echo";
 import DashBoardHeader from "../components/dashBoardHeader";
 import { OrderComponent } from "../components/adminOrdersPage/OrderComponent";
@@ -27,19 +27,8 @@ export const AdminOrdersPage = () => {
 
 	useEffect(() => {
 		GetAllActiveOrders().then(setOrders);
-		if (import.meta.env.DEV) {
-			echo.connector.pusher.bind_global((eventName: string, data: any) => {
-				if (eventName === "order.state.changed") {
-					GetAllActiveOrders().then(setOrders);
-			    // setOrders((prev) => [...prev, data.order]);
-				}
-			});
-		} else {
 		echo.private("orders_admin").listen("order.state.changed", (e: any) => {
-			// setOrders((prev) => [...prev, data.order]);
-			GetAllActiveOrders().then(setOrders);
-		});
-    }
+			GetOneOrder(e.order_id).then((neworder) =>setOrders((prev) => [...prev, neworder]))});
 	}, []);
 
 	useEffect(() => {
