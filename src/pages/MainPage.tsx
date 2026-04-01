@@ -199,15 +199,22 @@ const MainPage = () => {
     }
 
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display antialiased">
+        <div className="mx-auto bg-background-light dark:bg-background-dark font-display antialiased">
             <div
                 ref={scrollContainerRef}
-                className="mainpage-scrollbar relative flex h-screen w-full mx-auto flex-col overflow-y-auto overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800"
+                className="mainpage-scrollbar relative flex h-screen w-full flex-col overflow-y-auto overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800"
             >
-            <div ref={stickyHeaderRef} className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-zinc-900 border-b border-[#e6e0db] dark:border-zinc-800">
-                <TopAppBar username={me?.full_name ?? 'Guest'} />
-                <SearchBar value={searchQuery} onChange={setSearchQuery} />
-                <CategoryChips categories={categories} searchQuery={searchQuery} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
+            <div className=" fixed top-0 left-0 right-0 z-50">
+                <div ref={stickyHeaderRef} className="w-full bg-white dark:bg-zinc-900 border-b border-x border-[#e6e0db] dark:border-zinc-800">
+                    <TopAppBar
+                        username={me?.full_name ?? 'Guest'}
+                        totalItems={totalItems}
+                        totalPrice={totalPrice}
+                        onCartClick={handleCheckout}
+                    />
+                    <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                    <CategoryChips categories={categories} searchQuery={searchQuery} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
+                </div>
             </div>
 
             <div aria-hidden style={{ height: headerHeight }} />
@@ -236,7 +243,7 @@ const MainPage = () => {
             <div className="h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 my-2"></div>
 
             {hasSearchQuery && !hasAnySearchResults ? (
-                <div className="px-4 pt-8">
+                <div className="px-4 pt-8 ">
                     <div className="rounded-2xl border border-[#e6e0db] bg-bg-light px-5 py-6 text-center dark:border-zinc-700 dark:bg-zinc-800/60">
                         <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">search_off</span>
                         <h3 className="mt-3 text-lg font-bold text-text-dark dark:text-white">Nincs találat erre: "{searchQuery.trim()}"</h3>
@@ -279,9 +286,11 @@ const MainPage = () => {
                             <span className="w-1 h-5 bg-primary rounded-full"></span>
                             {category.name}
                         </h3>
-                        {filteredItems.map((item) => (
-                            <MenuItemCard key={item.id} item={item} onUpdateQuantity={updateQuantity} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} />
-                        ))}
+                        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 4xl:grid-cols-4 gap-3">
+                            {filteredItems.map((item) => (
+                                <MenuItemCard key={item.id} item={item} onUpdateQuantity={updateQuantity} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} />
+                            ))}
+                        </div>
                     </div>
                 )
             })}
@@ -290,7 +299,9 @@ const MainPage = () => {
             )}
             </main>
 
-            <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={handleCheckout}/>
+            <div className="hidden md:block">
+                <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={handleCheckout}/>
+            </div>
             <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? (itemQuantityById[selectedItem.id] ?? 0) : 0} />
         </div>
         </div>
