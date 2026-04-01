@@ -1,3 +1,4 @@
+
 import type {
   OrderCreateModel,
   OrderModel,
@@ -42,8 +43,11 @@ export const CreateOrder = async (postData: OrderCreateModel) => {
 };
 
 export const UpdateOrderStatus = async (id: number, status: string) => {
+  const statusResponse = await GetStatuses();
+  console.log(statusResponse);
+  const statusObj = statusResponse.find((s) => s.name === status);
   const response = await api.patch<OrderPatchModel>(`/orders/${id}`, {
-    status_id: status,
+    status_id: statusObj?.id,
   });
   if (import.meta.env.DEV) {
     console.log("Order status updated:", response.data);
