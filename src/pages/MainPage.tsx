@@ -11,7 +11,6 @@ import { CategoryChips } from '../components/mainPage/CategoryChips'
 import { SpecialItemCard } from '../components/mainPage/SpecialItemCard'
 import { MenuItemCard } from '../components/mainPage/MenuItemCard'
 import { CartBar } from '../components/mainPage/CartBar'
-import { AddItemModal } from '../components/modals/addItemModal'
 import { setMe } from '../store/authSlice'
 import { GetMe } from '../services/APIservice'
 import { useNavigate } from 'react-router'
@@ -193,7 +192,6 @@ const MainPage = () => {
 
             <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={handleCheckout}/>
 
-            <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? (itemQuantityById[selectedItem.id] ?? 0) : 0}/>
         </div>
         </div>
     )

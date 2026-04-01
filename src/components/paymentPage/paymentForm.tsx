@@ -44,7 +44,13 @@ const PaymentForm = () => {
 
     if (result.paymentIntent?.status === "succeeded") {
       dispatch(clearCart());
-      navigate("/orderstatus", { replace: true });
+      navigate("/orderstatus", {
+        replace: true,
+        state: {
+          paymentSuccess: true,
+          paidAt: Date.now(),
+        },
+      });
       return;
     }
 

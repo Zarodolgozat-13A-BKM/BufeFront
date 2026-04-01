@@ -43,12 +43,13 @@ const waitForNextPaint = () =>
 		});
 	});
 
-const CheckoutPage = () => {
+export const CheckoutPage = () => {
 	const navigate = useNavigate();
 	const [ringing, setRinging] = useState<Ringlist[]>([]);
 	const [comment, setComment] = useState<string>("");
 	const [isCommentOpen, setIsCommentOpen] = useState(false);
 	const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
+	const [checkoutError, setCheckoutError] = useState<string | null>(null);
 	const [deliverydatetime, setDeliverydatetime] = useState<string>("");
 	const [now, setNow] = useState(() => new Date());
 	const dispatch = useAppDispatch();
@@ -74,8 +75,10 @@ const CheckoutPage = () => {
 			return;
 		}
 
+		setCheckoutError(null);
+
 		if (import.meta.env.PROD && isAfterOrderCutoff(new Date())) {
-			window.alert("Rendelest 14:30 utan mar nem lehet leadni.");
+			setCheckoutError("Rendelést 14:30 után már nem lehet leadni.");
 			return;
 		}
 
@@ -124,7 +127,11 @@ const CheckoutPage = () => {
 			}
 		} catch (error) {
 			console.error("Failed to create order:", error);
-			window.alert("Failed to place your order. Please try again.");
+			if (error instanceof Error) {
+				setCheckoutError(error.message);
+			} else {
+				setCheckoutError("A rendelés leadása nem sikerült. Kérlek próbáld újra.");
+			}
 			setIsSubmittingOrder(false);
 		}
 	};
@@ -354,7 +361,13 @@ const CheckoutPage = () => {
                         </div>
                     </div> */}
 				</main>
-				<div className='flex gap-5 fixed bottom-0 left-1/2 w-full -translate-x-1/2 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 z-20'>
+				<div className='fixed bottom-0 left-1/2 w-full -translate-x-1/2 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 z-20'>
+					{checkoutError ? (
+						<div className='mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-300'>
+							{checkoutError}
+						</div>
+					) : null}
+					<div className='flex gap-5'>
 					<button
 						onClick={() => handleCheckout(true)}
 						disabled={orderingClosed || isSubmittingOrder}
@@ -403,6 +416,7 @@ const CheckoutPage = () => {
 							</>
 						)}
 					</button>
+						</div>
 				</div>
 			</div>
 		</div>

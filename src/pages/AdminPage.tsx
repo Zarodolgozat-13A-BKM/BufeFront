@@ -17,13 +17,14 @@ import {
   handleItemCreatedAction,
   handleItemDeleteAction,
   handleItemStatusToggleAction,
-  handleOrderStatusChangeAction,
   initializeAdminPage,
   sortByField,
   sortOrdersByField,
   toggleSortDirection,
 } from '../services/AdminPageService'
 import DashBoardHeader from '../components/dashBoardHeader'
+import { UpdateOrderStatus } from '../services/OrderService'
+import { setOrders } from '../store/orderSlice'
 
 
 const AdminPage = () => {
@@ -110,7 +111,14 @@ const AdminPage = () => {
 
   const handleOrderStatusChange = async (order: OrderModel, status: string) => {
     try {
-      await handleOrderStatusChangeAction(dispatch, orders, order, status);
+      await UpdateOrderStatus(order.id, status)
+
+      const updated = orders.map((o) => {
+        if (o.id !== order.id) return o
+        return { ...o, status }
+      })
+
+      dispatch(setOrders(updated))
     } catch (error) {
       console.error("Failed to update order status:", error);
     }

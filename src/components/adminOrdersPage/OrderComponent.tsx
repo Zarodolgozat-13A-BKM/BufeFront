@@ -4,33 +4,53 @@ import { UpdateOrderStatus } from "../../services/OrderService";
 
 export const OrderComponent = ({ order }: { order: OrderModel }) => {
   const [isCommentExpanded, setIsCommentExpanded] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
+  const isCashPayment = order.payment_intent_id == null;
 
   const trimmedComment = order.comment?.trim() ?? "";
   const hasComment = trimmedComment.length > 0;
   const commentText = hasComment ? trimmedComment : "Nincs megjegyzes";
   const canExpandComment = trimmedComment.length > 120;
 
-  const handleStatusChange = (newStatus: string) => {
-    UpdateOrderStatus(order.id, newStatus);
+  const handleStatusChange = async (newStatus: string) => {
+    if (isUpdatingStatus) return;
+
+    setStatusError(null);
+    setIsUpdatingStatus(true);
+    try {
+      await UpdateOrderStatus(order.id, newStatus);
+    } catch (error) {
+      console.error("Failed to update order status:", error);
+      setStatusError("A státusz frissítése nem sikerült. Próbáld újra.");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
   };
   return <div className="bg-white dark:bg-zinc-800 rounded-xl p-4 md:p-5 border border-[#e6e0db] dark:border-zinc-700 flex flex-col hover:bg-bg-light dark:hover:bg-zinc-800/90 transition-colors">
     <div className="flex justify-between items-start mb-4">
       <div>
-      <span className="px-3 py-1 bg-primary/10 border border-primary/20 text-[10px] font-semibold rounded-full text-primary tracking-wider uppercase">{order.delivery_date}</span>
-        <h4 className="text-lg font-bold text-text-dark dark:text-white mt-1">{order.user_username}</h4>
+        <span className="px-3 py-1 bg-primary/10 border border-primary/20 text-[10px] font-semibold rounded-full text-primary tracking-wider uppercase">{order.delivery_date}</span>
+        <h4 className="mt-1 text-lg font-bold text-text-dark dark:text-white">{order.user_username.replaceAll(".", " ")}</h4>
       </div>
-        <h4 className="text-lg text-end font-bold text-primary mt-1">#{order.order_identifier_number}</h4>
+      <div className="mt-1 flex flex-col items-end gap-1">
+        <h4 className="text-lg text-end font-bold text-primary">#{order.order_identifier_number}</h4>
+        <span className={"rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide " + (isCashPayment ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900/60 dark:bg-green-900/20 dark:text-green-300" : "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-900/20 dark:text-sky-300")}>
+          {isCashPayment ? "Készpénz" : "Kártya"}
+        </span>
+      </div>
     </div>
     <div className="grow space-y-2.5 mb-4">
-      {order.items?order.items.map((item) => (
+      {order.items ? order.items.map((item) => (
         <div key={item.item_id} className="flex items-center gap-3">
           <span className="text-sm font-semibold text-text-dark dark:text-white">{item.quantity}x</span>
           <span className="text-sm font-medium text-text-dark dark:text-zinc-200">{item.item_name}</span>
         </div>
-      )):""}
+      )) : ""}
     </div>
+    {hasComment&&
     <div className="mb-6 rounded-lg border border-[#e6e0db] bg-bg-light px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900/60">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-text-light dark:text-zinc-400">Megjegyzes</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-text-light dark:text-zinc-400">Megjegyzés</p>
       <p className={"mt-1 text-sm text-text-dark dark:text-zinc-200 wrap-break-word whitespace-pre-wrap " + (isCommentExpanded ? "" : "line-clamp-2")}>
         {commentText}
       </p>
@@ -40,20 +60,28 @@ export const OrderComponent = ({ order }: { order: OrderModel }) => {
           onClick={() => setIsCommentExpanded((prev) => !prev)}
           className="mt-2 text-xs font-semibold text-primary hover:text-primary-hover transition-colors"
         >
-          {isCommentExpanded ? "Kevesebb" : "Teljes megjegyzes"}
+          {isCommentExpanded ? "Kevesebb" : "Teljes megjegyzés"}
         </button>
       )}
     </div>
-    <div className="flex gap-3 mt-auto">
-      {order.status === "Fizetve"|| order.payment_intent_id== null && order.status=="Fizetésre vár" ? (
-        <button className="flex-1 py-3 rounded-xl bg-primary text-white text-xs font-semibold uppercase tracking-wider hover:bg-primary-hover transition-colors" onClick={()=>handleStatusChange("Készítjük")}>Készítem</button>
-      ):
-      order.status === "Készítjük"? (
-        <button className="flex-1 py-3 rounded-xl bg-green-600 text-white text-xs font-semibold uppercase tracking-wider hover:bg-green-700 transition-colors" onClick={()=>handleStatusChange("Átvehető")}>Kész</button>
-      ):
-      order.status === "Átvehető"? (
-        <button className="flex-1 py-3 rounded-xl bg-gray-600 text-white text-xs font-semibold uppercase tracking-wider hover:bg-gray-700 transition-colors" onClick={()=>handleStatusChange("Átadva")}>Átadtam</button>
-      ):null}
+}
+    {statusError && (
+      <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-300">
+        {statusError}
+      </div>
+    )}
+    <div className="mt-auto flex gap-3">
+      {order.status === "Fizetve" || order.payment_intent_id == null && order.status == "Fizetésre vár" ? (
+        <button disabled={isUpdatingStatus} className="flex-1 min-h-12 rounded-xl bg-primary text-white text-sm font-semibold uppercase tracking-wide hover:bg-primary-hover transition-colors disabled:cursor-not-allowed disabled:opacity-70" onClick={() => handleStatusChange("Készítjük")}>{isUpdatingStatus ? "Mentés..." : "Készítem"}</button>
+      ) :
+        order.status === "Készítjük" ? (
+          <button disabled={isUpdatingStatus} className="flex-1 min-h-12 rounded-xl bg-green-600 text-white text-sm font-semibold uppercase tracking-wide hover:bg-green-700 transition-colors disabled:cursor-not-allowed disabled:opacity-70" onClick={() => handleStatusChange("Átvehető")}>{isUpdatingStatus ? "Mentés..." : "Kész"}</button>
+        ) :
+          order.status === "Átvehető" && order.payment_intent_id == null ? (
+            <button disabled={isUpdatingStatus} className="flex-1 min-h-12 rounded-xl bg-red-600 text-white text-sm font-semibold uppercase tracking-wide hover:bg-red-700 transition-colors disabled:cursor-not-allowed disabled:opacity-70" onClick={() => handleStatusChange("Átadva")}>{isUpdatingStatus ? "Mentés..." : "Fizetés után átadva"}</button>
+          ) : order.status === "Átvehető" ? (
+            <button disabled={isUpdatingStatus} className="flex-1 min-h-12 rounded-xl bg-gray-600 text-white text-sm font-semibold uppercase tracking-wide hover:bg-gray-700 transition-colors disabled:cursor-not-allowed disabled:opacity-70" onClick={() => handleStatusChange("Átadva")}>{isUpdatingStatus ? "Mentés..." : "Átadva"}</button>
+          ) : null}
     </div>
   </div>;
 };

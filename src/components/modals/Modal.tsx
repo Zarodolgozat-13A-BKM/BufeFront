@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useId } from 'react'
 
 interface ModalProps {
 	isOpen: boolean
@@ -9,6 +9,8 @@ interface ModalProps {
 }
 
 export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'md' }: ModalProps) => {
+	const titleId = useId()
+
 	// Close modal on ESC key
 	useEffect(() => {
 		const handleEscape = (e: KeyboardEvent) => {
@@ -37,29 +39,42 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'md' }: Mod
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-			{/* Backdrop */}
 			<div
-				className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+				className="absolute inset-0 bg-black/45 backdrop-blur-sm"
 				onClick={onClose}
 			></div>
 
-			{/* Modal Content */}
-			<div className={`relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] overflow-hidden flex flex-col`}>
-				{/* Header */}
+			<div
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby={title ? titleId : undefined}
+				className={`relative bg-bg-light dark:bg-zinc-900 rounded-xl border border-[#e6e0db] dark:border-zinc-700 shadow-2xl w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] overflow-hidden flex flex-col`}
+			>
 				{title && (
-					<div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-						<h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
+					<div className="flex items-center justify-between p-4 border-b border-[#e6e0db] dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/80">
+						<h2 id={titleId} className="text-xl font-bold text-text-dark dark:text-white">{title}</h2>
 						<button
 							onClick={onClose}
-							className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+							aria-label="Bezárás"
+							className="p-1 rounded-lg text-text-light dark:text-zinc-400 hover:bg-primary/10 hover:text-primary transition-colors"
 						>
-							<span className="material-symbols-outlined text-gray-500 dark:text-gray-400">close</span>
+							<span className="material-symbols-outlined">close</span>
+						</button>
+					</div>
+				)}
+				{!title && (
+					<div className="absolute right-3 top-3 z-10">
+						<button
+							onClick={onClose}
+							aria-label="Bezárás"
+							className="p-1 rounded-lg text-text-light dark:text-zinc-400 hover:bg-primary/10 hover:text-primary transition-colors"
+						>
+							<span className="material-symbols-outlined">close</span>
 						</button>
 					</div>
 				)}
 
-				{/* Body */}
-				<div className="p-6 overflow-y-auto flex-1">
+				<div className="p-6 overflow-y-auto flex-1 text-text-dark dark:text-zinc-200">
 					{children}
 				</div>
 			</div>

@@ -7,7 +7,7 @@ import { setCategories } from '../store/categorySlice'
 import { setOrders } from '../store/orderSlice'
 import { DeleteCategory, GetAllCategories } from './CategoryService'
 import { DeleteItem, ToggleActive, ToggleFeatured } from './ItemService'
-import { GetAllOrders, GetStatuses, UpdateOrderStatus } from './OrderService'
+import { GetAllOrders } from './OrderService'
 
 export type SortDir = 'asc' | 'desc'
 export type SortableOrderField = 'id' | 'user_id' | 'order_identifier_number' | 'status' | 'delivery_date' | 'total_price'
@@ -211,25 +211,3 @@ export const handleCategoryCreatedAction = async (
   await fetchAndSetCategories(dispatch)
 }
 
-export const handleOrderStatusChangeAction = async (
-  dispatch: AppDispatch,
-  orders: OrderModel[],
-  order: OrderModel,
-  status: string,
-): Promise<void> => {
-  const statuses = await GetStatuses()
-  const matchedStatus = statuses.find((s) => s.name === status)
-
-  if (!matchedStatus) {
-    throw new Error(`Unable to update order status: unknown status "${status}".`)
-  }
-
-  await UpdateOrderStatus(order.id, matchedStatus.id.toString())
-
-  const updated = orders.map((o) => {
-    if (o.id !== order.id) return o
-    return { ...o, status }
-  })
-
-  dispatch(setOrders(updated))
-}

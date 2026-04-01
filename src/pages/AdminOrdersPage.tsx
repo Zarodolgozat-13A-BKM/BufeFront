@@ -10,8 +10,14 @@ import type { Ringlist } from "../Models/RingModel";
 type OrderFilter = "upcoming-break" | "whole-day";
 
 interface OrderStateChangedEvent {
-	order_id: string;
+	order_id: string | number;
 }
+
+const CLOSED_ORDER_STATUSES = new Set(["átadva", "törölve"]);
+
+const isClosedOrder = (status: string): boolean => {
+	return CLOSED_ORDER_STATUSES.has(status.trim().toLocaleLowerCase("hu-HU"));
+};
 
 const toMinutes = (time: string): number => {
 	const [hour, minute] = time.split(":").map((value) => Number(value));
@@ -28,33 +34,70 @@ export const AdminOrdersPage = () => {
 	const [orders, setOrders] = useState<OrderModel[]>([]);
 	const [ringing, setRinging] = useState<Ringlist[]>([]);
 	const [orderFilter, setOrderFilter] = useState<OrderFilter>("upcoming-break");
+	const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
+
+	const refreshOrders = async () => {
+		setIsRefreshingOrders(true);
+		try {
+			const freshOrders = await GetAllActiveOrders();
+			setOrders(freshOrders.filter((order) => !isClosedOrder(order.status)));
+		} catch (error) {
+			console.error("Failed to refresh active orders:", error);
+		} finally {
+			setIsRefreshingOrders(false);
+		}
+	};
 
 	useEffect(() => {
 		let isDisposed = false;
 
 		GetAllActiveOrders().then((initialOrders) => {
 			if (!isDisposed) {
-				setOrders(initialOrders);
+				setOrders(initialOrders.filter((order) => !isClosedOrder(order.status)));
 			}
 		});
 
 		const channelName = "orders_admin";
 		const channel = echo.private(channelName);
+		const pusherChannelName = `private-${channelName}`;
+		const pusherChannel = echo.connector.pusher.channel(pusherChannelName);
+
 		const handleOrderStateChanged = (event: OrderStateChangedEvent) => {
-			GetOneOrder(event.order_id).then((incomingOrder) => {
-				if (isDisposed) return;
-				setOrders((prev) => {
-					const withoutCurrent = prev.filter((order) => order.id !== incomingOrder.id);
-					return [...withoutCurrent, incomingOrder];
+			console.log("order.state.changed event received:", event);
+			GetOneOrder(String(event.order_id))
+				.then((incomingOrder) => {
+					if (isDisposed) return;
+					setOrders((prev) => {
+						const withoutCurrent = prev.filter((order) => order.id !== incomingOrder.id);
+						if (isClosedOrder(incomingOrder.status)) {
+							return withoutCurrent;
+						}
+						return [...withoutCurrent, incomingOrder];
+					});
+				})
+				.catch((error) => {
+					console.error("Failed to fetch updated order:", error);
 				});
-			});
 		};
 
+		pusherChannel?.bind("pusher:subscription_succeeded", () => {
+			console.log(`Echo subscribed to ${pusherChannelName}`);
+		});
+
+		pusherChannel?.bind("pusher:subscription_error", (status: number) => {
+			console.error(`Echo subscription error on ${pusherChannelName}:`, status);
+		});
+
+		// Keep both variants: Laravel Echo may require a leading dot when using broadcastAs.
 		channel.listen("order.state.changed", handleOrderStateChanged);
+		channel.listen(".order.state.changed", handleOrderStateChanged);
 
 		return () => {
 			isDisposed = true;
 			channel.stopListening("order.state.changed");
+			channel.stopListening(".order.state.changed");
+			pusherChannel?.unbind("pusher:subscription_succeeded");
+			pusherChannel?.unbind("pusher:subscription_error");
 			echo.leave(channelName);
 		};
 	}, []);
@@ -131,6 +174,13 @@ export const AdminOrdersPage = () => {
 							<div className='flex flex-wrap items-center justify-end gap-2'>
 								<button
 									type='button'
+									onClick={refreshOrders}
+									disabled={isRefreshingOrders}
+									className='shrink-0 cursor-pointer rounded-full border border-[#e6e0db] bg-white px-3 py-1.5 text-xs font-semibold text-text-dark transition-colors hover:bg-bg-light disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'>
+									{isRefreshingOrders ? 'Frissítés...' : 'Frissítés'}
+								</button>
+								<button
+									type='button'
 									onClick={() => setOrderFilter("upcoming-break")}
 									className={
 										"shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
@@ -169,6 +219,13 @@ export const AdminOrdersPage = () => {
 											: "Mára nincs több szünet."
 										: "Jelenleg nincs aktív rendelés."}
 								</p>
+								<button
+									type='button'
+									onClick={refreshOrders}
+									disabled={isRefreshingOrders}
+									className='mt-4 rounded-lg border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-text-dark transition-colors hover:bg-bg-light disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800'>
+									{isRefreshingOrders ? 'Frissítés...' : 'Frissítés'}
+								</button>
 							</div>
 						) : (
 							<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5'>

@@ -4,12 +4,19 @@ import DashBoardHeader from "../components/dashBoardHeader";
 import { echo } from "../lib/echo";
 import { GetAllOrders, GetOneOrder } from "../services/OrderService";
 import { useAppSelector } from "../store/hooks";
+import { Link, useLocation } from "react-router";
+import BlinkingCircle from "../components/blinker";
 
 type WsOrderEvent = {
   order_id?: number | string;
   order_ids?: Array<number | string>;
   order?: OrderModel;
   orders?: OrderModel[];
+};
+
+type PostPaymentLocationState = {
+  paymentSuccess?: boolean;
+  paidAt?: number;
 };
 
 const ORDER_STATUS = {
@@ -21,7 +28,15 @@ const ORDER_STATUS = {
   WAITING_PAYMENT: "fizetésre vár",
 } as const;
 
-const CLOSED_ORDER_STATUSES: Set<string> = new Set([ORDER_STATUS.CANCELLED, ORDER_STATUS.HANDED_OVER]);
+const CLOSED_ORDER_STATUS_KEYS: Set<string> = new Set([
+  "atadva",
+  "torolve",
+  "cancelled",
+  "canceled",
+  "handed over",
+  "delivered",
+  "completed",
+]);
 
 const STATUS_PROGRESS: Record<string, number> = {
   [ORDER_STATUS.WAITING_PAYMENT]: 10,
@@ -34,8 +49,16 @@ const STATUS_PROGRESS: Record<string, number> = {
 
 const normalizeStatus = (status: string) => status.trim().toLocaleLowerCase("hu-HU");
 
+const toStatusKey = (status: string): string => {
+  return status
+    .trim()
+    .toLocaleLowerCase("hu-HU")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+};
+
 const isOpenOrder = (order: OrderModel) => {
-  return !CLOSED_ORDER_STATUSES.has(normalizeStatus(order.status));
+  return !CLOSED_ORDER_STATUS_KEYS.has(toStatusKey(order.status));
 };
 
 const upsertOrders = (current: OrderModel[], next: OrderModel[]) => {
@@ -71,19 +94,28 @@ const getTimelineState = (status: string) => {
 };
 
 const getTimelineFillPercentage = (timelineState: number) => {
-  if (timelineState >= 2) return 100;
+  if (timelineState >= 2) return 60;
   if (timelineState === 1) return 30;
   return 0;
 };
 
+const getDisplayedPreparingStatus = (status: string): string => {
+  return toStatusKey(status) === "atadva" ? "Várakozik" : status;
+};
+
+const FALLBACK_POLL_INTERVAL_MS = 10000;
+
 const PostPaymentPage = () => {
+  const location = useLocation();
+  const locationState = (location.state as PostPaymentLocationState | null) ?? null;
   const me = useAppSelector((state) => state.auth.me);
   const [orders, setOrders] = useState<OrderModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [cardsVisible, setCardsVisible] = useState(false);
   const [selectedOrderIndex, setSelectedOrderIndex] = useState(0);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(Boolean(locationState?.paymentSuccess));
+  const [isLiveConnected, setIsLiveConnected] = useState(false);
 
   const refreshOpenOrders = useCallback(async () => {
     const allOrders = await GetAllOrders();
@@ -160,12 +192,43 @@ const PostPaymentPage = () => {
   }, []);
 
   useEffect(() => {
+    if (!showPaymentSuccess) return;
+
+    const timer = window.setTimeout(() => {
+      setShowPaymentSuccess(false);
+    }, 8000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [showPaymentSuccess]);
+
+  const handleManualRefresh = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await refreshOpenOrders();
+    } catch (fetchError) {
+      console.error("Failed to refresh open orders:", fetchError);
+      setError("Nem sikerult frissiteni a rendeleseidet.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [refreshOpenOrders]);
+
+  useEffect(() => {
     if (!me?.email) {
       return;
     }
 
     const channelName = `ordersOfUser.${me.email}`;
     const channel = echo.private(channelName);
+    const pusherChannelName = `private-${channelName}`;
+    const pusherChannel = echo.connector.pusher.channel(pusherChannelName);
+    const connection = echo.connector.pusher.connection;
+    const setConnectedState = () => {
+      setIsLiveConnected(connection.state === "connected");
+    };
 
     const handleOrderChange = async (event: WsOrderEvent) => {
       try {
@@ -177,19 +240,87 @@ const PostPaymentPage = () => {
           await refreshOpenOrders();
         }
 
-        setLastUpdate(new Date());
       } catch (refreshError) {
         console.error("Failed to refresh orders after websocket event:", refreshError);
       }
     };
 
+    const handleSubscriptionSucceeded = async () => {
+      setConnectedState();
+      try {
+        await refreshOpenOrders();
+      } catch (refreshError) {
+        console.error("Failed to sync orders after websocket subscription:", refreshError);
+      }
+    };
+
+    const handleSubscriptionError = (status: number) => {
+      setConnectedState();
+      console.error(`Websocket subscription failed on ${pusherChannelName}:`, status);
+      setError("A valós idejű kapcsolat hibára futott. Frissíts manuálisan.");
+    };
+
+    const handleConnectionStateChange = async () => {
+      const isConnected = connection.state === "connected";
+      setIsLiveConnected(isConnected);
+
+      if (isConnected) {
+        try {
+          await refreshOpenOrders();
+        } catch (refreshError) {
+          console.error("Failed to sync orders after websocket reconnect:", refreshError);
+        }
+      }
+    };
+
+    const handleAnyOrderEvent = async (eventName: string) => {
+      if (!eventName.toLocaleLowerCase("hu-HU").includes("order")) {
+        return;
+      }
+      try {
+        await refreshOpenOrders();
+      } catch (refreshError) {
+        console.error("Failed to refresh orders from wildcard websocket event:", refreshError);
+      }
+    };
+
     channel.listen("order.state.changed", handleOrderChange);
+    channel.listen(".order.state.changed", handleOrderChange);
+    // Catch custom backend event names while keeping typed handlers above.
+    channel.listenToAll(handleAnyOrderEvent);
+    pusherChannel?.bind("pusher:subscription_succeeded", handleSubscriptionSucceeded);
+    pusherChannel?.bind("pusher:subscription_error", handleSubscriptionError);
+    connection.bind("state_change", handleConnectionStateChange);
+    setConnectedState();
 
     return () => {
       channel.stopListening("order.state.changed", handleOrderChange);
+      channel.stopListening(".order.state.changed", handleOrderChange);
+      channel.stopListeningToAll(handleAnyOrderEvent);
+      pusherChannel?.unbind("pusher:subscription_succeeded", handleSubscriptionSucceeded);
+      pusherChannel?.unbind("pusher:subscription_error", handleSubscriptionError);
+      connection.unbind("state_change", handleConnectionStateChange);
       echo.leave(channelName);
     };
   }, [me?.email, refreshOpenOrders, resolveOrdersFromEvent]);
+
+  useEffect(() => {
+    if (!me?.email || isLiveConnected) {
+      return;
+    }
+
+    const intervalId = window.setInterval(async () => {
+      try {
+        await refreshOpenOrders();
+      } catch (refreshError) {
+        console.error("Fallback polling failed while websocket is offline:", refreshError);
+      }
+    }, FALLBACK_POLL_INTERVAL_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isLiveConnected, me?.email, refreshOpenOrders]);
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-display antialiased">
@@ -198,24 +329,29 @@ const PostPaymentPage = () => {
 
         <div className="p-4 md:p-6">
           <div className="w-full rounded-xl border border-[#e6e0db] bg-bg-light dark:bg-zinc-800/50 dark:border-zinc-800 p-4 md:p-5">
+            {showPaymentSuccess && (
+              <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-green-800 dark:border-green-900/60 dark:bg-green-900/20 dark:text-green-200">
+                <p className="text-sm font-semibold">Fizetés sikeres.</p>
+                <p className="mt-1 text-xs">
+                  Rendelésed rögzítve lett, hamarosan frissül az állapota.
+                </p>
+              </div>
+            )}
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-xl font-bold text-text-dark dark:text-white tracking-tight">
-                  Nyitott rendeleseid
+                  Nyitott rendeléseid
                 </h2>
                 <p className="text-text-light dark:text-zinc-400 text-sm mt-1">
-                  A rendelesek allapota valos idoben frissul.
+                  A rendelések állapota valós időben frissül.
                 </p>
-                {lastUpdate && (
-                  <span className="mt-1 block text-xs text-text-light dark:text-zinc-400">
-                    Utolso frissites: {lastUpdate.toLocaleTimeString("hu-HU")}
-                  </span>
-                )}
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
-                <span className="text-xs font-medium text-text-light dark:text-zinc-300">Live kapcsolat</span>
+                <BlinkingCircle size="10px" color={isLiveConnected ? "#00ff00" : "#f97316"}/>
+                <span className="text-xs font-medium text-text-light dark:text-zinc-300">
+                  {isLiveConnected ? "Live kapcsolat" : "Kapcsolodas..."}
+                </span>
                 <span className="rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-medium text-primary">
                   {sortedOrders.length} db
                 </span>
@@ -228,11 +364,25 @@ const PostPaymentPage = () => {
                 <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">
                   Nyitott rendelések betöltése...
                 </p>
+                <button
+                  type="button"
+                  onClick={handleManualRefresh}
+                  className="mt-4 rounded-lg border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-text-dark transition-colors hover:bg-bg-light dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                >
+                  Frissítés
+                </button>
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-red-300 bg-white py-10 dark:border-red-900/60 dark:bg-zinc-800">
                 <span className="material-symbols-outlined text-3xl text-red-500">error</span>
                 <p className="mt-2 text-red-600 dark:text-red-300 text-sm font-medium text-center">{error}</p>
+                <button
+                  type="button"
+                  onClick={handleManualRefresh}
+                  className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-200 dark:hover:bg-red-900/35"
+                >
+                  Újrapróbálás
+                </button>
               </div>
             ) : sortedOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800">
@@ -240,6 +390,21 @@ const PostPaymentPage = () => {
                 <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">
                   Jelenleg nincs nyitott rendelés.
                 </p>
+                <div className="mt-4 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleManualRefresh}
+                    className="rounded-lg border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-text-dark transition-colors hover:bg-bg-light dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  >
+                    Frissítés
+                  </button>
+                  <Link
+                    to="/main"
+                    className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-hover"
+                  >
+                    Ugrás a menühöz
+                  </Link>
+                </div>
               </div>
             ) : (
               selectedOrder && (
@@ -311,7 +476,8 @@ const PostPaymentPage = () => {
                           <div
                             className={
                               "z-10 flex h-8 w-8 items-center justify-center rounded-full " +
-                              (timelineState === 1 ? "bg-primary animate-pulse" : "bg-primary/30")
+                              (timelineState >= 1 ? "bg-primary" : "bg-primary/30") +
+                              (timelineState === 1 ? " animate-pulse" : "")
                             }
                           >
                             <span className="material-symbols-outlined text-xs text-white">restaurant</span>
@@ -319,13 +485,13 @@ const PostPaymentPage = () => {
                           <div>
                             <p className="font-bold text-text-dark dark:text-white">Készítés alatt</p>
                             <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-text-light dark:text-zinc-400">
-                              {selectedOrder.status}
+                              {getDisplayedPreparingStatus(selectedOrder.status)}
                             </p>
                           </div>
                         </div>
 
                         <div className={"relative grid min-h-20 grid-cols-[24px_1fr] items-center gap-x-5 " + (timelineState >= 2 ? "opacity-100" : "opacity-45")}>
-                          <div className={"z-10 flex h-8 w-8 items-center justify-center rounded-full " + (timelineState >= 2 ? "bg-primary" : "bg-primary/30")}>
+                          <div className={"z-10 flex h-8 w-8 items-center justify-center rounded-full " + (timelineState >= 2 ? "bg-green-600" : "bg-primary/30")}>
                             <span className="material-symbols-outlined text-xs text-white">shopping_bag</span>
                           </div>
                           <div>
