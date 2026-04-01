@@ -28,6 +28,7 @@ const MainPage = () => {
     const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState<ItemModel | null>(null)
     const [isLoadingMainData, setIsLoadingMainData] = useState(true)
+    const [headerHeight, setHeaderHeight] = useState(0)
     const scrollContainerRef = useRef<HTMLDivElement | null>(null)
     const stickyHeaderRef = useRef<HTMLDivElement | null>(null)
     const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -172,11 +173,24 @@ const MainPage = () => {
         const targetElement = categoryRefs.current[categoryIndex]
         if (!targetElement) return
 
-        const headerHeight = stickyHeaderRef.current?.offsetHeight ?? 0
-        const scrollTop = targetElement.offsetTop - headerHeight - 8
+        const topOffset = headerHeight || stickyHeaderRef.current?.offsetHeight || 0
+        const scrollTop = targetElement.offsetTop - topOffset - 8
 
         scrollContainer.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' })
-    }, [])
+    }, [headerHeight])
+
+    useEffect(() => {
+        const updateHeaderHeight = () => {
+            setHeaderHeight(stickyHeaderRef.current?.offsetHeight ?? 0)
+        }
+
+        updateHeaderHeight()
+        window.addEventListener('resize', updateHeaderHeight)
+
+        return () => {
+            window.removeEventListener('resize', updateHeaderHeight)
+        }
+    }, [categories.length, searchQuery])
 
     const resetSearch = () => {
         setSearchQuery('')
@@ -190,11 +204,13 @@ const MainPage = () => {
                 ref={scrollContainerRef}
                 className="mainpage-scrollbar relative flex h-screen w-full mx-auto flex-col overflow-y-auto overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800"
             >
-            <div ref={stickyHeaderRef} className="sticky top-0 z-50 bg-white dark:bg-zinc-900 border-b border-[#e6e0db] dark:border-zinc-800">
+            <div ref={stickyHeaderRef} className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-zinc-900 border-b border-[#e6e0db] dark:border-zinc-800">
                 <TopAppBar username={me?.full_name ?? 'Guest'} />
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
                 <CategoryChips categories={categories} searchQuery={searchQuery} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
             </div>
+
+            <div aria-hidden style={{ height: headerHeight }} />
 
             <main className="flex-1 pb-28">
             {isLoadingMainData ? (
