@@ -70,7 +70,7 @@ const CategoriesTable = ({
 
     return (
         <div className="overflow-x-auto rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800">
-            <table className="min-w-full text-sm text-left border-collapse">
+            <table className="w-full min-w-full text-sm text-left border-collapse">
             <thead className="bg-bg-light dark:bg-zinc-800/80 border-b border-[#e6e0db] dark:border-zinc-700 text-text-dark dark:text-zinc-200">
                 <tr className="h-10">
                     <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center">▼</th>

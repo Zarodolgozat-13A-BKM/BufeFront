@@ -165,7 +165,7 @@ const AdminPage = () => {
           {CategoryTableVisible && (
             <div className="w-full xl:w-full rounded-xl border border-[#e6e0db] bg-bg-light dark:bg-zinc-800/50 dark:border-zinc-800 p-4 md:p-5">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <h2 className="text-xl font-bold text-text-dark dark:text-white mb-4">Kategóriák ({categories.length})</h2>
+                <h2 className="text-xl font-bold text-text-dark dark:text-white">Kategóriák ({categories.length})</h2>
                 <button
                   onClick={() => {
                     setSelectedCategory(undefined)
@@ -173,7 +173,7 @@ const AdminPage = () => {
                   }}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-[#e07b1a] transition-colors"
                 >
-                  <span className="text-base">+</span>
+                  <span className="text-base leading-none">+</span>
                   Kategória hozzáadása
                 </button>
               </div>

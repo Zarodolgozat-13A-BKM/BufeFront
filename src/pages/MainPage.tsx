@@ -225,7 +225,7 @@ const MainPage = () => {
 
             <div aria-hidden style={{ height: headerHeight }} className="min-h-[160px]" />
 
-            <main className="flex-1 max-w-[1920px] mx-auto w-full pb-8 md:pb-10">
+            <main className="flex-1 mx-auto w-full pb-8 md:pb-10">
             {isLoadingMainData ? (
                 <div className="px-4 pt-5">
                     <LoadingState message="Kínálat betöltése..." />
