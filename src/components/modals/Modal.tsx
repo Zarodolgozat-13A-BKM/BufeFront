@@ -40,7 +40,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'md' }: Mod
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 			<div
-				className="modal-backdrop absolute inset-0"
+				className="absolute inset-0 bg-black/35 backdrop-blur-sm"
 				onClick={onClose}
 			></div>
 

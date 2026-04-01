@@ -25,8 +25,17 @@ export const TopAppBar = ({
       <div className="flex items-center gap-3">
         <div>
           <p className="text-xs text-text-light dark:text-zinc-400 font-medium">Szia,</p>
-          <Link to="/admin" className="text-text-dark dark:text-white text-lg font-bold leading-tight">
-            {displayName}
+          <Link
+            to="/admin"
+            className="group inline-flex items-center gap-1.5 text-text-dark dark:text-white text-lg font-bold leading-tight"
+          >
+            <span>{displayName}</span>
+            <span
+              aria-hidden="true"
+              className="material-symbols-outlined text-base text-text-light dark:text-zinc-400 opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100 group-focus-visible:translate-x-0 group-hover:animate-[spin_2.8s_linear_infinite] group-focus-visible:animate-[spin_2.8s_linear_infinite]"
+            >
+              settings
+            </span>
           </Link>
         </div>
       </div>
@@ -35,12 +44,12 @@ export const TopAppBar = ({
           <button
             type="button"
             onClick={onCartClick}
-            className="md:hidden inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-primary"
+            className="inline-flex min-h-10 items-center gap-2.5 rounded-full border border-primary/35 bg-primary/10 px-4 py-2 text-primary shadow-sm"
             aria-label="Kosár megnyitása"
           >
-            <span className="text-xs font-bold">{totalItems}</span>
-            <span className="material-symbols-outlined text-base">shopping_cart</span>
-            <span className="text-xs font-semibold">{totalPrice}Ft</span>
+            <span className="text-sm font-bold">{totalItems}</span>
+            <span className="material-symbols-outlined text-lg">shopping_cart</span>
+            <span className="text-sm font-semibold">{totalPrice}Ft</span>
           </button>
         ) : null}
         {/* <div className="flex items-center justify-center bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full">

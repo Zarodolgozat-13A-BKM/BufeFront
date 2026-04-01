@@ -180,7 +180,7 @@ export const CheckoutPage = () => {
 						Átvétel Kiválasztása
 					</h2>
 				</div>
-				<main className='flex-1 overflow-y-auto pb-32'>
+				<main className='flex-1 pb-6'>
 					<div className='block animate-fade-in' id='pickup-section'>
 						<div className='px-4 pt-4 pb-2'>
 							<h3 className='text-text-dark dark:text-white tracking-tight text-2xl font-bold leading-tight text-left'>
@@ -361,7 +361,7 @@ export const CheckoutPage = () => {
                         </div>
                     </div> */}
 				</main>
-				<div className='fixed bottom-0 left-1/2 w-full -translate-x-1/2 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 z-20'>
+				<div className='w-full p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800'>
 					{checkoutError ? (
 						<div className='mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-300'>
 							{checkoutError}

@@ -10,7 +10,6 @@ import { SearchBar } from '../components/mainPage/SearchBar'
 import { CategoryChips } from '../components/mainPage/CategoryChips'
 import { SpecialItemCard } from '../components/mainPage/SpecialItemCard'
 import { MenuItemCard } from '../components/mainPage/MenuItemCard'
-import { CartBar } from '../components/mainPage/CartBar'
 import { setMe } from '../store/authSlice'
 import { GetMe } from '../services/APIservice'
 import { useNavigate } from 'react-router'
@@ -199,7 +198,7 @@ const MainPage = () => {
     }
 
     return (
-        <div className="mx-auto bg-background-light dark:bg-background-dark font-display antialiased">
+        <div className="mx-auto min-h-screen bg-background-light dark:bg-zinc-900 font-display antialiased ">
             <div
                 ref={scrollContainerRef}
                 className="mainpage-scrollbar relative flex h-screen w-full flex-col overflow-y-auto overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800"
@@ -217,9 +216,9 @@ const MainPage = () => {
                 </div>
             </div>
 
-            <div aria-hidden style={{ height: headerHeight }} />
+            <div aria-hidden style={{ height: headerHeight }} className="min-h-[160px]" />
 
-            <main className="flex-1 pb-28">
+            <main className="flex-1 max-w-[1920px] mx-auto w-full pb-8 md:pb-10">
             {isLoadingMainData ? (
                 <div className="px-4 pt-5">
                     <LoadingState message="Kínálat betöltése..." />
@@ -227,12 +226,12 @@ const MainPage = () => {
             ) : (
                 <>
             <div className="pt-5 pb-2">
-                <div className="flex items-center justify-between px-4 pb-3">
-                    <h2 className="text-text-dark dark:text-white tracking-tight text-2xl font-bold leading-tight">
+                <div className="flex items-center justify-between px-4 lg:px-6 2xl:px-8 pb-3">
+                    <h2 className="text-text-dark dark:text-white tracking-tight text-xl sm:text-2xl lg:text-3xl 2xl:text-4xl font-bold leading-tight">
                         <span className="text-primary"></span> Napi válogatás
                     </h2>
                 </div>
-                <div className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 gap-4 no-scrollbar">
+                <div className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 lg:px-6 2xl:px-8 gap-3 lg:gap-4 2xl:gap-5 no-scrollbar">
                     {featuredItems.map((item: ItemModel) => (
                         <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={itemQuantityById[item.id] ?? 0} onUpdateQuantity={updateQuantity}/>
                     ))
@@ -240,13 +239,13 @@ const MainPage = () => {
                 </div>
             </div>
 
-            <div className="h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 my-2"></div>
+            <div className="h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 lg:mx-6 2xl:mx-8 my-2"></div>
 
             {hasSearchQuery && !hasAnySearchResults ? (
                 <div className="px-4 pt-8 ">
-                    <div className="rounded-2xl border border-[#e6e0db] bg-bg-light px-5 py-6 text-center dark:border-zinc-700 dark:bg-zinc-800/60">
+                    <div className="rounded-2xl border border-[#e6e0db] bg-bg-light px-5 py-6 text-center dark:border-zinc-700 dark:bg-zinc-800/60 max-w-2xl mx-auto">
                         <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">search_off</span>
-                        <h3 className="mt-3 text-lg font-bold text-text-dark dark:text-white">Nincs találat erre: "{searchQuery.trim()}"</h3>
+                        <h3 className="mt-3 text-base sm:text-lg lg:text-xl font-bold text-text-dark dark:text-white">Nincs találat erre: "{searchQuery.trim()}"</h3>
                         <p className="mt-2 text-sm text-text-light dark:text-zinc-400">
                             Próbálj rövidebb keresést, vagy válassz egy ajánlott kategóriát.
                         </p>
@@ -281,12 +280,12 @@ const MainPage = () => {
                 if (filteredItems.length === 0) return <span key={category.id} />
 
                 return (
-                    <div key={category.id} ref={(el) => { categoryRefs.current[categoryIndex] = el }} className="flex flex-col gap-3 px-4 pt-6 scroll-mt-32">
-                        <h3 className="text-text-dark dark:text-white text-lg font-bold leading-tight flex items-center gap-2 mt-5">
+                    <div key={category.id} ref={(el) => { categoryRefs.current[categoryIndex] = el }} className="flex flex-col gap-3 lg:gap-4 2xl:gap-6 px-4 lg:px-6 2xl:px-8 pt-6 scroll-mt-32">
+                        <h3 className="text-text-dark dark:text-white text-base sm:text-lg lg:text-xl 2xl:text-2xl font-bold leading-tight flex items-center gap-2 mt-5">
                             <span className="w-1 h-5 bg-primary rounded-full"></span>
                             {category.name}
                         </h3>
-                        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 4xl:grid-cols-4 gap-3">
+                        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 4xl:grid-cols-4 gap-3 lg:gap-4 2xl:gap-6">
                             {filteredItems.map((item) => (
                                 <MenuItemCard key={item.id} item={item} onUpdateQuantity={updateQuantity} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} />
                             ))}
@@ -298,10 +297,6 @@ const MainPage = () => {
                 </>
             )}
             </main>
-
-            <div className="hidden md:block">
-                <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={handleCheckout}/>
-            </div>
             <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? (itemQuantityById[selectedItem.id] ?? 0) : 0} />
         </div>
         </div>
