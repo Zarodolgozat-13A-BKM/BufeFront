@@ -30,7 +30,6 @@ const MainPage = () => {
     const [headerHeight, setHeaderHeight] = useState(0)
     const scrollContainerRef = useRef<HTMLDivElement | null>(null)
     const stickyHeaderRef = useRef<HTMLDivElement | null>(null)
-    const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
 
     useEffect(() => {
         let isDisposed = false
@@ -160,22 +159,30 @@ const MainPage = () => {
         [categories]
     )
 
-    const scrollToCategory = useCallback((categoryIndex: number | null) => {
+    const scrollToCategory = useCallback((categoryId: number | null) => {
         const scrollContainer = scrollContainerRef.current
         if (!scrollContainer) return
 
-        if (categoryIndex === null) {
+        if (categoryId === null) {
             scrollContainer.scrollTo({ top: 0, behavior: 'smooth' })
             return
         }
 
-        const targetElement = categoryRefs.current[categoryIndex]
-        if (!targetElement) return
+        window.requestAnimationFrame(() => {
+            const targetElement = scrollContainer.querySelector(`[data-category-id="${categoryId}"]`) as HTMLDivElement | null
+            if (!targetElement) return
 
-        const topOffset = headerHeight || stickyHeaderRef.current?.offsetHeight || 0
-        const scrollTop = targetElement.offsetTop - topOffset - 8
+            const topOffset = headerHeight || stickyHeaderRef.current?.offsetHeight || 0
+            const containerTop = scrollContainer.getBoundingClientRect().top
+            const targetTop = targetElement.getBoundingClientRect().top
+            const containerScrollTop = scrollContainer.scrollTop + (targetTop - containerTop) - topOffset - 8
 
-        scrollContainer.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' })
+            scrollContainer.scrollTo({ top: Math.max(0, containerScrollTop), behavior: 'smooth' })
+
+            // Fallback for cases where page scroll is driven by window instead of the inner container.
+            const windowScrollTop = targetElement.getBoundingClientRect().top + window.scrollY - topOffset - 8
+            window.scrollTo({ top: Math.max(0, windowScrollTop), behavior: 'smooth' })
+        })
     }, [headerHeight])
 
     useEffect(() => {
@@ -212,7 +219,7 @@ const MainPage = () => {
                         onCartClick={handleCheckout}
                     />
                     <SearchBar value={searchQuery} onChange={setSearchQuery} />
-                    <CategoryChips categories={categories} searchQuery={searchQuery} activeCategory={activeCategory} onCategoryClick={(category, categoryIndex) => { setActiveCategory(category); scrollToCategory(categoryIndex) }} />
+                    <CategoryChips categories={categories} searchQuery={searchQuery} activeCategory={activeCategory} onCategoryClick={(category) => { setActiveCategory(category); scrollToCategory(category.id) }} />
                 </div>
             </div>
 
@@ -264,7 +271,7 @@ const MainPage = () => {
                                     onClick={() => {
                                         setSearchQuery('')
                                         setActiveCategory(category)
-                                        scrollToCategory(categoryIndex)
+                                        scrollToCategory(category.id)
                                     }}
                                     className="rounded-full border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-text-dark transition-colors hover:border-primary/45 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
                                 >
@@ -280,7 +287,7 @@ const MainPage = () => {
                 if (filteredItems.length === 0) return <span key={category.id} />
 
                 return (
-                    <div key={category.id} ref={(el) => { categoryRefs.current[categoryIndex] = el }} className="flex flex-col gap-3 lg:gap-4 2xl:gap-6 px-4 lg:px-6 2xl:px-8 pt-6 scroll-mt-32">
+                    <div key={category.id} data-category-id={category.id} className="flex flex-col gap-3 lg:gap-4 2xl:gap-6 px-4 lg:px-6 2xl:px-8 pt-6 scroll-mt-32">
                         <h3 className="text-text-dark dark:text-white text-base sm:text-lg lg:text-xl 2xl:text-2xl font-bold leading-tight flex items-center gap-2 mt-5">
                             <span className="w-1 h-5 bg-primary rounded-full"></span>
                             {category.name}
