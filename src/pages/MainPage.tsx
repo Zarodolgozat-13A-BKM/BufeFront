@@ -14,6 +14,7 @@ import { CartBar } from '../components/mainPage/CartBar'
 import { setMe } from '../store/authSlice'
 import { GetMe } from '../services/APIservice'
 import { useNavigate } from 'react-router'
+import { AddItemModal } from '../components/modals/addItemModal'
 
 const MainPage = () => {
     const dispatch = useAppDispatch()
@@ -191,7 +192,7 @@ const MainPage = () => {
             </main>
 
             <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={handleCheckout}/>
-
+            <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? (itemQuantityById[selectedItem.id] ?? 0) : 0} />
         </div>
         </div>
     )
