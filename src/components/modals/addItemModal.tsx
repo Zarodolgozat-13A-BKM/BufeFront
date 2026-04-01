@@ -46,7 +46,7 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
     const totalPrice = item.price * quantity
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} maxWidth="lg">
+        <Modal isOpen={isOpen} onClose={onClose} title={item.name} maxWidth="lg">
             <div className="flex flex-col gap-6">
                 <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
                     <img
@@ -67,14 +67,9 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                 </div>
 
                 <div className="space-y-4">
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                            {item.name}
-                        </h2>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                            {item.description || 'No description available.'}
-                        </p>
-                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                        {item.description || 'No description available.'}
+                    </p>
 
                     <div className="flex items-center gap-2">
                         <span className="text-3xl font-extrabold text-primary dark:text-white">

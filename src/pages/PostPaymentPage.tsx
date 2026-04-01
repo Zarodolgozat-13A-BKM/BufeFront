@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { OrderModel } from "../Models/OrderModel";
-import DashBoardHeader from "../components/dashBoardHeader";
+import DashBoardHeader from "../components/common/dashBoardHeader";
 import { echo } from "../lib/echo";
 import { GetAllOrders, GetOneOrder } from "../services/OrderService";
 import { useAppSelector } from "../store/hooks";
 import { Link, useLocation } from "react-router";
-import BlinkingCircle from "../components/blinker";
+import BlinkingCircle from "../components/common/blinker";
+import { LoadingState } from "../components/common/LoadingState";
 
 type WsOrderEvent = {
   order_id?: number | string;
@@ -359,19 +360,18 @@ const PostPaymentPage = () => {
             </div>
 
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800">
-                <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">sync</span>
-                <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">
-                  Nyitott rendelések betöltése...
-                </p>
-                <button
-                  type="button"
-                  onClick={handleManualRefresh}
-                  className="mt-4 rounded-lg border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-text-dark transition-colors hover:bg-bg-light dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                >
-                  Frissítés
-                </button>
-              </div>
+              <LoadingState
+                message="Nyitott rendelések betöltése..."
+                action={
+                  <button
+                    type="button"
+                    onClick={handleManualRefresh}
+                    className="rounded-lg border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-text-dark transition-colors hover:bg-bg-light dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  >
+                    Frissítés
+                  </button>
+                }
+              />
             ) : error ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-red-300 bg-white py-10 dark:border-red-900/60 dark:bg-zinc-800">
                 <span className="material-symbols-outlined text-3xl text-red-500">error</span>

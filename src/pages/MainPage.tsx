@@ -15,6 +15,7 @@ import { setMe } from '../store/authSlice'
 import { GetMe } from '../services/APIservice'
 import { useNavigate } from 'react-router'
 import { AddItemModal } from '../components/modals/addItemModal'
+import { LoadingState } from '../components/common/LoadingState'
 
 const MainPage = () => {
     const dispatch = useAppDispatch()
@@ -26,15 +27,20 @@ const MainPage = () => {
     const [activeCategory, setActiveCategory] = useState<CategoryModel | null>(null)
     const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState<ItemModel | null>(null)
+    const [isLoadingMainData, setIsLoadingMainData] = useState(true)
     const scrollContainerRef = useRef<HTMLDivElement | null>(null)
     const stickyHeaderRef = useRef<HTMLDivElement | null>(null)
     const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
 
     useEffect(() => {
+        let isDisposed = false
+
         const fetchCategories = async () => {
             try {
                 const data = await GetAllCategories()
-                dispatch(setCategories(data))
+                if (!isDisposed) {
+                    dispatch(setCategories(data))
+                }
             } catch (error) {
                 console.error('Failed to fetch categories:', error)
                 localStorage.clear()
@@ -44,18 +50,32 @@ const MainPage = () => {
         const fetchMe = async () => {
             try {
                 const data = await GetMe()
-                dispatch(setMe({ me: data }))
+                if (!isDisposed) {
+                    dispatch(setMe({ me: data }))
+                }
             } catch (error) {
                 console.error('Failed to fetch user data:', error)
                 localStorage.clear()
                 navigate('/login')
             }
         }
-        if(!me)
-        {
-            fetchMe()
-        } 
-        fetchCategories()
+
+        const bootstrapData = async () => {
+            setIsLoadingMainData(true)
+            if (!me) {
+                await fetchMe()
+            }
+            await fetchCategories()
+            if (!isDisposed) {
+                setIsLoadingMainData(false)
+            }
+        }
+
+        bootstrapData()
+
+        return () => {
+            isDisposed = true
+        }
     }, [dispatch, me, navigate])
 
     const allItems = useAppSelector(selectAllItems)
@@ -126,6 +146,20 @@ const MainPage = () => {
         }))
     }, [categories, searchQuery])
 
+    const hasSearchQuery = searchQuery.trim().length > 0
+    const hasAnySearchResults = useMemo(
+        () => filteredCategories.some(({ filteredItems }) => filteredItems.length > 0),
+        [filteredCategories]
+    )
+
+    const suggestedCategories = useMemo(
+        () => categories
+            .map((category, categoryIndex) => ({ category, categoryIndex }))
+            .filter(({ category }) => category.items.length > 0)
+            .slice(0, 3),
+        [categories]
+    )
+
     const scrollToCategory = useCallback((categoryIndex: number | null) => {
         const scrollContainer = scrollContainerRef.current
         if (!scrollContainer) return
@@ -144,6 +178,12 @@ const MainPage = () => {
         scrollContainer.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' })
     }, [])
 
+    const resetSearch = () => {
+        setSearchQuery('')
+        setActiveCategory(null)
+        scrollToCategory(null)
+    }
+
     return (
         <div className="bg-background-light dark:bg-background-dark font-display antialiased">
             <div
@@ -157,6 +197,12 @@ const MainPage = () => {
             </div>
 
             <main className="flex-1 pb-28">
+            {isLoadingMainData ? (
+                <div className="px-4 pt-5">
+                    <LoadingState message="Kínálat betöltése..." />
+                </div>
+            ) : (
+                <>
             <div className="pt-5 pb-2">
                 <div className="flex items-center justify-between px-4 pb-3">
                     <h2 className="text-text-dark dark:text-white tracking-tight text-2xl font-bold leading-tight">
@@ -173,12 +219,47 @@ const MainPage = () => {
 
             <div className="h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 my-2"></div>
 
+            {hasSearchQuery && !hasAnySearchResults ? (
+                <div className="px-4 pt-8">
+                    <div className="rounded-2xl border border-[#e6e0db] bg-bg-light px-5 py-6 text-center dark:border-zinc-700 dark:bg-zinc-800/60">
+                        <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">search_off</span>
+                        <h3 className="mt-3 text-lg font-bold text-text-dark dark:text-white">Nincs találat erre: "{searchQuery.trim()}"</h3>
+                        <p className="mt-2 text-sm text-text-light dark:text-zinc-400">
+                            Próbálj rövidebb keresést, vagy válassz egy ajánlott kategóriát.
+                        </p>
+                        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                            <button
+                                type="button"
+                                onClick={resetSearch}
+                                className="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+                            >
+                                Keresés törlése
+                            </button>
+                            {suggestedCategories.map(({ category, categoryIndex }) => (
+                                <button
+                                    key={category.id}
+                                    type="button"
+                                    onClick={() => {
+                                        setSearchQuery('')
+                                        setActiveCategory(category)
+                                        scrollToCategory(categoryIndex)
+                                    }}
+                                    className="rounded-full border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-text-dark transition-colors hover:border-primary/45 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+                                >
+                                    {category.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            ) : null}
+
             {filteredCategories.map(({ category, categoryIndex, filteredItems }) => {
                 if (filteredItems.length === 0) return <span key={category.id} />
 
                 return (
                     <div key={category.id} ref={(el) => { categoryRefs.current[categoryIndex] = el }} className="flex flex-col gap-3 px-4 pt-6 scroll-mt-32">
-                        <h3 className="text-text-dark dark:text-white text-lg font-bold leading-tight flex items-center gap-2">
+                        <h3 className="text-text-dark dark:text-white text-lg font-bold leading-tight flex items-center gap-2 mt-5">
                             <span className="w-1 h-5 bg-primary rounded-full"></span>
                             {category.name}
                         </h3>
@@ -189,6 +270,8 @@ const MainPage = () => {
                 )
             })}
             <div className="h-6"></div>
+                </>
+            )}
             </main>
 
             <CartBar totalItems={totalItems} totalPrice={totalPrice} onClick={handleCheckout}/>

@@ -17,6 +17,7 @@ export interface OrderModel {
   user_username: string
   order_identifier_number: number
   status: string
+  created_at?: string | null
   delivery_date: string | null
   items: OrderLineItem[] | undefined
   total_price?: number

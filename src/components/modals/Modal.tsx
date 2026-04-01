@@ -40,7 +40,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'md' }: Mod
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 			<div
-				className="absolute inset-0 bg-black/45 backdrop-blur-sm"
+				className="modal-backdrop absolute inset-0"
 				onClick={onClose}
 			></div>
 
@@ -48,7 +48,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'md' }: Mod
 				role="dialog"
 				aria-modal="true"
 				aria-labelledby={title ? titleId : undefined}
-				className={`relative bg-bg-light dark:bg-zinc-900 rounded-xl border border-[#e6e0db] dark:border-zinc-700 shadow-2xl w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] overflow-hidden flex flex-col`}
+				className={`modal-shell relative bg-bg-light dark:bg-zinc-900 rounded-xl border border-[#e6e0db] dark:border-zinc-700 shadow-2xl w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] overflow-hidden flex flex-col`}
 			>
 				{title && (
 					<div className="flex items-center justify-between p-4 border-b border-[#e6e0db] dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/80">
@@ -63,7 +63,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'md' }: Mod
 					</div>
 				)}
 				{!title && (
-					<div className="absolute right-3 top-3 z-10">
+					<div className="flex justify-end px-3 pt-3">
 						<button
 							onClick={onClose}
 							aria-label="Bezárás"

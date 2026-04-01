@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 import { Link } from "react-router";
-import { Logout as ApiLogout } from '../services/APIservice'
-import { getThemePreference, toggleTheme, type ThemePreference } from "../services/themeService";
-import { logout } from "../store/authSlice";
+import { Logout as ApiLogout } from '../../services/APIservice'
+import { getThemePreference, toggleTheme, type ThemePreference } from "../../services/themeService";
+import { logout } from "../../store/authSlice";
 import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 const DashBoardHeader = ({ name, showAdmin, backTo }: { name: ReactNode; showAdmin: boolean; backTo: string }) => {
     const [theme, setTheme] = useState<ThemePreference>(() => getThemePreference())
     const me = useAppSelector((state) => state.auth.me)

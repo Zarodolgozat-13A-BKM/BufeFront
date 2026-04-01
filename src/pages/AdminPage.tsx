@@ -22,7 +22,7 @@ import {
   sortOrdersByField,
   toggleSortDirection,
 } from '../services/AdminPageService'
-import DashBoardHeader from '../components/dashBoardHeader'
+import DashBoardHeader from '../components/common/dashBoardHeader'
 import { UpdateOrderStatus } from '../services/OrderService'
 import { setOrders } from '../store/orderSlice'
 

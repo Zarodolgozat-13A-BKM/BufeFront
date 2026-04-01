@@ -1,12 +1,48 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { OrderModel } from "../../Models/OrderModel";
 import { UpdateOrderStatus } from "../../services/OrderService";
 
-export const OrderComponent = ({ order }: { order: OrderModel }) => {
+const getOrderBaseDate = (order: OrderModel): Date | null => {
+  const sourceDate = order.created_at ?? order.delivery_date;
+  if (!sourceDate) return null;
+
+  const parsedDate = new Date(sourceDate);
+  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+};
+
+const getSlaTone = (elapsedMinutes: number): "ok" | "warn" | "late" => {
+  if (elapsedMinutes >= 25) return "late";
+  if (elapsedMinutes >= 12) return "warn";
+  return "ok";
+};
+
+export const OrderComponent = ({ order, highlighted = false }: { order: OrderModel; highlighted?: boolean }) => {
   const [isCommentExpanded, setIsCommentExpanded] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const isCashPayment = order.payment_intent_id == null;
+  const orderBaseDate = useMemo(() => getOrderBaseDate(order), [order]);
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => {
+      setNow(Date.now());
+    }, 60000);
+
+    return () => {
+      window.clearInterval(timerId);
+    };
+  }, []);
+
+  const elapsedMinutes = useMemo(() => {
+    if (!orderBaseDate) return null;
+
+    const elapsedMs = now - orderBaseDate.getTime();
+    if (elapsedMs < 0) return 0;
+    return Math.floor(elapsedMs / 60000);
+  }, [now, orderBaseDate]);
+
+  const slaTone = elapsedMinutes == null ? null : getSlaTone(elapsedMinutes);
 
   const trimmedComment = order.comment?.trim() ?? "";
   const hasComment = trimmedComment.length > 0;
@@ -27,7 +63,7 @@ export const OrderComponent = ({ order }: { order: OrderModel }) => {
       setIsUpdatingStatus(false);
     }
   };
-  return <div className="bg-white dark:bg-zinc-800 rounded-xl p-4 md:p-5 border border-[#e6e0db] dark:border-zinc-700 flex flex-col hover:bg-bg-light dark:hover:bg-zinc-800/90 transition-colors">
+  return <div id={`admin-order-${order.id}`} className={"bg-white dark:bg-zinc-800 rounded-xl p-4 md:p-5 border flex flex-col transition-all " + (highlighted ? "border-primary ring-2 ring-primary/40 shadow-lg shadow-primary/10 animate-pulse" : "border-[#e6e0db] dark:border-zinc-700 hover:bg-bg-light dark:hover:bg-zinc-800/90") }>
     <div className="flex justify-between items-start mb-4">
       <div>
         <span className="px-3 py-1 bg-primary/10 border border-primary/20 text-[10px] font-semibold rounded-full text-primary tracking-wider uppercase">{order.delivery_date}</span>
@@ -35,6 +71,20 @@ export const OrderComponent = ({ order }: { order: OrderModel }) => {
       </div>
       <div className="mt-1 flex flex-col items-end gap-1">
         <h4 className="text-lg text-end font-bold text-primary">#{order.order_identifier_number}</h4>
+        {elapsedMinutes != null && (
+          <span
+            className={
+              "rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide " +
+              (slaTone === "late"
+                ? "border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-900/25 dark:text-red-300"
+                : slaTone === "warn"
+                  ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/60 dark:bg-amber-900/20 dark:text-amber-300"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-900/20 dark:text-emerald-300")
+            }
+          >
+            {elapsedMinutes} perc
+          </span>
+        )}
         <span className={"rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide " + (isCashPayment ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900/60 dark:bg-green-900/20 dark:text-green-300" : "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-900/20 dark:text-sky-300")}>
           {isCashPayment ? "Készpénz" : "Kártya"}
         </span>
