@@ -27,7 +27,25 @@ export const AdminOrdersPage = () => {
 
 	useEffect(() => {
 		GetAllActiveOrders().then(setOrders);
+		echo.connector.pusher.bind_global((eventName: string, e: any) => {
+			console.log("Received event:", eventName, e);
+			if (eventName === "order.state.changed") {
+				console.log("Received order update event:", e);
+				GetOneOrder(e.order_id).then((neworder) =>
+					setOrders((prev) => {
+						const existingIndex = prev.findIndex((o) => o.id === neworder.id);	
+						if (existingIndex !== -1) {
+							const updatedOrders = [...prev];
+							updatedOrders[existingIndex] = neworder;
+							return updatedOrders;
+						}
+						return [...prev, neworder];
+					})
+				);
+			}
+		});
 		echo.private("orders_admin").listen("order.state.changed", (e: any) => {
+			console.log("Received order update event:", e);
 			GetOneOrder(e.order_id).then((neworder) =>setOrders((prev) => [...prev, neworder]))});
 	}, []);
 

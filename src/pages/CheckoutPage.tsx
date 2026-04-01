@@ -250,14 +250,14 @@ const CheckoutPage = () => {
 										value={comment}
 										onChange={(e) => setComment(e.target.value)}
 										rows={4}
-										maxLength={300}
+										maxLength={255}
 										placeholder='Pl. kevesebb csipos, ne tegyetek szalvetat, kesobb megyek erte...'
 										className='w-full resize-none rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-3 text-sm text-text-dark dark:text-white placeholder:text-text-light dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/20'
 									/>
 									{comment && (
 										<div className='mt-2 flex justify-end'>
 											<span className='text-xs text-text-light dark:text-zinc-500'>
-												{comment.length}/300
+												{comment.length}/255
 											</span>
 										</div>
 									)}
