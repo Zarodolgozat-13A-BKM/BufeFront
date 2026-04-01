@@ -56,7 +56,7 @@ const MainPage = () => {
             fetchMe()
         } 
         fetchCategories()
-    }, [dispatch, me])
+    }, [dispatch, me, navigate])
 
     const allItems = useAppSelector(selectAllItems)
 

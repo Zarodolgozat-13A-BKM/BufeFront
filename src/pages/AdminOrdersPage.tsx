@@ -9,6 +9,10 @@ import type { Ringlist } from "../Models/RingModel";
 
 type OrderFilter = "upcoming-break" | "whole-day";
 
+interface OrderStateChangedEvent {
+	order_id: string;
+}
+
 const toMinutes = (time: string): number => {
 	const [hour, minute] = time.split(":").map((value) => Number(value));
 	return hour * 60 + minute;
@@ -26,9 +30,33 @@ export const AdminOrdersPage = () => {
 	const [orderFilter, setOrderFilter] = useState<OrderFilter>("upcoming-break");
 
 	useEffect(() => {
-		GetAllActiveOrders().then(setOrders);
-		echo.private("orders_admin").listen("order.state.changed", (e: any) => {
-			GetOneOrder(e.order_id).then((neworder) =>setOrders((prev) => [...prev, neworder]))});
+		let isDisposed = false;
+
+		GetAllActiveOrders().then((initialOrders) => {
+			if (!isDisposed) {
+				setOrders(initialOrders);
+			}
+		});
+
+		const channelName = "orders_admin";
+		const channel = echo.private(channelName);
+		const handleOrderStateChanged = (event: OrderStateChangedEvent) => {
+			GetOneOrder(event.order_id).then((incomingOrder) => {
+				if (isDisposed) return;
+				setOrders((prev) => {
+					const withoutCurrent = prev.filter((order) => order.id !== incomingOrder.id);
+					return [...withoutCurrent, incomingOrder];
+				});
+			});
+		};
+
+		channel.listen("order.state.changed", handleOrderStateChanged);
+
+		return () => {
+			isDisposed = true;
+			channel.stopListening("order.state.changed");
+			echo.leave(channelName);
+		};
 	}, []);
 
 	useEffect(() => {
@@ -47,7 +75,6 @@ export const AdminOrdersPage = () => {
 	}, []);
 
 	const nextBreakStart = useMemo(() => {
-		console.log(orders);
 		if (ringing.length === 0) return null;
 
 		const now = new Date();

@@ -3,15 +3,12 @@ import { Link } from "react-router";
 import { Logout as ApiLogout } from '../services/APIservice'
 import { getThemePreference, toggleTheme, type ThemePreference } from "../services/themeService";
 import { logout } from "../store/authSlice";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 const DashBoardHeader = ({ name, showAdmin, backTo }: { name: ReactNode; showAdmin: boolean; backTo: string }) => {
-    const [theme, setTheme] = useState<ThemePreference>('system')
+    const [theme, setTheme] = useState<ThemePreference>(() => getThemePreference())
     const me = useAppSelector((state) => state.auth.me)
     const dispatch = useAppDispatch();
-    useEffect(() => {
-        setTheme(getThemePreference())
-    }, [])
     const handleThemeToggle = () => {
         setTheme(toggleTheme())
     }

@@ -15,6 +15,21 @@ const ORDER_CUTOFF_HOUR = 14;
 const ORDER_CUTOFF_MINUTE = 30;
 const MIN_SPINNER_DISPLAY_MS = 400;
 
+type CheckoutOrderResponse = {
+	client_secret?: string;
+	clientSecret?: string;
+};
+
+const toTwoDigits = (value: number): string => String(value).padStart(2, "0");
+
+const formatLocalDate = (date: Date): string => {
+	return `${date.getFullYear()}-${toTwoDigits(date.getMonth() + 1)}-${toTwoDigits(date.getDate())}`;
+};
+
+const formatLocalDateTime = (date: Date): string => {
+	return `${formatLocalDate(date)}T${toTwoDigits(date.getHours())}:${toTwoDigits(date.getMinutes())}`;
+};
+
 const isAfterOrderCutoff = (date: Date) => {
 	const currentMinutes = date.getHours() * 60 + date.getMinutes();
 	const cutoffMinutes = ORDER_CUTOFF_HOUR * 60 + ORDER_CUTOFF_MINUTE;
@@ -68,11 +83,12 @@ const CheckoutPage = () => {
 		const submitStartedAt = Date.now();
 		await waitForNextPaint();
 		try {
+			const createdAt = new Date();
 			const orderData: OrderCreateModel = {
 				delivery_date:
 					deliverydatetime !== ""
-						? `${new Date().toLocaleDateString().replace(".", "-")}T${deliverydatetime}`
-						: new Date().toLocaleString().replace(". ", "-").replace(". ", "-").replace(". ", "T"),
+						? `${formatLocalDate(createdAt)}T${deliverydatetime}`
+						: formatLocalDateTime(createdAt),
 				comment: comment,
 				items: cart.items.map((item) => ({
 					item_id: item.id,
@@ -87,7 +103,8 @@ const CheckoutPage = () => {
 			const orderResponse = await CreateOrder(orderData);
 			console.log("Order creation response:", orderResponse);
 			if (!cash) {
-				const clientSecret = (orderResponse as any).client_secret;
+				const paymentResponse = orderResponse as CheckoutOrderResponse;
+				const clientSecret = paymentResponse.client_secret ?? paymentResponse.clientSecret;
 
 				if (!clientSecret) {
 					throw new Error('No client secret received from server. Payment initialization failed.');
@@ -174,7 +191,7 @@ const CheckoutPage = () => {
 										onChange={(e) => setDeliverydatetime(e.target.value)}
 										className='appearance-none w-full rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal text-text-dark dark:text-white transition-shadow outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20'>
 										{orderingClosed ? (
-											<option value='' selected disabled={!orderingClosed}>
+											<option value='' disabled>
 												Ma már nem lehet rendelni, kérlek térj vissza holnap!
 											</option>
 										) : null}

@@ -134,7 +134,7 @@ const OrdersTable = ({
                             </td>
                             <td className="py-2 px-3 text-text-dark dark:text-white text-center">
                                 {order.delivery_date
-                                    ? new Date(order.delivery_date).toISOString()
+                                    ? new Date(order.delivery_date).toLocaleString('hu-HU')
                                     : <span className="text-text-light dark:text-zinc-500">—</span>
                                 }
                             </td>

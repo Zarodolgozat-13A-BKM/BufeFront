@@ -51,7 +51,7 @@ const AdminPage = () => {
       }
     };
     bootstrapAdminPage();
-  }, []);
+  }, [dispatch]);
 
   const handleItemStatusToggle = async (
     id: number,
