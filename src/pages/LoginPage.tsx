@@ -30,8 +30,7 @@ const LoginPage = () => {
             setPasswordError('Kérlek add meg a jelszavad.')
             valid = false
         }
-        if(username.split('.').length < 2 && username !== "teszt")
-        {
+        if (username.trim() !== '' && username.split('.').length < 2 && username !== "teszt") {
             setUsernameError('A felhasználónév formátuma: vezetéknév.keresztnév pl: gipsz.jakab')
             valid = false
         }
