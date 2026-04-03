@@ -48,7 +48,8 @@ const STATUS_PROGRESS: Record<string, number> = {
   [ORDER_STATUS.CANCELLED]: 100,
 };
 
-const normalizeStatus = (status: string) => status.trim().toLocaleLowerCase("hu-HU");
+const normalizeStatus = (status: string) =>
+  status.trim().toLocaleLowerCase("hu-HU");
 
 const toStatusKey = (status: string): string => {
   return status
@@ -63,7 +64,9 @@ const isOpenOrder = (order: OrderModel) => {
 };
 
 const upsertOrders = (current: OrderModel[], next: OrderModel[]) => {
-  const byId = new Map<number, OrderModel>(current.map((order) => [order.id, order]));
+  const byId = new Map<number, OrderModel>(
+    current.map((order) => [order.id, order]),
+  );
   next.forEach((order) => {
     if (isOpenOrder(order)) {
       byId.set(order.id, order);
@@ -108,14 +111,17 @@ const FALLBACK_POLL_INTERVAL_MS = 10000;
 
 const PostPaymentPage = () => {
   const location = useLocation();
-  const locationState = (location.state as PostPaymentLocationState | null) ?? null;
+  const locationState =
+    (location.state as PostPaymentLocationState | null) ?? null;
   const me = useAppSelector((state) => state.auth.me);
   const [orders, setOrders] = useState<OrderModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cardsVisible, setCardsVisible] = useState(false);
   const [selectedOrderIndex, setSelectedOrderIndex] = useState(0);
-  const [showPaymentSuccess, setShowPaymentSuccess] = useState(Boolean(locationState?.paymentSuccess));
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(
+    Boolean(locationState?.paymentSuccess),
+  );
   const [isLiveConnected, setIsLiveConnected] = useState(false);
 
   const refreshOpenOrders = useCallback(async () => {
@@ -124,7 +130,9 @@ const PostPaymentPage = () => {
   }, []);
 
   const resolveOrdersFromEvent = useCallback(async (event: WsOrderEvent) => {
-    const directOrders = (event.orders ?? (event.order ? [event.order] : [])).filter(isOpenOrder);
+    const directOrders = (
+      event.orders ?? (event.order ? [event.order] : [])
+    ).filter(isOpenOrder);
     if (directOrders.length > 0) {
       return directOrders;
     }
@@ -145,10 +153,12 @@ const PostPaymentPage = () => {
         } catch {
           return null;
         }
-      })
+      }),
     );
 
-    const resolvedOrders = fetchedOrders.filter((order): order is OrderModel => order !== null);
+    const resolvedOrders = fetchedOrders.filter(
+      (order): order is OrderModel => order !== null,
+    );
     return resolvedOrders.length > 0 ? resolvedOrders : null;
   }, []);
 
@@ -157,7 +167,9 @@ const PostPaymentPage = () => {
   }, [orders]);
 
   const selectedOrder = sortedOrders[selectedOrderIndex] ?? null;
-  const timelineState = selectedOrder ? getTimelineState(selectedOrder.status) : 0;
+  const timelineState = selectedOrder
+    ? getTimelineState(selectedOrder.status)
+    : 0;
   const timelineFill = getTimelineFillPercentage(timelineState);
 
   useEffect(() => {
@@ -222,8 +234,8 @@ const PostPaymentPage = () => {
       return;
     }
 
-    const channelName = `ordersOfUser.${me.email}`;
-    const channel = echo.private(channelName);
+    const channelName = `ordersOfUser.${btoa(me.email)}`;
+    const privateChannelOfUser = echo.private(channelName);
     const pusherChannelName = `private-${channelName}`;
     const pusherChannel = echo.connector.pusher.channel(pusherChannelName);
     const connection = echo.connector.pusher.connection;
@@ -240,9 +252,11 @@ const PostPaymentPage = () => {
         } else {
           await refreshOpenOrders();
         }
-
       } catch (refreshError) {
-        console.error("Failed to refresh orders after websocket event:", refreshError);
+        console.error(
+          "Failed to refresh orders after websocket event:",
+          refreshError,
+        );
       }
     };
 
@@ -251,13 +265,19 @@ const PostPaymentPage = () => {
       try {
         await refreshOpenOrders();
       } catch (refreshError) {
-        console.error("Failed to sync orders after websocket subscription:", refreshError);
+        console.error(
+          "Failed to sync orders after websocket subscription:",
+          refreshError,
+        );
       }
     };
 
     const handleSubscriptionError = (status: number) => {
       setConnectedState();
-      console.error(`Websocket subscription failed on ${pusherChannelName}:`, status);
+      console.error(
+        `Websocket subscription failed on ${pusherChannelName}:`,
+        status,
+      );
       setError("A valós idejű kapcsolat hibára futott. Frissíts manuálisan.");
     };
 
@@ -269,7 +289,10 @@ const PostPaymentPage = () => {
         try {
           await refreshOpenOrders();
         } catch (refreshError) {
-          console.error("Failed to sync orders after websocket reconnect:", refreshError);
+          console.error(
+            "Failed to sync orders after websocket reconnect:",
+            refreshError,
+          );
         }
       }
     };
@@ -281,25 +304,43 @@ const PostPaymentPage = () => {
       try {
         await refreshOpenOrders();
       } catch (refreshError) {
-        console.error("Failed to refresh orders from wildcard websocket event:", refreshError);
+        console.error(
+          "Failed to refresh orders from wildcard websocket event:",
+          refreshError,
+        );
       }
     };
 
-    channel.listen("order.state.changed", handleOrderChange);
-    channel.listen(".order.state.changed", handleOrderChange);
+    privateChannelOfUser.listen("order.state.changed", handleOrderChange);
+    privateChannelOfUser.listen(".order.state.changed", handleOrderChange);
     // Catch custom backend event names while keeping typed handlers above.
-    channel.listenToAll(handleAnyOrderEvent);
-    pusherChannel?.bind("pusher:subscription_succeeded", handleSubscriptionSucceeded);
+    privateChannelOfUser.listenToAll(handleAnyOrderEvent);
+    pusherChannel?.bind(
+      "pusher:subscription_succeeded",
+      handleSubscriptionSucceeded,
+    );
     pusherChannel?.bind("pusher:subscription_error", handleSubscriptionError);
     connection.bind("state_change", handleConnectionStateChange);
     setConnectedState();
 
     return () => {
-      channel.stopListening("order.state.changed", handleOrderChange);
-      channel.stopListening(".order.state.changed", handleOrderChange);
-      channel.stopListeningToAll(handleAnyOrderEvent);
-      pusherChannel?.unbind("pusher:subscription_succeeded", handleSubscriptionSucceeded);
-      pusherChannel?.unbind("pusher:subscription_error", handleSubscriptionError);
+      privateChannelOfUser.stopListening(
+        "order.state.changed",
+        handleOrderChange,
+      );
+      privateChannelOfUser.stopListening(
+        ".order.state.changed",
+        handleOrderChange,
+      );
+      privateChannelOfUser.stopListeningToAll(handleAnyOrderEvent);
+      pusherChannel?.unbind(
+        "pusher:subscription_succeeded",
+        handleSubscriptionSucceeded,
+      );
+      pusherChannel?.unbind(
+        "pusher:subscription_error",
+        handleSubscriptionError,
+      );
       connection.unbind("state_change", handleConnectionStateChange);
       echo.leave(channelName);
     };
@@ -314,7 +355,10 @@ const PostPaymentPage = () => {
       try {
         await refreshOpenOrders();
       } catch (refreshError) {
-        console.error("Fallback polling failed while websocket is offline:", refreshError);
+        console.error(
+          "Fallback polling failed while websocket is offline:",
+          refreshError,
+        );
       }
     }, FALLBACK_POLL_INTERVAL_MS);
 
@@ -326,7 +370,11 @@ const PostPaymentPage = () => {
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-display antialiased">
       <div className="relative mx-auto flex min-h-screen w-full flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
-        <DashBoardHeader name="Rendeles kovetes" showAdmin={false} backTo="/me" />
+        <DashBoardHeader
+          name="Rendeles kovetes"
+          showAdmin={false}
+          backTo="/me"
+        />
 
         <div className="p-4 md:p-6">
           <div className="w-full rounded-xl border border-[#e6e0db] bg-bg-light dark:bg-zinc-800/50 dark:border-zinc-800 p-4 md:p-5">
@@ -349,7 +397,10 @@ const PostPaymentPage = () => {
               </div>
 
               <div className="flex items-center gap-2">
-                <BlinkingCircle size="10px" color={isLiveConnected ? "#00ff00" : "#f97316"}/>
+                <BlinkingCircle
+                  size="10px"
+                  color={isLiveConnected ? "#00ff00" : "#f97316"}
+                />
                 <span className="text-xs font-medium text-text-light dark:text-zinc-300">
                   {isLiveConnected ? "Live kapcsolat" : "Kapcsolodas..."}
                 </span>
@@ -374,8 +425,12 @@ const PostPaymentPage = () => {
               />
             ) : error ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-red-300 bg-white py-10 dark:border-red-900/60 dark:bg-zinc-800">
-                <span className="material-symbols-outlined text-3xl text-red-500">error</span>
-                <p className="mt-2 text-red-600 dark:text-red-300 text-sm font-medium text-center">{error}</p>
+                <span className="material-symbols-outlined text-3xl text-red-500">
+                  error
+                </span>
+                <p className="mt-2 text-red-600 dark:text-red-300 text-sm font-medium text-center">
+                  {error}
+                </p>
                 <button
                   type="button"
                   onClick={handleManualRefresh}
@@ -386,7 +441,9 @@ const PostPaymentPage = () => {
               </div>
             ) : sortedOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800">
-                <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">receipt_long</span>
+                <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">
+                  receipt_long
+                </span>
                 <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">
                   Jelenleg nincs nyitott rendelés.
                 </p>
@@ -411,7 +468,9 @@ const PostPaymentPage = () => {
                 <div
                   className={
                     "mx-auto w-full max-w-6xl rounded-2xl border border-[#e6e0db] bg-white/80 p-5 md:p-8 shadow-sm transition-all duration-500 dark:border-zinc-700 dark:bg-zinc-900/70 " +
-                    (cardsVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0")
+                    (cardsVisible
+                      ? "translate-y-0 opacity-100"
+                      : "translate-y-4 opacity-0")
                   }
                 >
                   <div className="mb-8 text-center flex items-center justify-center gap-2">
@@ -421,27 +480,34 @@ const PostPaymentPage = () => {
                         aria-label="Előző rendelés"
                         onClick={() =>
                           setSelectedOrderIndex((prev) =>
-                            prev === 0 ? sortedOrders.length - 1 : prev - 1
+                            prev === 0 ? sortedOrders.length - 1 : prev - 1,
                           )
                         }
                         className="rounded-full p-1 text-primary transition-colors hover:bg-primary/10"
                       >
-                        <span className="material-symbols-outlined">chevron_left</span>
+                        <span className="material-symbols-outlined">
+                          chevron_left
+                        </span>
                       </button>
                       <h2 className="text-3xl font-extrabold tracking-tight text-text-dark dark:text-white">
-                        Rendelésszám: <span className="font-extrabold text-primary">#{selectedOrder.order_identifier_number}</span>
+                        Rendelésszám:{" "}
+                        <span className="font-extrabold text-primary">
+                          #{selectedOrder.order_identifier_number}
+                        </span>
                       </h2>
                       <button
                         type="button"
                         aria-label="Következő rendelés"
                         onClick={() =>
                           setSelectedOrderIndex((prev) =>
-                            prev === sortedOrders.length - 1 ? 0 : prev + 1
+                            prev === sortedOrders.length - 1 ? 0 : prev + 1,
                           )
                         }
                         className="rounded-full p-1 text-primary transition-colors hover:bg-primary/10"
                       >
-                        <span className="material-symbols-outlined">chevron_right</span>
+                        <span className="material-symbols-outlined">
+                          chevron_right
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -449,23 +515,34 @@ const PostPaymentPage = () => {
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
                     <section className="md:col-span-7 rounded-2xl border border-[#e6e0db] bg-white p-6 md:p-8 dark:border-zinc-700 dark:bg-zinc-800">
                       <h3 className="mb-8 flex items-center gap-2 text-xl font-bold text-text-dark dark:text-white">
-                        <span className="material-symbols-outlined text-primary">local_dining</span>
+                        <span className="material-symbols-outlined text-primary">
+                          local_dining
+                        </span>
                         Rendelés állapota
                       </h3>
                       <div className="relative ml-2">
-                        <div aria-hidden className="absolute left-4 top-10 bottom-10 w-0.5 bg-primary/20" />
+                        <div
+                          aria-hidden
+                          className="absolute left-4 top-10 bottom-10 w-0.5 bg-primary/20"
+                        />
                         <div
                           aria-hidden
                           className="absolute left-4 top-10 w-0.5 origin-top bg-primary transition-all duration-700 ease-out"
-                          style={{ height: `${cardsVisible ? timelineFill : 0}%` }}
+                          style={{
+                            height: `${cardsVisible ? timelineFill : 0}%`,
+                          }}
                         />
 
                         <div className="relative grid min-h-20 grid-cols-[24px_1fr] items-center gap-x-5">
                           <div className="z-10 flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-                            <span className="material-symbols-outlined text-xs text-white">check</span>
+                            <span className="material-symbols-outlined text-xs text-white">
+                              check
+                            </span>
                           </div>
                           <div>
-                            <p className="font-bold text-text-dark dark:text-white">Rendelés fogadva</p>
+                            <p className="font-bold text-text-dark dark:text-white">
+                              Rendelés fogadva
+                            </p>
                             <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-text-light dark:text-zinc-400">
                               {formatDeliveryDate(selectedOrder.delivery_date)}
                             </p>
@@ -476,26 +553,50 @@ const PostPaymentPage = () => {
                           <div
                             className={
                               "z-10 flex h-8 w-8 items-center justify-center rounded-full " +
-                              (timelineState >= 1 ? "bg-primary" : "bg-primary/30") +
+                              (timelineState >= 1
+                                ? "bg-primary"
+                                : "bg-primary/30") +
                               (timelineState === 1 ? " animate-pulse" : "")
                             }
                           >
-                            <span className="material-symbols-outlined text-xs text-white">restaurant</span>
+                            <span className="material-symbols-outlined text-xs text-white">
+                              restaurant
+                            </span>
                           </div>
                           <div>
-                            <p className="font-bold text-text-dark dark:text-white">Készítés alatt</p>
+                            <p className="font-bold text-text-dark dark:text-white">
+                              Készítés alatt
+                            </p>
                             <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-text-light dark:text-zinc-400">
-                              {getDisplayedPreparingStatus(selectedOrder.status)}
+                              {getDisplayedPreparingStatus(
+                                selectedOrder.status,
+                              )}
                             </p>
                           </div>
                         </div>
 
-                        <div className={"relative grid min-h-20 grid-cols-[24px_1fr] items-center gap-x-5 " + (timelineState >= 2 ? "opacity-100" : "opacity-45")}>
-                          <div className={"z-10 flex h-8 w-8 items-center justify-center rounded-full " + (timelineState >= 2 ? "bg-green-600" : "bg-primary/30")}>
-                            <span className="material-symbols-outlined text-xs text-white">shopping_bag</span>
+                        <div
+                          className={
+                            "relative grid min-h-20 grid-cols-[24px_1fr] items-center gap-x-5 " +
+                            (timelineState >= 2 ? "opacity-100" : "opacity-45")
+                          }
+                        >
+                          <div
+                            className={
+                              "z-10 flex h-8 w-8 items-center justify-center rounded-full " +
+                              (timelineState >= 2
+                                ? "bg-green-600"
+                                : "bg-primary/30")
+                            }
+                          >
+                            <span className="material-symbols-outlined text-xs text-white">
+                              shopping_bag
+                            </span>
                           </div>
                           <div>
-                            <p className="font-bold text-text-dark dark:text-white">Átvehető</p>
+                            <p className="font-bold text-text-dark dark:text-white">
+                              Átvehető
+                            </p>
                             <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-text-light dark:text-zinc-400">
                               Várakozik
                             </p>
@@ -506,39 +607,64 @@ const PostPaymentPage = () => {
 
                     <section className="space-y-6 md:col-span-5">
                       {selectedOrder.comment ? (
-                      <article className="relative overflow-hidden rounded-2xl bg-primary p-6 text-white shadow-lg">
-                        <div className="absolute inset-0 bg-linear-to-br from-primary to-[#ffae58]" />
-                        <div className="relative z-10 flex flex-col items-center">
-                          <span className="mb-3 text-[11px] font-bold uppercase tracking-widest text-white/80">Hozzáfűzésed</span>
-                          <div className="mb-4 rounded-xl bg-white px-5 py-4 text-center shadow-md">
-                            <p className="mt-1 text-2xl font-black tracking-[0.25em] text-[#6d3900]">
-                              {selectedOrder.comment ? selectedOrder.comment.slice(0, 20).toUpperCase() : "N/A"}
-                            </p>
+                        <article className="relative overflow-hidden rounded-2xl bg-primary p-6 text-white shadow-lg">
+                          <div className="absolute inset-0 bg-linear-to-br from-primary to-[#ffae58]" />
+                          <div className="relative z-10 flex flex-col items-center">
+                            <span className="mb-3 text-[11px] font-bold uppercase tracking-widest text-white/80">
+                              Hozzáfűzésed
+                            </span>
+                            <div className="mb-4 rounded-xl bg-white px-5 py-4 text-center shadow-md">
+                              <p className="mt-1 text-2xl font-black tracking-[0.25em] text-[#6d3900]">
+                                {selectedOrder.comment
+                                  ? selectedOrder.comment
+                                      .slice(0, 20)
+                                      .toUpperCase()
+                                  : "N/A"}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      </article>):null}
+                        </article>
+                      ) : null}
 
                       <article className="space-y-3 rounded-2xl border border-[#e6e0db] bg-bg-light p-5 dark:border-zinc-700 dark:bg-zinc-800/80">
                         <div className="flex items-start gap-3 rounded-xl bg-white/70 p-3 dark:bg-zinc-900/60">
-                          <span className="material-symbols-outlined mt-0.5 text-primary">schedule</span>
+                          <span className="material-symbols-outlined mt-0.5 text-primary">
+                            schedule
+                          </span>
                           <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-text-light dark:text-zinc-400">Időpont</p>
-                            <p className="mt-1 text-sm font-bold text-text-dark dark:text-zinc-100">{formatDeliveryDate(selectedOrder.delivery_date)}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-3 rounded-xl bg-white/70 p-3 dark:bg-zinc-900/60">
-                          <span className="material-symbols-outlined mt-0.5 text-primary">payments</span>
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-text-light dark:text-zinc-400">Összeg</p>
-                            <p className="mt-1 text-sm font-bold text-text-dark dark:text-zinc-100">{formatPrice(selectedOrder.total_price ?? 0)}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-3 rounded-xl bg-white/70 p-3 dark:bg-zinc-900/60">
-                          <span className="material-symbols-outlined mt-0.5 text-primary">timer</span>
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-text-light dark:text-zinc-400">Becsült idő</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-text-light dark:text-zinc-400">
+                              Időpont
+                            </p>
                             <p className="mt-1 text-sm font-bold text-text-dark dark:text-zinc-100">
-                              {selectedOrder.default_completion_time != null ? `${selectedOrder.default_completion_time} perc` : "Nincs adat"}
+                              {formatDeliveryDate(selectedOrder.delivery_date)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3 rounded-xl bg-white/70 p-3 dark:bg-zinc-900/60">
+                          <span className="material-symbols-outlined mt-0.5 text-primary">
+                            payments
+                          </span>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-text-light dark:text-zinc-400">
+                              Összeg
+                            </p>
+                            <p className="mt-1 text-sm font-bold text-text-dark dark:text-zinc-100">
+                              {formatPrice(selectedOrder.total_price ?? 0)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3 rounded-xl bg-white/70 p-3 dark:bg-zinc-900/60">
+                          <span className="material-symbols-outlined mt-0.5 text-primary">
+                            timer
+                          </span>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-text-light dark:text-zinc-400">
+                              Becsült idő
+                            </p>
+                            <p className="mt-1 text-sm font-bold text-text-dark dark:text-zinc-100">
+                              {selectedOrder.default_completion_time != null
+                                ? `${selectedOrder.default_completion_time} perc`
+                                : "Nincs adat"}
                             </p>
                           </div>
                         </div>
@@ -547,7 +673,9 @@ const PostPaymentPage = () => {
                   </div>
 
                   <section className="mt-7 rounded-2xl border border-[#e6e0db] bg-white/70 p-5 backdrop-blur-sm dark:border-zinc-700 dark:bg-zinc-900/60 md:p-6">
-                    <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-text-light dark:text-zinc-400">Rendelt tételek</h3>
+                    <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-text-light dark:text-zinc-400">
+                      Rendelt tételek
+                    </h3>
                     <ul className="space-y-3">
                       {(selectedOrder.items ?? []).map((item) => (
                         <li
@@ -565,18 +693,28 @@ const PostPaymentPage = () => {
                                 />
                               ) : (
                                 <div className="flex h-full w-full items-center justify-center text-text-light dark:text-zinc-400">
-                                  <span className="material-symbols-outlined text-[18px]">restaurant</span>
+                                  <span className="material-symbols-outlined text-[18px]">
+                                    restaurant
+                                  </span>
                                 </div>
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="truncate text-sm font-bold text-text-dark dark:text-zinc-100">{item.item_name}</p>
-                              <p className="text-xs text-text-light dark:text-zinc-400">{formatPrice(item.item_price)} / db</p>
+                              <p className="truncate text-sm font-bold text-text-dark dark:text-zinc-100">
+                                {item.item_name}
+                              </p>
+                              <p className="text-xs text-text-light dark:text-zinc-400">
+                                {formatPrice(item.item_price)} / db
+                              </p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-semibold text-text-dark dark:text-zinc-100">x{item.quantity}</p>
-                            <p className="text-xs font-semibold text-primary">{formatPrice(item.price)}</p>
+                            <p className="text-sm font-semibold text-text-dark dark:text-zinc-100">
+                              x{item.quantity}
+                            </p>
+                            <p className="text-xs font-semibold text-primary">
+                              {formatPrice(item.price)}
+                            </p>
                           </div>
                         </li>
                       ))}
