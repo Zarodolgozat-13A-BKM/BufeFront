@@ -96,11 +96,32 @@ const AdminPage = () => {
       itemsByCategoryId.set(item.category_id, existing);
     }
 
-    const updatedCategories = categories.map((category) => ({
-      ...category,
-      items: itemsByCategoryId.get(category.id) ?? [],
-    }));
+    const updatedCategories = categories.map((category) => {
+      const categoryUpdates = itemsByCategoryId.get(category.id);
+      if (!categoryUpdates) {
+        return category;
+      }
 
+      const updatesByItemId = new Map(
+        categoryUpdates.map((item) => [item.id, item] as const),
+      );
+      const existingItemIds = new Set(category.items.map((item) => item.id));
+
+      const mergedItems = category.items.map(
+        (item) => updatesByItemId.get(item.id) ?? item,
+      );
+
+      for (const item of categoryUpdates) {
+        if (!existingItemIds.has(item.id)) {
+          mergedItems.push(item);
+        }
+      }
+
+      return {
+        ...category,
+        items: mergedItems,
+      };
+    });
     dispatch(setCategories(updatedCategories));
   };
 
