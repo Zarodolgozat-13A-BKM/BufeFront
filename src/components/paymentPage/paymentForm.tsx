@@ -37,7 +37,7 @@ const PaymentForm = () => {
     });
 
     if (result.error) {
-    //   setErrorMessage(result.error.message ?? "Sikertelen fizetés. Kérlek próbáld újra.");
+      setErrorMessage(result.error.message ?? "Sikertelen fizetés. Kérlek próbáld újra.");
       setPaymentProcessing(false);
       return;
     }
