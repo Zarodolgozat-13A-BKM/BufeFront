@@ -3,6 +3,7 @@ import { useAppSelector, useAppDispatch } from "../store/hooks";
 import type { CategoryModel } from "../Models/CategoryModel";
 import type { ItemModel } from "../Models/ItemModel";
 import { CreateItemModal } from "../components/modals/CreateItemModal";
+import { StockArrivalModal } from "../components/modals/StockArrivalModal";
 import CategoriesTable from "../components/adminPage/CategoriesTable";
 import ItemsTable from "../components/adminPage/ItemsTable";
 import { CreateCatModal } from "../components/modals/CreateCatModal";
@@ -25,6 +26,8 @@ import {
 import DashBoardHeader from '../components/common/dashBoardHeader'
 import { UpdateOrderStatus } from '../services/OrderService'
 import { setOrders } from '../store/orderSlice'
+import { setCategories } from '../store/categorySlice'
+import { AdjustInventory } from '../services/ItemService'
 
 
 const AdminPage = () => {
@@ -38,6 +41,8 @@ const AdminPage = () => {
   const [orderTableVisible, setOrderTableVisible] = useState(false);
   const orders = useAppSelector((state) => state.order.orders ?? []);
   const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
+  const [isStockArrivalOpen, setIsStockArrivalOpen] = useState(false);
+  const [isSavingStockArrival, setIsSavingStockArrival] = useState(false);
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ItemModel | undefined>(
     undefined,
@@ -69,6 +74,62 @@ const AdminPage = () => {
 
   const handleItemDelete = async (item: ItemModel) => {
     await handleItemDeleteAction(dispatch, categories, item);
+  };
+
+  const applyInventoryIncrements = async (
+    changes: Array<{ itemId: number; increaseBy: number }>,
+  ) => {
+    const payload = changes
+      .filter((change) => change.increaseBy !== 0)
+      .map((change) => ({
+        item_id: change.itemId,
+        change: change.increaseBy,
+      }));
+
+    if (payload.length === 0) return;
+
+    const updatedItems = await AdjustInventory(payload);
+    const itemsByCategoryId = new Map<number, ItemModel[]>();
+    for (const item of updatedItems) {
+      const existing = itemsByCategoryId.get(item.category_id) ?? [];
+      existing.push(item);
+      itemsByCategoryId.set(item.category_id, existing);
+    }
+
+    const updatedCategories = categories.map((category) => ({
+      ...category,
+      items: itemsByCategoryId.get(category.id) ?? [],
+    }));
+
+    dispatch(setCategories(updatedCategories));
+  };
+
+  const handleStockArrivalSubmit = async (
+    changes: Array<{ itemId: number; increaseBy: number }>,
+  ) => {
+    setIsSavingStockArrival(true);
+
+    const decreases = changes.filter((change) => change.increaseBy < 0);
+    if (decreases.length > 0) {
+      const itemNames = decreases
+        .map((change) => items.find((item) => item.id === change.itemId)?.name ?? `#${change.itemId}`)
+        .join(", ");
+      const isConfirmed = window.confirm(
+        `Biztosan csökkenteni szeretnéd a készletet ezeknél: ${itemNames}?`,
+      );
+
+      if (!isConfirmed) {
+        setIsSavingStockArrival(false);
+        return;
+      }
+    }
+
+    try {
+      await applyInventoryIncrements(changes);
+      setIsStockArrivalOpen(false);
+    } finally {
+      setIsSavingStockArrival(false);
+    }
   };
 
   const handleCatDelete = async (cat: CategoryModel) => {
@@ -193,13 +254,22 @@ const AdminPage = () => {
             <div className="min-w-0 w-full flex-1 rounded-xl border border-[#e6e0db] bg-bg-light dark:bg-zinc-800/50 dark:border-zinc-800 p-4 md:p-5">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <h2 className="text-xl font-bold text-text-dark dark:text-white">Termékek ({items.length})</h2>
-                <button
-                  onClick={() => setIsCreateItemOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-[#e07b1a] transition-colors"
-                >
-                  <span className="text-base leading-none">+</span>
-                  Termék hozzáadása
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsStockArrivalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#e6e0db] bg-white text-text-dark font-semibold text-sm hover:bg-bg-light transition-colors dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                  >
+                    <span className="text-base leading-none">+</span>
+                    Raktárkészlet frissítése
+                  </button>
+                  <button
+                    onClick={() => setIsCreateItemOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-[#e07b1a] transition-colors"
+                  >
+                    <span className="text-base leading-none">+</span>
+                    Termék hozzáadása
+                  </button>
+                </div>
               </div>
               <ItemsTable
                 handleItemStatusToggle={handleItemStatusToggle}
@@ -241,6 +311,13 @@ const AdminPage = () => {
           categories={categories}
           onCreated={handleItemCreated}
           item={selectedItem}
+        />
+        <StockArrivalModal
+          isOpen={isStockArrivalOpen}
+          onClose={() => setIsStockArrivalOpen(false)}
+          items={items}
+          isSaving={isSavingStockArrival}
+          onSubmit={handleStockArrivalSubmit}
         />
         <CreateCatModal
           isOpen={isCreateCategoryOpen}
