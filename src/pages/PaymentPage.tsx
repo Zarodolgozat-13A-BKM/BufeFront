@@ -37,7 +37,7 @@ const PaymentPage = () => {
 
   if (!clientSecret) {
     return (
-      <div className='bg-background-light dark:bg-background-dark flex min-h-screen items-center justify-center p-4'>
+      <div className='bg-background-light dark:bg-background-dark flex items-center justify-center p-4'>
         <div className='w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-900'>
           <h2 className='text-text-dark dark:text-white text-xl font-bold'>Nincs aktiv fizetes</h2>
           <p className='text-text-light dark:text-zinc-400 mt-2 text-sm'>

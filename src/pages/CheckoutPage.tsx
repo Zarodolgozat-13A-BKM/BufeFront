@@ -169,7 +169,7 @@ export const CheckoutPage = () => {
 
 	return (
 		<div className='bg-background-light dark:bg-background-dark font-display antialiased'>
-			<div className='relative flex h-full min-h-screen w-full mx-auto flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800'>
+			<div className='relative flex h-full min-h-full w-full mx-auto flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800'>
 				<div className='flex items-center bg-white dark:bg-zinc-900 p-4 pb-2 justify-between sticky top-0 z-10'>
 					<Link
 						to='/main'

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { OrderModel } from "../Models/OrderModel";
 import DashBoardHeader from "../components/common/dashBoardHeader";
 import { echo } from "../lib/echo";
@@ -123,6 +123,58 @@ const PostPaymentPage = () => {
     Boolean(locationState?.paymentSuccess),
   );
   const [isLiveConnected, setIsLiveConnected] = useState(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioUnlockedRef = useRef(false);
+  const previousStatusByOrderIdRef = useRef<Map<number, string>>(new Map());
+  const hasHydratedStatusesRef = useRef(false);
+
+  const getAudioContext = useCallback(() => {
+    if (audioContextRef.current) {
+      return audioContextRef.current;
+    }
+
+    const AudioContextCtor = window.AudioContext;
+    if (!AudioContextCtor) {
+      return null;
+    }
+
+    const nextContext = new AudioContextCtor();
+    audioContextRef.current = nextContext;
+    return nextContext;
+  }, []);
+
+  const playReadyAlert = useCallback(async () => {
+    const context = getAudioContext();
+    if (!context) {
+      return;
+    }
+
+    try {
+      if (context.state !== "running") {
+        await context.resume();
+      }
+
+      const now = context.currentTime;
+      const playTone = (start: number, frequency: number, duration: number) => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(frequency, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.2, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start(start);
+        oscillator.stop(start + duration + 0.02);
+      };
+
+      playTone(now, 880, 0.14);
+      playTone(now + 0.18, 1320, 0.18);
+    } catch (error) {
+      console.error("Failed to play ready alert sound:", error);
+    }
+  }, [getAudioContext]);
 
   const refreshOpenOrders = useCallback(async () => {
     const allOrders = await GetAllOrders();
@@ -203,6 +255,62 @@ const PostPaymentPage = () => {
     const timer = window.setTimeout(() => setCardsVisible(true), 40);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    const unlockAudio = () => {
+      const context = getAudioContext();
+      if (!context) {
+        return;
+      }
+
+      if (context.state !== "running") {
+        void context.resume();
+      }
+
+      audioUnlockedRef.current = true;
+      window.removeEventListener("pointerdown", unlockAudio);
+      window.removeEventListener("touchstart", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+    };
+
+    window.addEventListener("pointerdown", unlockAudio, { passive: true });
+    window.addEventListener("touchstart", unlockAudio, { passive: true });
+    window.addEventListener("keydown", unlockAudio);
+
+    return () => {
+      window.removeEventListener("pointerdown", unlockAudio);
+      window.removeEventListener("touchstart", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+      if (audioContextRef.current) {
+        void audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+    };
+  }, [getAudioContext]);
+
+  useEffect(() => {
+    const currentStatuses = new Map<number, string>(
+      sortedOrders.map((order) => [order.id, toStatusKey(order.status)]),
+    );
+
+    if (!hasHydratedStatusesRef.current) {
+      previousStatusByOrderIdRef.current = currentStatuses;
+      hasHydratedStatusesRef.current = true;
+      return;
+    }
+
+    const hasTransitionedToReady = sortedOrders.some((order) => {
+      const previousStatus = previousStatusByOrderIdRef.current.get(order.id);
+      const nextStatus = toStatusKey(order.status);
+      return previousStatus !== "atveheto" && nextStatus === "atveheto";
+    });
+
+    if (hasTransitionedToReady && audioUnlockedRef.current) {
+      void playReadyAlert();
+    }
+
+    previousStatusByOrderIdRef.current = currentStatuses;
+  }, [playReadyAlert, sortedOrders]);
 
   useEffect(() => {
     if (!showPaymentSuccess) return;
@@ -368,8 +476,8 @@ const PostPaymentPage = () => {
   }, [isLiveConnected, me?.email, refreshOpenOrders]);
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark font-display antialiased">
-      <div className="relative mx-auto flex min-h-screen w-full flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
+    <div className="bg-background-light dark:bg-background-dark font-display antialiased">
+      <div className="relative mx-auto flex w-full flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
         <DashBoardHeader
           name="Rendeles kovetes"
           showAdmin={false}

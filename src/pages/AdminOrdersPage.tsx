@@ -345,8 +345,8 @@ export const AdminOrdersPage = () => {
 	}, [filteredOrders, sortDirection, sortKey]);
 
 	return (
-		<div className='min-h-screen bg-background-light dark:bg-zinc-950 font-display antialiased'>
-			<div className='relative mx-auto flex min-h-screen w-full flex-col overflow-x-auto shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800'>
+		<div className='bg-background-light dark:bg-zinc-950 font-display antialiased'>
+			<div className='relative mx-auto flex w-full flex-col overflow-x-auto shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800'>
 				<DashBoardHeader name='Rendelések' showAdmin={false} backTo={"/admin"} />
 				<div className='p-4 md:p-6 space-y-5'>
 					<div className='w-full rounded-xl border border-[#e6e0db] bg-bg-light dark:bg-zinc-800/50 dark:border-zinc-800 p-4 md:p-5'>
