@@ -12,7 +12,7 @@ interface OrdersTableProps {
     orderSortField: SortableOrderField
     orderSortDir: SortDir
     handleOrderSort: (field: SortableOrderField) => void
-    handleOrderStatusChange: (order: OrderModel, status: string) => void
+    handleOrderStatusChange: (order: OrderModel, status: string) => Promise<void> | void
     sortIcon: (field: string, activeField: string, dir: SortDir) => ReactNode
 }
 
@@ -37,6 +37,7 @@ const OrdersTable = ({
     sortIcon,
 }: OrdersTableProps) => {
     const [openStatusId, setOpenStatusId] = useState<number | null>(null)
+    const [pendingStatusId, setPendingStatusId] = useState<number | null>(null)
     const popoverRef = useRef<HTMLDivElement>(null)
     const [expandedRowKeys, setExpandedRowKeys] = useState<Set<number>>(new Set())
 
@@ -107,7 +108,8 @@ const OrdersTable = ({
                                 <div className="relative inline-block" ref={openStatusId === order.id ? popoverRef : undefined} onClick={(e) => e.stopPropagation()}>
                                     <button
                                         type="button"
-                                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition hover:brightness-95 ${statusStyle(order.status)}`}
+                                        disabled={pendingStatusId === order.id}
+                                        className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm md:text-xs font-semibold transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70 ${statusStyle(order.status)}`}
                                         onClick={() => setOpenStatusId(openStatusId === order.id ? null : order.id)}
                                     >
                                         <span>{order.status}</span>
@@ -119,10 +121,16 @@ const OrdersTable = ({
                                                 <button
                                                     key={status}
                                                     type="button"
-                                                    className={`block w-full px-3 py-2 text-left text-xs font-semibold transition hover:bg-primary/10 ${status === order.status ? 'bg-primary/10 text-primary' : 'text-text-dark dark:text-zinc-200'}`}
-                                                    onClick={() => {
-                                                        handleOrderStatusChange(order, status)
-                                                        setOpenStatusId(null)
+                                                    disabled={pendingStatusId === order.id}
+                                                    className={`block w-full px-3 py-2.5 text-left text-sm md:text-xs font-semibold transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-70 ${status === order.status ? 'bg-primary/10 text-primary' : 'text-text-dark dark:text-zinc-200'}`}
+                                                    onClick={async () => {
+                                                        setPendingStatusId(order.id)
+                                                        try {
+                                                            await handleOrderStatusChange(order, status)
+                                                            setOpenStatusId(null)
+                                                        } finally {
+                                                            setPendingStatusId(null)
+                                                        }
                                                     }}
                                                 >
                                                     {status}
@@ -134,7 +142,7 @@ const OrdersTable = ({
                             </td>
                             <td className="py-2 px-3 text-text-dark dark:text-white text-center">
                                 {order.delivery_date
-                                    ? new Date(order.delivery_date).toISOString()
+                                    ? new Date(order.delivery_date).toLocaleString('hu-HU')
                                     : <span className="text-text-light dark:text-zinc-500">—</span>
                                 }
                             </td>

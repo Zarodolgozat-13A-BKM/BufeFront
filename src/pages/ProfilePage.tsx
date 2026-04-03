@@ -7,13 +7,15 @@ import type { OrderModel } from "../Models/OrderModel"
 import OrderItem from "../components/profilePage/orderItem"
 import { addItemToCart, clearCart } from "../store/cartSlice"
 import { useNavigate } from "react-router"
-import DashBoardHeader from "../components/dashBoardHeader"
+import DashBoardHeader from "../components/common/dashBoardHeader"
+import { LoadingState } from "../components/common/LoadingState"
 
 
 const ProfilePage = () => {
   const me = useAppSelector((state) => state.auth.me)
   const category = useAppSelector((state) => state.category.categories)
   const [orders, setOrders] = useState<OrderModel[]>([])
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const handleOrder = (order: OrderModel) => {
@@ -46,11 +48,14 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const getOrders = async () => {
+      setIsLoadingOrders(true)
       try {
         const data = await GetAllOrders()
         setOrders(data)
       } catch (error) {
         console.error('Failed to fetch orders:', error)
+      } finally {
+        setIsLoadingOrders(false)
       }
     }
     getOrders()
@@ -83,7 +88,9 @@ const ProfilePage = () => {
               <span className="rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-medium text-primary">{orders.length} db</span>
             </div>
             <div className="flex flex-col gap-3">
-              {orders.length === 0 ? (
+              {isLoadingOrders ? (
+                <LoadingState message="Rendelések betöltése..." />
+              ) : orders.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800">
                   <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">receipt_long</span>
                   <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">Még nem adtál le rendelést.</p>

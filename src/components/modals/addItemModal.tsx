@@ -46,7 +46,7 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
     const totalPrice = item.price * quantity
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} maxWidth="lg">
+        <Modal isOpen={isOpen} onClose={onClose} title={item.name} maxWidth="lg">
             <div className="flex flex-col gap-6">
                 <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
                     <img
@@ -55,26 +55,21 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                         className="w-full h-full object-cover"
                     />
                     {item.is_featured && (
-                        <div className="absolute top-4 left-4 bg-primary px-3 py-1.5 rounded-full">
-                            <span className="text-white text-sm font-bold">Featured</span>
-                        </div>
+                            <div className="absolute top-3 left-3 w-10 h-10 flex items-center justify-center bg-primary text-white rounded-full shadow-lg">
+                                <span className="material-symbols-outlined">star</span>
+                            </div>
                     )}
                     {!item.is_active && (
                         <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                            <span className="text-white text-xl font-bold">Unavailable</span>
+                            <span className="text-white text-xl font-bold">Nem elérhető</span>
                         </div>
                     )}
                 </div>
 
                 <div className="space-y-4">
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                            {item.name}
-                        </h2>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                            {item.description || 'No description available.'}
-                        </p>
-                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                        {item.description || 'No description available.'}
+                    </p>
 
                     <div className="flex items-center gap-2">
                         <span className="text-3xl font-extrabold text-primary dark:text-white">
@@ -114,7 +109,7 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                        <button onClick={handleAddToCart} disabled={!item.is_active} className={`flex-1 py-3 rounded-lg font-bold bg-black text-white transition-all ${item.is_active ? 'bg-primary hover:bg-primary-hover active:scale-[0.98]' : 'bg-gray-400 cursor-not-allowed' }`}  >
+                        <button onClick={handleAddToCart} disabled={!item.is_active} className={`flex-1 py-3 rounded-lg font-bold bg-black text-white transition-all ${item.is_active ? 'bg-primary hover:bg-primary-hover active:scale-[0.98]' : 'bg-gray-400 cursor-not-allowed'}`}  >
                             {item.is_active ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <span className="material-symbols-outlined">shopping_cart</span>

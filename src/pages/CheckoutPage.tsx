@@ -15,6 +15,21 @@ const ORDER_CUTOFF_HOUR = 14;
 const ORDER_CUTOFF_MINUTE = 30;
 const MIN_SPINNER_DISPLAY_MS = 400;
 
+type CheckoutOrderResponse = {
+	client_secret?: string;
+	clientSecret?: string;
+};
+
+const toTwoDigits = (value: number): string => String(value).padStart(2, "0");
+
+const formatLocalDate = (date: Date): string => {
+	return `${date.getFullYear()}-${toTwoDigits(date.getMonth() + 1)}-${toTwoDigits(date.getDate())}`;
+};
+
+const formatLocalDateTime = (date: Date): string => {
+	return `${formatLocalDate(date)}T${toTwoDigits(date.getHours())}:${toTwoDigits(date.getMinutes())}`;
+};
+
 const isAfterOrderCutoff = (date: Date) => {
 	const currentMinutes = date.getHours() * 60 + date.getMinutes();
 	const cutoffMinutes = ORDER_CUTOFF_HOUR * 60 + ORDER_CUTOFF_MINUTE;
@@ -28,12 +43,13 @@ const waitForNextPaint = () =>
 		});
 	});
 
-const CheckoutPage = () => {
+export const CheckoutPage = () => {
 	const navigate = useNavigate();
 	const [ringing, setRinging] = useState<Ringlist[]>([]);
 	const [comment, setComment] = useState<string>("");
 	const [isCommentOpen, setIsCommentOpen] = useState(false);
 	const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
+	const [checkoutError, setCheckoutError] = useState<string | null>(null);
 	const [deliverydatetime, setDeliverydatetime] = useState<string>("");
 	const [now, setNow] = useState(() => new Date());
 	const dispatch = useAppDispatch();
@@ -59,8 +75,10 @@ const CheckoutPage = () => {
 			return;
 		}
 
+		setCheckoutError(null);
+
 		if (import.meta.env.PROD && isAfterOrderCutoff(new Date())) {
-			window.alert("Rendelest 14:30 utan mar nem lehet leadni.");
+			setCheckoutError("Rendelést 14:30 után már nem lehet leadni.");
 			return;
 		}
 
@@ -68,11 +86,12 @@ const CheckoutPage = () => {
 		const submitStartedAt = Date.now();
 		await waitForNextPaint();
 		try {
+			const createdAt = new Date();
 			const orderData: OrderCreateModel = {
 				delivery_date:
 					deliverydatetime !== ""
-						? `${new Date().toLocaleDateString().replace(".", "-")}T${deliverydatetime}`
-						: new Date().toLocaleString().replace(". ", "-").replace(". ", "-").replace(". ", "T"),
+						? `${formatLocalDate(createdAt)}T${deliverydatetime}`
+						: formatLocalDateTime(createdAt),
 				comment: comment,
 				items: cart.items.map((item) => ({
 					item_id: item.id,
@@ -87,7 +106,8 @@ const CheckoutPage = () => {
 			const orderResponse = await CreateOrder(orderData);
 			console.log("Order creation response:", orderResponse);
 			if (!cash) {
-				const clientSecret = (orderResponse as any).client_secret;
+				const paymentResponse = orderResponse as CheckoutOrderResponse;
+				const clientSecret = paymentResponse.client_secret ?? paymentResponse.clientSecret;
 
 				if (!clientSecret) {
 					throw new Error('No client secret received from server. Payment initialization failed.');
@@ -107,7 +127,11 @@ const CheckoutPage = () => {
 			}
 		} catch (error) {
 			console.error("Failed to create order:", error);
-			window.alert("Failed to place your order. Please try again.");
+			if (error instanceof Error) {
+				setCheckoutError(error.message);
+			} else {
+				setCheckoutError("A rendelés leadása nem sikerült. Kérlek próbáld újra.");
+			}
 			setIsSubmittingOrder(false);
 		}
 	};
@@ -156,7 +180,7 @@ const CheckoutPage = () => {
 						Átvétel Kiválasztása
 					</h2>
 				</div>
-				<main className='flex-1 overflow-y-auto pb-32'>
+				<main className='flex-1 pb-6'>
 					<div className='block animate-fade-in' id='pickup-section'>
 						<div className='px-4 pt-4 pb-2'>
 							<h3 className='text-text-dark dark:text-white tracking-tight text-2xl font-bold leading-tight text-left'>
@@ -174,7 +198,7 @@ const CheckoutPage = () => {
 										onChange={(e) => setDeliverydatetime(e.target.value)}
 										className='appearance-none w-full rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal text-text-dark dark:text-white transition-shadow outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20'>
 										{orderingClosed ? (
-											<option value='' selected disabled={!orderingClosed}>
+											<option value='' disabled>
 												Ma már nem lehet rendelni, kérlek térj vissza holnap!
 											</option>
 										) : null}
@@ -250,14 +274,14 @@ const CheckoutPage = () => {
 										value={comment}
 										onChange={(e) => setComment(e.target.value)}
 										rows={4}
-										maxLength={300}
+										maxLength={255}
 										placeholder='Pl. kevesebb csipos, ne tegyetek szalvetat, kesobb megyek erte...'
 										className='w-full resize-none rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-3 text-sm text-text-dark dark:text-white placeholder:text-text-light dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/20'
 									/>
 									{comment && (
 										<div className='mt-2 flex justify-end'>
 											<span className='text-xs text-text-light dark:text-zinc-500'>
-												{comment.length}/300
+												{comment.length}/255
 											</span>
 										</div>
 									)}
@@ -337,7 +361,13 @@ const CheckoutPage = () => {
                         </div>
                     </div> */}
 				</main>
-				<div className='flex gap-5 fixed bottom-0 left-1/2 w-full -translate-x-1/2 p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800 z-20'>
+				<div className='w-full p-4 bg-white dark:bg-zinc-900 border-t border-[#e6e0db] dark:border-zinc-800'>
+					{checkoutError ? (
+						<div className='mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-300'>
+							{checkoutError}
+						</div>
+					) : null}
+					<div className='flex gap-5'>
 					<button
 						onClick={() => handleCheckout(true)}
 						disabled={orderingClosed || isSubmittingOrder}
@@ -386,6 +416,7 @@ const CheckoutPage = () => {
 							</>
 						)}
 					</button>
+						</div>
 				</div>
 			</div>
 		</div>
