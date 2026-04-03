@@ -18,7 +18,7 @@ spec:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-    - bufe-experimental.jcloud.jedlik.cloud
+    - bufe.jcloud.jedlik.cloud
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -74,11 +74,11 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - bufe-experimental.jcloud.jedlik.cloud
+        - bufe.jcloud.jedlik.cloud
       secretName: bufe-frontend-certificate
 
   rules:
-    - host: bufe-experimental.jcloud.jedlik.cloud
+    - host: bufe.jcloud.jedlik.cloud
       http:
         paths:
           - path: /
