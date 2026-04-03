@@ -205,10 +205,10 @@ const MainPage = () => {
     }
 
     return (
-        <div className="mx-auto min-h-screen bg-background-light dark:bg-zinc-900 font-display antialiased ">
+        <div className="mx-auto bg-background-light dark:bg-zinc-900 font-display antialiased ">
             <div
                 ref={scrollContainerRef}
-                className="mainpage-scrollbar relative flex h-screen w-full flex-col overflow-y-auto overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800"
+                className="mainpage-scrollbar relative flex w-full flex-col overflow-y-auto overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800"
             >
             <div className=" fixed top-0 left-0 right-0 z-50">
                 <div ref={stickyHeaderRef} className="w-full bg-white dark:bg-zinc-900 border-b border-x border-[#e6e0db] dark:border-zinc-800">
@@ -264,7 +264,7 @@ const MainPage = () => {
                             >
                                 Keresés törlése
                             </button>
-                            {suggestedCategories.map(({ category, categoryIndex }) => (
+                            {suggestedCategories.map(({ category }) => (
                                 <button
                                     key={category.id}
                                     type="button"
@@ -283,7 +283,7 @@ const MainPage = () => {
                 </div>
             ) : null}
 
-            {filteredCategories.map(({ category, categoryIndex, filteredItems }) => {
+            {filteredCategories.map(({ category, filteredItems }) => {
                 if (filteredItems.length === 0) return <span key={category.id} />
 
                 return (
