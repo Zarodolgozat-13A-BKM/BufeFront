@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { OrderModel } from "../Models/OrderModel";
 import DashBoardHeader from "../components/common/dashBoardHeader";
 import { echo } from "../lib/echo";
-import { GetAllOrders, GetOneOrder } from "../services/OrderService";
+import { GetAllActiveOrders, GetOneOrder } from "../services/OrderService";
 import { useAppSelector } from "../store/hooks";
 import { Link, useLocation } from "react-router";
 import BlinkingCircle from "../components/common/blinker";
@@ -32,11 +32,6 @@ const ORDER_STATUS = {
 const CLOSED_ORDER_STATUS_KEYS: Set<string> = new Set([
   "atadva",
   "torolve",
-  "cancelled",
-  "canceled",
-  "handed over",
-  "delivered",
-  "completed",
 ]);
 
 const STATUS_PROGRESS: Record<string, number> = {
@@ -104,7 +99,7 @@ const getTimelineFillPercentage = (timelineState: number) => {
 };
 
 const getDisplayedPreparingStatus = (status: string): string => {
-  return toStatusKey(status) === "atadva" ? "Várakozik" : status;
+  return toStatusKey(status) === "atadva" ? "Várakozik" : toStatusKey(status) === "fizetesre var" ? "" : "Készül";
 };
 
 const FALLBACK_POLL_INTERVAL_MS = 10000;
@@ -177,7 +172,7 @@ const PostPaymentPage = () => {
   }, [getAudioContext]);
 
   const refreshOpenOrders = useCallback(async () => {
-    const allOrders = await GetAllOrders();
+    const allOrders = await GetAllActiveOrders();
     setOrders(allOrders.filter(isOpenOrder));
   }, []);
 
@@ -479,7 +474,7 @@ const PostPaymentPage = () => {
     <div className="bg-background-light dark:bg-background-dark font-display antialiased">
       <div className="relative mx-auto flex w-full flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
         <DashBoardHeader
-          name="Rendeles kovetes"
+          name="Rendelés követése"
           showAdmin={false}
           backTo="/me"
         />
@@ -510,7 +505,7 @@ const PostPaymentPage = () => {
                   color={isLiveConnected ? "#00ff00" : "#f97316"}
                 />
                 <span className="text-xs font-medium text-text-light dark:text-zinc-300">
-                  {isLiveConnected ? "Live kapcsolat" : "Kapcsolodas..."}
+                  {isLiveConnected ? "Élő kapcsolat" : "Kapcsolódás..."}
                 </span>
                 <span className="rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-medium text-primary">
                   {sortedOrders.length} db

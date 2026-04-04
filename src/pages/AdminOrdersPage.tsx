@@ -458,7 +458,9 @@ export const AdminOrdersPage = () => {
 						) : (
 							<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5'>
 								{sortedOrders.map((order) => (
-									<OrderComponent key={order.id} order={order} highlighted={highlightedOrderId === order.id} />
+									order.payment_intent_id!=null && order.status.trim().toLocaleLowerCase("hu-HU") === "fizetésre vár" ? null :(
+										<OrderComponent key={order.id} order={order} highlighted={highlightedOrderId === order.id} />
+									)
 								))}
 							</div>
 						)}

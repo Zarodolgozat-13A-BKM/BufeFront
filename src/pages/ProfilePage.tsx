@@ -4,32 +4,105 @@ import { useAppDispatch, useAppSelector } from "../store/hooks"
 import { GetMe } from "../services/APIservice"
 import { setMe } from "../store/authSlice"
 import type { OrderModel } from "../Models/OrderModel"
+import type { ItemModel } from "../Models/ItemModel"
 import OrderItem from "../components/profilePage/orderItem"
 import { addItemToCart, clearCart } from "../store/cartSlice"
 import { useNavigate } from "react-router"
 import DashBoardHeader from "../components/common/dashBoardHeader"
 import { LoadingState } from "../components/common/LoadingState"
+import { ReorderAvailabilityModal, type ReorderUnavailableItem } from "../components/modals/ReorderAvailabilityModal"
 
+type ReorderAvailableItem = {
+  item: ItemModel
+  quantity: number
+}
 
 const ProfilePage = () => {
   const me = useAppSelector((state) => state.auth.me)
   const category = useAppSelector((state) => state.category.categories)
   const [orders, setOrders] = useState<OrderModel[]>([])
   const [isLoadingOrders, setIsLoadingOrders] = useState(true)
+  const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false)
+  const [availableReorderItems, setAvailableReorderItems] = useState<ReorderAvailableItem[]>([])
+  const [unavailableReorderItems, setUnavailableReorderItems] = useState<ReorderUnavailableItem[]>([])
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const handleOrder = (order: OrderModel) => {
-    if (order.items === undefined) return
+
+  const applyReorder = (itemsToAdd: ReorderAvailableItem[]) => {
     dispatch(clearCart())
-    order.items.forEach((item) => {
-      const cartItem = category.flatMap((i) => i.items || []).find((j) => j.id === item.item_id)
-      if (!cartItem) {
-        console.warn(`Item with id ${item.item_id} not found in categories; skipping reorder for this item.`)
-        return
-      }
-      dispatch(addItemToCart({ item: cartItem, quantity: item.quantity }))
+    itemsToAdd.forEach(({ item, quantity }) => {
+      dispatch(addItemToCart({ item, quantity }))
     })
     navigate('/checkout')
+  }
+
+  const handleOrder = (order: OrderModel) => {
+    if (order.items === undefined) return
+
+    const catalogItems = category.flatMap((cat) => cat.items || [])
+    const nextAvailableItems: ReorderAvailableItem[] = []
+    const nextUnavailableItems: ReorderUnavailableItem[] = []
+
+    order.items.forEach((item) => {
+      const cartItem = catalogItems.find((catalogItem) => catalogItem.id === item.item_id)
+
+      if (!cartItem) {
+        nextUnavailableItems.push({
+          itemId: item.item_id,
+          name: item.item_name,
+          quantity: item.quantity,
+          reason: 'A termék jelenleg nem érhető el.',
+        })
+        return
+      }
+
+      if (!cartItem.is_active) {
+        nextUnavailableItems.push({
+          itemId: cartItem.id,
+          name: cartItem.name,
+          quantity: item.quantity,
+          reason: 'A termék jelenleg inaktív.',
+        })
+        return
+      }
+
+      if (cartItem.inventory_count < item.quantity) {
+        nextUnavailableItems.push({
+          itemId: cartItem.id,
+          name: cartItem.name,
+          quantity: item.quantity,
+          reason: `Nincs elegendő készlet (kért: ${item.quantity}, elérhető: ${cartItem.inventory_count}).`,
+        })
+        return
+      }
+
+      nextAvailableItems.push({ item: cartItem, quantity: item.quantity })
+    })
+
+    if (nextUnavailableItems.length > 0) {
+      setAvailableReorderItems(nextAvailableItems)
+      setUnavailableReorderItems(nextUnavailableItems)
+      setIsAvailabilityModalOpen(true)
+      return
+    }
+
+    applyReorder(nextAvailableItems)
+  }
+
+  const handleContinueWithoutUnavailable = () => {
+    if (availableReorderItems.length === 0) {
+      dispatch(clearCart())
+      setIsAvailabilityModalOpen(false)
+      return
+    }
+
+    setIsAvailabilityModalOpen(false)
+    applyReorder(availableReorderItems)
+  }
+
+  const handleScrapCart = () => {
+    dispatch(clearCart())
+    setIsAvailabilityModalOpen(false)
   }
   useEffect(() => {
     const fetchUserData = async () => {
@@ -96,14 +169,30 @@ const ProfilePage = () => {
                   <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">Még nem adtál le rendelést.</p>
                 </div>
               ) : (
-                orders.slice().sort((a, b) => b.id - a.id).filter((x)=>x.payment_intent_id ==null || (x.payment_intent_id!= null && x.status!= "Fizetésre vár")).map((order) => (
-                  <OrderItem key={order.id} handleOrder={handleOrder} order={order} />
+                orders.slice().sort((a, b) => b.id - a.id).filter((x) => (x.payment_intent_id == null || (x.payment_intent_id != null && x.status != "Fizetésre vár"))).map((order) => (
+                  order.status == "Törölve" ? (
+                    order.delivery_date! > new Date().toISOString() && (
+                  <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800">
+                    <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">receipt_long</span>
+                    <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">#{order.order_identifier_number} számú rendelésed törlésre került.</p>
+                  </div>)) :(
+                    <OrderItem key={order.id} handleOrder={handleOrder} order={order} />
+                  )
                 ))
+
               )}
             </div>
           </div>
         </div>
       </div>
+
+      <ReorderAvailabilityModal
+        isOpen={isAvailabilityModalOpen}
+        unavailableItems={unavailableReorderItems}
+        onClose={() => setIsAvailabilityModalOpen(false)}
+        onContinueWithoutUnavailable={handleContinueWithoutUnavailable}
+        onScrapCart={handleScrapCart}
+      />
     </div>
 
   )

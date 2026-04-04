@@ -1,4 +1,4 @@
-import { Link } from 'react-router'
+﻿import { Link } from 'react-router'
 import type { OrderModel } from '../../Models/OrderModel'
 import BlinkingCircle from '../common/blinker'
 
@@ -38,7 +38,7 @@ const OrderItem = ({ order, handleOrder }: OrderItemProps) => {
                     </ul>
                 </div>
                 <div className="shrink-0 flex items-end">
-                    {order.status == "Fizetve" || order.status == "Fizetésre vár" && order.payment_intent_id== null?
+                    {order.status !== "Átadva" && order.status !== "Törölve" ?
                         <Link to="/orderstatus" className="flex h-10 w-fit items-center justify-center gap-1 rounded-xl bg-[#006400] px-4 text-sm font-bold leading-normal text-white transition-colors hover:bg-[#004225]" ><span className="material-symbols-outlined">fastfood</span> Rendelés követése</Link>
                         :
                         <button className="flex h-10 w-fit items-center justify-center gap-1 rounded-xl bg-primary px-4 text-sm font-bold leading-normal text-white transition-colors hover:bg-[#e07b1a]" onClick={() => handleOrder(order)}>
