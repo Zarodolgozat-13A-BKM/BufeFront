@@ -35,7 +35,7 @@ const ItemsTable = ({
   return (
     <div className="overflow-x-auto rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800">
       <table className="w-full text-sm text-left border-collapse min-w-245">
-        <thead className="bg-bg-light dark:bg-zinc-800/80 border-b border-[#e6e0db] dark:border-zinc-700 text-text-dark dark:text-zinc-200">
+        <thead className="bg-surface dark:bg-zinc-800/80 border-b border-[#e6e0db] dark:border-zinc-700 text-foreground dark:text-zinc-200">
           <tr className="h-10">
             <th className="py-2 px-3 text-center font-semibold uppercase tracking-wide text-[11px] ">
               Kép
@@ -98,7 +98,7 @@ const ItemsTable = ({
               key={item.id}
               className={
                 item.inventory_count >= 2
-                  ? "h-14 border-b border-[#e6e0db] dark:border-zinc-700 hover:bg-bg-light dark:hover:bg-zinc-800/80 transition-colors"
+                  ? "h-14 border-b border-[#e6e0db] dark:border-zinc-700 hover:bg-surface dark:hover:bg-zinc-800/80 transition-colors"
                   : "h-14 border-b border-[#e6e0db] dark:border-zinc-700 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
               }
             >
@@ -116,22 +116,22 @@ const ItemsTable = ({
                     />
                   </a>
                 ) : (
-                  <span className="text-text-light dark:text-zinc-500">—</span>
+                  <span className="text-muted dark:text-zinc-500">—</span>
                 )}
               </td>
-              <td className="py-2 px-3 font-medium text-text-dark dark:text-white text-center">
+              <td className="py-2 px-3 font-medium text-foreground dark:text-white text-center">
                 {item.name}
               </td>
               <td
-                className="py-2 px-3 text-text-light dark:text-zinc-400 max-w-xs truncate text-center"
+                className="py-2 px-3 text-muted dark:text-zinc-400 max-w-xs truncate text-center"
                 title={item.description ?? ""}
               >
                 {item.description ?? "—"}
               </td>
-              <td className="py-2 px-3 text-text-dark dark:text-white font-medium text-center">
+              <td className="py-2 px-3 text-foreground dark:text-white font-medium text-center">
                 {item.price}
               </td>
-              <td className="py-2 px-3 text-text-dark dark:text-white text-center">
+              <td className="py-2 px-3 text-foreground dark:text-white text-center">
                 {categories.find((x) => x.id === item.category_id)?.name ??
                   "Ismeretlen"}
               </td>
@@ -155,10 +155,10 @@ const ItemsTable = ({
                   {item.is_featured ? "Igen" : "Nem"}
                 </span>
               </td>
-              <td className="py-2 px-3 text-text-dark dark:text-white text-center">
+              <td className="py-2 px-3 text-foreground dark:text-white text-center">
                 {item.default_time_to_deliver}
               </td>
-              <td className="py-2 px-3 text-text-dark dark:text-white text-center">
+              <td className="py-2 px-3 text-foreground dark:text-white text-center">
                 {item.inventory_count}
               </td>
               <td className="py-2 px-3 text-center">
@@ -193,3 +193,4 @@ const ItemsTable = ({
 };
 
 export default ItemsTable;
+

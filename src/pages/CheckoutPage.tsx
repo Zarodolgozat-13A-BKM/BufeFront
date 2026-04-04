@@ -168,35 +168,35 @@ export const CheckoutPage = () => {
 	);
 
 	return (
-		<div className='bg-background-light dark:bg-background-dark font-display antialiased'>
+		<div className='bg-secondary dark:bg-secondary-dark font-display antialiased'>
 			<div className='relative flex h-full min-h-full w-full mx-auto flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800'>
 				<div className='flex items-center bg-white dark:bg-zinc-900 p-4 pb-2 justify-between sticky top-0 z-10'>
 					<Link
 						to='/main'
-						className='text-text-dark dark:text-white flex size-12 shrink-0 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors'>
+						className='text-foreground dark:text-white flex size-12 shrink-0 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors'>
 						<span className='material-symbols-outlined'>arrow_back</span>
 					</Link>
-					<h2 className='text-text-dark dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12'>
+					<h2 className='text-foreground dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12'>
 						Átvétel Kiválasztása
 					</h2>
 				</div>
 				<main className='flex-1 pb-6'>
 					<div className='block animate-fade-in' id='pickup-section'>
 						<div className='px-4 pt-4 pb-2'>
-							<h3 className='text-text-dark dark:text-white tracking-tight text-2xl font-bold leading-tight text-left'>
+							<h3 className='text-foreground dark:text-white tracking-tight text-2xl font-bold leading-tight text-left'>
 								Mikor szeretnéd átvenni?
 							</h3>
 						</div>
 						<div className='flex flex-col gap-4 px-4 py-3'>
 							<label className='flex flex-col flex-1'>
-								<p className='text-text-dark dark:text-zinc-300 text-sm font-medium leading-normal pb-2'>
+								<p className='text-foreground dark:text-zinc-300 text-sm font-medium leading-normal pb-2'>
 									Válassz szünetet
 								</p>
 								<div className='relative'>
 									<select
 										value={deliverydatetime}
 										onChange={(e) => setDeliverydatetime(e.target.value)}
-										className='appearance-none w-full rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal text-text-dark dark:text-white transition-shadow outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20'>
+										className='appearance-none w-full rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal text-foreground dark:text-white transition-shadow outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20'>
 										{orderingClosed ? (
 											<option value='' disabled>
 												Ma már nem lehet rendelni, kérlek térj vissza holnap!
@@ -218,7 +218,7 @@ export const CheckoutPage = () => {
 											);
 										})}
 									</select>
-									<div className='pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-light dark:text-zinc-500'>
+									<div className='pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted dark:text-zinc-500'>
 										<span className='material-symbols-outlined'>expand_more</span>
 									</div>
 								</div>
@@ -227,7 +227,7 @@ export const CheckoutPage = () => {
 						<div className='px-4 pb-4'>
 							<div className='flex items-center gap-2 p-3 bg-primary/10 rounded-lg border mt-5 mb-4 border-primary/20'>
 								<span className='material-symbols-outlined text-primary text-xl'>storefront</span>
-								<p className='text-text-dark dark:text-zinc-200 text-sm font-medium leading-normal '>
+								<p className='text-foreground dark:text-zinc-200 text-sm font-medium leading-normal '>
 									Átvétel az iskolai büfében.
 								</p>
 							</div>
@@ -245,27 +245,27 @@ export const CheckoutPage = () => {
 					</div>
 					<div className='h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 my-2'></div>
 					<div className='px-4 py-4'>
-						<div className='bg-bg-light dark:bg-zinc-800/50 rounded-xl p-4 border border-[#e6e0db] dark:border-zinc-800 mb-8'>
+						<div className='bg-surface dark:bg-zinc-800/50 rounded-xl p-4 border border-[#e6e0db] dark:border-zinc-800 mb-8'>
 							<button
 								type='button'
 								onClick={() => setIsCommentOpen((current) => !current)}
 								className='flex w-full items-center justify-between gap-3 text-left'>
 								<div>
-									<h4 className='text-text-dark dark:text-white text-lg font-bold'>
+									<h4 className='text-foreground dark:text-white text-lg font-bold'>
 										Megjegyzés a rendeléshez
 									</h4>
-									<p className='mt-1 text-sm text-text-light dark:text-zinc-400'>
+									<p className='mt-1 text-sm text-muted dark:text-zinc-400'>
 										Opcionális kérés vagy megjegyzés a büfének.
 									</p>
 								</div>
-								<span className='material-symbols-outlined text-text-light dark:text-zinc-400'>
+								<span className='material-symbols-outlined text-muted dark:text-zinc-400'>
 									{isCommentOpen ? "expand_less" : "expand_more"}
 								</span>
 							</button>
 							{isCommentOpen && (
 								<div className='mt-4'>
 									<label
-										className='block text-sm font-medium text-text-dark dark:text-zinc-200 mb-2'
+										className='block text-sm font-medium text-foreground dark:text-zinc-200 mb-2'
 										htmlFor='order-comment'>
 										Opcionális megjegyzés
 									</label>
@@ -276,11 +276,11 @@ export const CheckoutPage = () => {
 										rows={4}
 										maxLength={255}
 										placeholder='Pl. kevesebb csipos, ne tegyetek szalvetat, kesobb megyek erte...'
-										className='w-full resize-none rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-3 text-sm text-text-dark dark:text-white placeholder:text-text-light dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/20'
+										className='w-full resize-none rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-3 text-sm text-foreground dark:text-white placeholder:text-muted dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/20'
 									/>
 									{comment && (
 										<div className='mt-2 flex justify-end'>
-											<span className='text-xs text-text-light dark:text-zinc-500'>
+											<span className='text-xs text-muted dark:text-zinc-500'>
 												{comment.length}/255
 											</span>
 										</div>
@@ -291,10 +291,10 @@ export const CheckoutPage = () => {
 					</div>
 					<div className='h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 my-2'></div>
 					<div className='px-4 py-4'>
-						<h4 className='text-text-dark dark:text-white text-lg font-bold mb-4'>
+						<h4 className='text-foreground dark:text-white text-lg font-bold mb-4'>
 							Rendelés összesítése
 						</h4>
-						<div className='bg-bg-light dark:bg-zinc-800/50 rounded-xl p-4 space-y-3 border border-[#e6e0db] dark:border-zinc-800'>
+						<div className='bg-surface dark:bg-zinc-800/50 rounded-xl p-4 space-y-3 border border-[#e6e0db] dark:border-zinc-800'>
 							{cart.items.map((cartItem, index) => (
 								<div
 									key={`${cartItem.id}-${index}`}
@@ -305,7 +305,7 @@ export const CheckoutPage = () => {
 											data-alt={cartItem.name}
 											style={{ backgroundImage: `url('${cartItem.picture_url ?? ""}')` }}></div>
 										<div className='flex items-center justify-center'>
-											<p className='text-text-dark dark:text-white text-sm font-medium'>
+											<p className='text-foreground dark:text-white text-sm font-medium'>
 												{cartItem.name}
 											</p>
 										</div>
@@ -325,30 +325,30 @@ export const CheckoutPage = () => {
 											className='w-7 h-7 flex items-center justify-center hover:text-error/50 text-error rounded-md'>
 											<span className='material-symbols-outlined text-sm'>close</span>
 										</button>
-										<p className='text-text-dark dark:text-white text-sm font-medium'>
+										<p className='text-foreground dark:text-white text-sm font-medium'>
 											{cartItem.price * (cartItem.quantity ?? 0)}Ft
 										</p>
 									</div>
 								</div>
 							))}
-							<hr className='pt-4 pb-4 text-text-light' />
+							<hr className='pt-4 pb-4 text-muted' />
 							<div className='h-px bg-gray-200 dark:bg-zinc-700 my-3'></div>
 							<div className='flex justify-between items-center mb-1'>
-								<p className='text-text-light dark:text-zinc-400 text-sm'>Részösszeg</p>
-								<p className='text-text-dark dark:text-white text-sm font-medium'>
+								<p className='text-muted dark:text-zinc-400 text-sm'>Részösszeg</p>
+								<p className='text-foreground dark:text-white text-sm font-medium'>
 									{Math.floor(baseTotal * SUBTOTAL_RATE)}Ft
 								</p>
 							</div>
 							<div className='flex justify-between items-center mb-3'>
-								<p className='text-text-light dark:text-zinc-400 text-sm'>Adó</p>
-								<p className='text-text-dark dark:text-white text-sm font-medium'>
+								<p className='text-muted dark:text-zinc-400 text-sm'>Adó</p>
+								<p className='text-foreground dark:text-white text-sm font-medium'>
 									{Math.ceil(baseTotal * TAX_RATE)}Ft
 								</p>
 							</div>
-							<hr className='pt-4 pb-4 text-text-light' />
+							<hr className='pt-4 pb-4 text-muted' />
 							<div className='flex justify-between items-center pt-1'>
-								<p className='text-text-dark dark:text-white text-base font-bold'>Összesen</p>
-								<p className='text-text-dark dark:text-white text-xl font-bold'>
+								<p className='text-foreground dark:text-white text-base font-bold'>Összesen</p>
+								<p className='text-foreground dark:text-white text-xl font-bold'>
 									{Math.floor(baseTotal)}Ft
 								</p>
 							</div>
@@ -424,3 +424,4 @@ export const CheckoutPage = () => {
 };
 
 export default CheckoutPage;
+

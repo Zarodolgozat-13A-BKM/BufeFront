@@ -73,7 +73,7 @@ const PaymentForm = () => {
           <section className='rounded-2xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900'>
             <div className='mb-6 flex items-start justify-between gap-3'>
               <div>
-                <h1 className='text-text-dark dark:text-white text-2xl font-bold'>Bankkártyás fizetés</h1>
+                <h1 className='text-foreground dark:text-white text-2xl font-bold'>Bankkártyás fizetés</h1>
               </div>
               <div className='bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-bold'>
                 Stripe
@@ -82,7 +82,7 @@ const PaymentForm = () => {
 
             <form onSubmit={handleCardSubmit} className='space-y-4'>
               {/* <div className='rounded-xl border border-gray-200 px-4 py-3 dark:border-zinc-700'>
-                <p className='text-text-light dark:text-zinc-400 mb-3 text-xs font-medium'>Gyors fizetés</p>
+                <p className='text-muted dark:text-zinc-400 mb-3 text-xs font-medium'>Gyors fizetés</p>
                 <ExpressCheckoutElement
                   onConfirm={handleExpressCheckoutConfirm}
                   options={{
@@ -96,7 +96,7 @@ const PaymentForm = () => {
                     },
                   }}
                 />
-                <p className='text-text-light dark:text-zinc-500 mt-2 text-xs'>
+                <p className='text-muted dark:text-zinc-500 mt-2 text-xs'>
                   Apple Pay es Google Pay csak tamogatott eszkozokon jelenik meg.
                 </p>
               </div> */}
@@ -106,14 +106,14 @@ const PaymentForm = () => {
                   <div className='h-px w-full bg-gray-200 dark:bg-zinc-700' />
                 </div>
                 <div className='relative flex justify-center'>
-                  <span className='text-text-light dark:text-zinc-500 bg-white px-2 text-xs dark:bg-zinc-900'>
+                  <span className='text-muted dark:text-zinc-500 bg-white px-2 text-xs dark:bg-zinc-900'>
                     vagy kártyával
                   </span>
                 </div>
               </div> */}
 
               <div className='rounded-xl border border-gray-200 px-4 py-3 dark:border-zinc-700'>
-                <p className='text-text-light dark:text-zinc-400 mb-3 text-xs font-medium'>Kártya adatok</p>
+                <p className='text-muted dark:text-zinc-400 mb-3 text-xs font-medium'>Kártya adatok</p>
                 <PaymentElement options={{ layout: {radios: "auto",type:"auto", defaultCollapsed:true, spacedAccordionItems:true, visibleAccordionItemsCount:3, paymentMethodLogoPosition:"end" }, wallets: { applePay: "auto", googlePay: "auto" } }} />
 
               </div>
@@ -127,18 +127,18 @@ const PaymentForm = () => {
               <button
                 type='submit'
                 disabled={!stripe || paymentProcessing}
-                className='bg-primary hover:bg-primary-hover h-12 w-full rounded-xl text-base font-bold text-white disabled:cursor-not-allowed disabled:opacity-70'>
+                className='bg-primary hover:bg-primary-strong h-12 w-full rounded-xl text-base font-bold text-white disabled:cursor-not-allowed disabled:opacity-70'>
                 {paymentProcessing ? "Fizetés feldolgozása..." : `Fizetés (${total} Ft)`}
               </button>
 
-              <p className='text-text-light dark:text-zinc-500 text-center text-xs'>
+              <p className='text-muted dark:text-zinc-500 text-center text-xs'>
                 A fizetést a Stripe dolgozza fel PCI-kompatibilis biztonsággal.
               </p>
             </form>
           </section>
 
           <aside className='rounded-2xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900'>
-            <h2 className='text-text-dark dark:text-white text-lg font-bold'>Rendelés összegzés</h2>
+            <h2 className='text-foreground dark:text-white text-lg font-bold'>Rendelés összegzés</h2>
             <div className='mt-4 space-y-3'>
               {cart.items.map((item, index) => (
                 <div key={`${item.id}-${index}`} className='flex items-center justify-between gap-3'>
@@ -148,11 +148,11 @@ const PaymentForm = () => {
                       style={{ backgroundImage: `url('${item.picture_url ?? ""}')` }}
                     />
                     <div className='min-w-0'>
-                      <p className='text-text-dark dark:text-white truncate text-sm font-medium'>{item.name}</p>
-                      <p className='text-text-light dark:text-zinc-400 text-xs'>{item.quantity ?? 0} db</p>
+                      <p className='text-foreground dark:text-white truncate text-sm font-medium'>{item.name}</p>
+                      <p className='text-muted dark:text-zinc-400 text-xs'>{item.quantity ?? 0} db</p>
                     </div>
                   </div>
-                  <p className='text-text-dark dark:text-white text-sm font-semibold'>
+                  <p className='text-foreground dark:text-white text-sm font-semibold'>
                     {item.price * (item.quantity ?? 0)} Ft
                   </p>
                 </div>
@@ -162,12 +162,12 @@ const PaymentForm = () => {
             <div className='my-4 h-px bg-gray-200 dark:bg-zinc-700' />
 
             <div className='flex items-center justify-between'>
-              <p className='text-text-dark dark:text-white text-base font-bold'>Végösszeg</p>
-              <p className='text-text-dark dark:text-white text-xl font-bold'>{total} Ft</p>
+              <p className='text-foreground dark:text-white text-base font-bold'>Végösszeg</p>
+              <p className='text-foreground dark:text-white text-xl font-bold'>{total} Ft</p>
             </div>
 
             <Link
-              to='/checkout'
+              to='/cart'
               className='text-primary mt-5 inline-flex items-center gap-1 text-sm font-semibold hover:none'>
               <span className='material-symbols-outlined text-base'>arrow_back</span>
               Vissza a kosarhoz

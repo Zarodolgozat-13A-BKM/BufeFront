@@ -68,7 +68,7 @@ export const CreateCatModal = ({ isOpen, onClose, onCreated, category }: CreateI
 
                 <div className="flex gap-3 pt-2">
                     <button type="submit" disabled={loading}
-                        className="flex-1 py-2.5 rounded-lg font-bold text-white bg-primary hover:bg-primary-hover disabled:opacity-50 transition-colors">
+                        className="flex-1 py-2.5 rounded-lg font-bold text-white bg-primary hover:bg-primary-strong disabled:opacity-50 transition-colors">
                         {loading ? 'Mentés...' : (category? "Kategória módosítása": "Új kategória hozzáadása")}
                     </button>
                     <button type="button" onClick={onClose}
@@ -80,3 +80,4 @@ export const CreateCatModal = ({ isOpen, onClose, onCreated, category }: CreateI
         </Modal>
     )
 }
+

@@ -137,11 +137,11 @@ const ProfilePage = () => {
 
 
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+    <div className="bg-secondary dark:bg-secondary-dark text-slate-900 dark:text-slate-100 font-display">
       <div className="relative mx-auto flex w-full flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
         {me && <DashBoardHeader name="Profilod" showAdmin={false} backTo="/main" />}
         <div className="px-4 pb-8 pt-5 sm:px-6">
-          <div className="rounded-xl border border-[#e6e0db] bg-bg-light p-6 dark:border-zinc-800 dark:bg-zinc-800/50">
+          <div className="rounded-xl border border-[#e6e0db] bg-surface p-6 dark:border-zinc-800 dark:bg-zinc-800/50">
             <div className="flex w-full flex-col items-center gap-4">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 dark:bg-primary/20">
                 <span className="material-symbols-outlined text-primary text-3xl">person</span>
@@ -155,7 +155,7 @@ const ProfilePage = () => {
               </div>
             </div>
           </div>
-          <div className="mt-5 flex-1 rounded-xl border border-[#e6e0db] bg-bg-light p-4 dark:border-zinc-800 dark:bg-zinc-800/50 sm:p-5">
+          <div className="mt-5 flex-1 rounded-xl border border-[#e6e0db] bg-surface p-4 dark:border-zinc-800 dark:bg-zinc-800/50 sm:p-5">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Korábbi rendelések</h3>
               <span className="rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-medium text-primary">{orders.length} db</span>
@@ -165,16 +165,16 @@ const ProfilePage = () => {
                 <LoadingState message="Rendelések betöltése..." />
               ) : orders.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800">
-                  <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">receipt_long</span>
-                  <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">Még nem adtál le rendelést.</p>
+                  <span className="material-symbols-outlined text-3xl text-muted dark:text-zinc-400">receipt_long</span>
+                  <p className="mt-2 text-muted dark:text-zinc-300 text-sm font-normal leading-normal text-center">Még nem adtál le rendelést.</p>
                 </div>
               ) : (
                 orders.slice().sort((a, b) => b.id - a.id).filter((x) => (x.payment_intent_id == null || (x.payment_intent_id != null && x.status != "Fizetésre vár"))).map((order) => (
                   order.status == "Törölve" ? (
                     order.delivery_date! > new Date().toISOString() && (
                   <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800">
-                    <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">receipt_long</span>
-                    <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">#{order.order_identifier_number} számú rendelésed törlésre került.</p>
+                    <span className="material-symbols-outlined text-3xl text-muted dark:text-zinc-400">receipt_long</span>
+                    <p className="mt-2 text-muted dark:text-zinc-300 text-sm font-normal leading-normal text-center">#{order.order_identifier_number} számú rendelésed törlésre került.</p>
                   </div>)) :(
                     <OrderItem key={order.id} handleOrder={handleOrder} order={order} />
                   )
@@ -199,3 +199,4 @@ const ProfilePage = () => {
 }
 
 export default ProfilePage;
+

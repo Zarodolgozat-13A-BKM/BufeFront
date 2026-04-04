@@ -25,7 +25,7 @@ export const QuantityControl = ({
           type="button"
           onClick={onDecrease}
           aria-label="Mennyiség csökkentése"
-          className={`${buttonSizeClass} flex cursor-pointer items-center justify-center hover:bg-primary-hover transition-all active:scale-90`}
+          className={`${buttonSizeClass} flex cursor-pointer items-center justify-center hover:bg-primary-strong transition-all active:scale-90`}
         >
           <span className="material-symbols-outlined text-[18px]">remove</span>
         </button>
@@ -41,7 +41,7 @@ export const QuantityControl = ({
           type="button"
           onClick={onIncrease}
           aria-label="Mennyiség növelése"
-          className={`${buttonSizeClass} flex cursor-pointer items-center justify-center hover:bg-primary-hover transition-all active:scale-90`}
+          className={`${buttonSizeClass} flex cursor-pointer items-center justify-center hover:bg-primary-strong transition-all active:scale-90`}
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
         </button>
@@ -54,7 +54,7 @@ export const QuantityControl = ({
       type="button"
       onClick={onIncrease}
       aria-label="Hozzáadás a kosárhoz"
-      className={`flex ${isSmall ? 'size-9' : 'size-10'} cursor-pointer items-center justify-center rounded-full bg-primary text-white ${shadowClassName} hover:bg-primary-hover transition-all active:scale-90`}
+      className={`flex ${isSmall ? 'size-9' : 'size-10'} cursor-pointer items-center justify-center rounded-full bg-primary text-white ${shadowClassName} hover:bg-primary-strong transition-all active:scale-90`}
     >
       <span className="material-symbols-outlined">add</span>
     </button>

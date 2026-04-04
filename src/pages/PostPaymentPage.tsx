@@ -1,19 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { OrderModel } from "../Models/OrderModel";
 import DashBoardHeader from "../components/common/dashBoardHeader";
-import { echo } from "../lib/echo";
 import { GetAllActiveOrders, GetOneOrder } from "../services/OrderService";
+import {
+  subscribeToOrderUpdates,
+  type OrderRealtimeEvent,
+} from "../services/OrderRealtimeService";
 import { useAppSelector } from "../store/hooks";
 import { Link, useLocation } from "react-router";
 import BlinkingCircle from "../components/common/blinker";
 import { LoadingState } from "../components/common/LoadingState";
-
-type WsOrderEvent = {
-  order_id?: number | string;
-  order_ids?: Array<number | string>;
-  order?: OrderModel;
-  orders?: OrderModel[];
-};
 
 type PostPaymentLocationState = {
   paymentSuccess?: boolean;
@@ -102,8 +98,6 @@ const getDisplayedPreparingStatus = (status: string): string => {
   return toStatusKey(status) === "atadva" ? "Várakozik" : toStatusKey(status) === "fizetesre var" ? "" : "Készül";
 };
 
-const FALLBACK_POLL_INTERVAL_MS = 10000;
-
 const PostPaymentPage = () => {
   const location = useLocation();
   const locationState =
@@ -176,10 +170,10 @@ const PostPaymentPage = () => {
     setOrders(allOrders.filter(isOpenOrder));
   }, []);
 
-  const resolveOrdersFromEvent = useCallback(async (event: WsOrderEvent) => {
+  const resolveOrdersFromEvent = useCallback(async (event: OrderRealtimeEvent) => {
     const directOrders = (
       event.orders ?? (event.order ? [event.order] : [])
-    ).filter(isOpenOrder);
+    ).filter((order): order is OrderModel => isOpenOrder(order as OrderModel));
     if (directOrders.length > 0) {
       return directOrders;
     }
@@ -338,15 +332,7 @@ const PostPaymentPage = () => {
     }
 
     const channelName = `ordersOfUser.${btoa(me.email)}`;
-    const privateChannelOfUser = echo.private(channelName);
-    const pusherChannelName = `private-${channelName}`;
-    const pusherChannel = echo.connector.pusher.channel(pusherChannelName);
-    const connection = echo.connector.pusher.connection;
-    const setConnectedState = () => {
-      setIsLiveConnected(connection.state === "connected");
-    };
-
-    const handleOrderChange = async (event: WsOrderEvent) => {
+    const handleOrderChange = async (event: OrderRealtimeEvent) => {
       try {
         const resolvedOrders = await resolveOrdersFromEvent(event);
 
@@ -364,7 +350,6 @@ const PostPaymentPage = () => {
     };
 
     const handleSubscriptionSucceeded = async () => {
-      setConnectedState();
       try {
         await refreshOpenOrders();
       } catch (refreshError) {
@@ -376,16 +361,12 @@ const PostPaymentPage = () => {
     };
 
     const handleSubscriptionError = (status: number) => {
-      setConnectedState();
-      console.error(
-        `Websocket subscription failed on ${pusherChannelName}:`,
-        status,
-      );
+      console.error(`Websocket subscription failed on private-${channelName}:`, status);
       setError("A valós idejű kapcsolat hibára futott. Frissíts manuálisan.");
     };
 
-    const handleConnectionStateChange = async () => {
-      const isConnected = connection.state === "connected";
+    const handleConnectionStateChange = async (connectionState: string) => {
+      const isConnected = connectionState === "connected";
       setIsLiveConnected(isConnected);
 
       if (isConnected) {
@@ -400,10 +381,7 @@ const PostPaymentPage = () => {
       }
     };
 
-    const handleAnyOrderEvent = async (eventName: string) => {
-      if (!eventName.toLocaleLowerCase("hu-HU").includes("order")) {
-        return;
-      }
+    const handleAnyOrderEvent = async () => {
       try {
         await refreshOpenOrders();
       } catch (refreshError) {
@@ -414,64 +392,22 @@ const PostPaymentPage = () => {
       }
     };
 
-    privateChannelOfUser.listen("order.state.changed", handleOrderChange);
-    privateChannelOfUser.listen(".order.state.changed", handleOrderChange);
-    // Catch custom backend event names while keeping typed handlers above.
-    privateChannelOfUser.listenToAll(handleAnyOrderEvent);
-    pusherChannel?.bind(
-      "pusher:subscription_succeeded",
-      handleSubscriptionSucceeded,
-    );
-    pusherChannel?.bind("pusher:subscription_error", handleSubscriptionError);
-    connection.bind("state_change", handleConnectionStateChange);
-    setConnectedState();
+    const unsubscribe = subscribeToOrderUpdates({
+      channelName,
+      onOrderStateChanged: handleOrderChange,
+      onAnyOrderEvent: handleAnyOrderEvent,
+      onSubscribed: handleSubscriptionSucceeded,
+      onSubscriptionError: handleSubscriptionError,
+      onConnectionStateChange: handleConnectionStateChange,
+    });
 
     return () => {
-      privateChannelOfUser.stopListening(
-        "order.state.changed",
-        handleOrderChange,
-      );
-      privateChannelOfUser.stopListening(
-        ".order.state.changed",
-        handleOrderChange,
-      );
-      privateChannelOfUser.stopListeningToAll(handleAnyOrderEvent);
-      pusherChannel?.unbind(
-        "pusher:subscription_succeeded",
-        handleSubscriptionSucceeded,
-      );
-      pusherChannel?.unbind(
-        "pusher:subscription_error",
-        handleSubscriptionError,
-      );
-      connection.unbind("state_change", handleConnectionStateChange);
-      echo.leave(channelName);
+      unsubscribe();
     };
   }, [me?.email, refreshOpenOrders, resolveOrdersFromEvent]);
 
-  useEffect(() => {
-    if (!me?.email || isLiveConnected) {
-      return;
-    }
-
-    const intervalId = window.setInterval(async () => {
-      try {
-        await refreshOpenOrders();
-      } catch (refreshError) {
-        console.error(
-          "Fallback polling failed while websocket is offline:",
-          refreshError,
-        );
-      }
-    }, FALLBACK_POLL_INTERVAL_MS);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [isLiveConnected, me?.email, refreshOpenOrders]);
-
   return (
-    <div className="bg-background-light dark:bg-background-dark font-display antialiased">
+    <div className="bg-secondary dark:bg-secondary-dark font-display antialiased">
       <div className="relative mx-auto flex w-full flex-col overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
         <DashBoardHeader
           name="Rendelés követése"
@@ -480,7 +416,7 @@ const PostPaymentPage = () => {
         />
 
         <div className="p-4 md:p-6">
-          <div className="w-full rounded-xl border border-[#e6e0db] bg-bg-light dark:bg-zinc-800/50 dark:border-zinc-800 p-4 md:p-5">
+          <div className="w-full rounded-xl border border-[#e6e0db] bg-surface dark:bg-zinc-800/50 dark:border-zinc-800 p-4 md:p-5">
             {showPaymentSuccess && (
               <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-green-800 dark:border-green-900/60 dark:bg-green-900/20 dark:text-green-200">
                 <p className="text-sm font-semibold">Fizetés sikeres.</p>
@@ -491,10 +427,10 @@ const PostPaymentPage = () => {
             )}
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-text-dark dark:text-white tracking-tight">
+                <h2 className="text-xl font-bold text-foreground dark:text-white tracking-tight">
                   Nyitott rendeléseid
                 </h2>
-                <p className="text-text-light dark:text-zinc-400 text-sm mt-1">
+                <p className="text-muted dark:text-zinc-400 text-sm mt-1">
                   A rendelések állapota valós időben frissül.
                 </p>
               </div>
@@ -504,7 +440,7 @@ const PostPaymentPage = () => {
                   size="10px"
                   color={isLiveConnected ? "#00ff00" : "#f97316"}
                 />
-                <span className="text-xs font-medium text-text-light dark:text-zinc-300">
+                <span className="text-xs font-medium text-muted dark:text-zinc-300">
                   {isLiveConnected ? "Élő kapcsolat" : "Kapcsolódás..."}
                 </span>
                 <span className="rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-medium text-primary">
@@ -520,7 +456,7 @@ const PostPaymentPage = () => {
                   <button
                     type="button"
                     onClick={handleManualRefresh}
-                    className="rounded-lg border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-text-dark transition-colors hover:bg-bg-light dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    className="rounded-lg border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
                   >
                     Frissítés
                   </button>
@@ -544,23 +480,23 @@ const PostPaymentPage = () => {
               </div>
             ) : sortedOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800">
-                <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">
+                <span className="material-symbols-outlined text-3xl text-muted dark:text-zinc-400">
                   receipt_long
                 </span>
-                <p className="mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center">
+                <p className="mt-2 text-muted dark:text-zinc-300 text-sm font-normal leading-normal text-center">
                   Jelenleg nincs nyitott rendelés.
                 </p>
                 <div className="mt-4 flex gap-2">
                   <button
                     type="button"
                     onClick={handleManualRefresh}
-                    className="rounded-lg border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-text-dark transition-colors hover:bg-bg-light dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    className="rounded-lg border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
                   >
                     Frissítés
                   </button>
                   <Link
                     to="/main"
-                    className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-hover"
+                    className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-strong"
                   >
                     Ugrás a menühöz
                   </Link>
@@ -577,7 +513,7 @@ const PostPaymentPage = () => {
                   }
                 >
                   <div className="mb-8 text-center flex items-center justify-center gap-2">
-                    <div className="mt-3 flex items-center justify-center gap-3 text-sm font-semibold text-text-light dark:text-zinc-300">
+                    <div className="mt-3 flex items-center justify-center gap-3 text-sm font-semibold text-muted dark:text-zinc-300">
                       <button
                         type="button"
                         aria-label="Előző rendelés"
@@ -592,7 +528,7 @@ const PostPaymentPage = () => {
                           chevron_left
                         </span>
                       </button>
-                      <h2 className="text-3xl font-extrabold tracking-tight text-text-dark dark:text-white">
+                      <h2 className="text-3xl font-extrabold tracking-tight text-foreground dark:text-white">
                         Rendelésszám:{" "}
                         <span className="font-extrabold text-primary">
                           #{selectedOrder.order_identifier_number}
@@ -617,7 +553,7 @@ const PostPaymentPage = () => {
 
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
                     <section className="md:col-span-7 rounded-2xl border border-[#e6e0db] bg-white p-6 md:p-8 dark:border-zinc-700 dark:bg-zinc-800">
-                      <h3 className="mb-8 flex items-center gap-2 text-xl font-bold text-text-dark dark:text-white">
+                      <h3 className="mb-8 flex items-center gap-2 text-xl font-bold text-foreground dark:text-white">
                         <span className="material-symbols-outlined text-primary">
                           local_dining
                         </span>
@@ -643,10 +579,10 @@ const PostPaymentPage = () => {
                             </span>
                           </div>
                           <div>
-                            <p className="font-bold text-text-dark dark:text-white">
+                            <p className="font-bold text-foreground dark:text-white">
                               Rendelés fogadva
                             </p>
-                            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-text-light dark:text-zinc-400">
+                            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-muted dark:text-zinc-400">
                               {formatDeliveryDate(selectedOrder.delivery_date)}
                             </p>
                           </div>
@@ -667,10 +603,10 @@ const PostPaymentPage = () => {
                             </span>
                           </div>
                           <div>
-                            <p className="font-bold text-text-dark dark:text-white">
+                            <p className="font-bold text-foreground dark:text-white">
                               Készítés alatt
                             </p>
-                            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-text-light dark:text-zinc-400">
+                            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-muted dark:text-zinc-400">
                               {getDisplayedPreparingStatus(
                                 selectedOrder.status,
                               )}
@@ -697,10 +633,10 @@ const PostPaymentPage = () => {
                             </span>
                           </div>
                           <div>
-                            <p className="font-bold text-text-dark dark:text-white">
+                            <p className="font-bold text-foreground dark:text-white">
                               Átvehető
                             </p>
-                            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-text-light dark:text-zinc-400">
+                            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-muted dark:text-zinc-400">
                               Várakozik
                             </p>
                           </div>
@@ -729,16 +665,16 @@ const PostPaymentPage = () => {
                         </article>
                       ) : null}
 
-                      <article className="space-y-3 rounded-2xl border border-[#e6e0db] bg-bg-light p-5 dark:border-zinc-700 dark:bg-zinc-800/80">
+                      <article className="space-y-3 rounded-2xl border border-[#e6e0db] bg-surface p-5 dark:border-zinc-700 dark:bg-zinc-800/80">
                         <div className="flex items-start gap-3 rounded-xl bg-white/70 p-3 dark:bg-zinc-900/60">
                           <span className="material-symbols-outlined mt-0.5 text-primary">
                             schedule
                           </span>
                           <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-text-light dark:text-zinc-400">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted dark:text-zinc-400">
                               Időpont
                             </p>
-                            <p className="mt-1 text-sm font-bold text-text-dark dark:text-zinc-100">
+                            <p className="mt-1 text-sm font-bold text-foreground dark:text-zinc-100">
                               {formatDeliveryDate(selectedOrder.delivery_date)}
                             </p>
                           </div>
@@ -748,10 +684,10 @@ const PostPaymentPage = () => {
                             payments
                           </span>
                           <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-text-light dark:text-zinc-400">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted dark:text-zinc-400">
                               Összeg
                             </p>
-                            <p className="mt-1 text-sm font-bold text-text-dark dark:text-zinc-100">
+                            <p className="mt-1 text-sm font-bold text-foreground dark:text-zinc-100">
                               {formatPrice(selectedOrder.total_price ?? 0)}
                             </p>
                           </div>
@@ -761,10 +697,10 @@ const PostPaymentPage = () => {
                             timer
                           </span>
                           <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-text-light dark:text-zinc-400">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted dark:text-zinc-400">
                               Becsült idő
                             </p>
-                            <p className="mt-1 text-sm font-bold text-text-dark dark:text-zinc-100">
+                            <p className="mt-1 text-sm font-bold text-foreground dark:text-zinc-100">
                               {selectedOrder.default_completion_time != null
                                 ? `${selectedOrder.default_completion_time} perc`
                                 : "Nincs adat"}
@@ -776,7 +712,7 @@ const PostPaymentPage = () => {
                   </div>
 
                   <section className="mt-7 rounded-2xl border border-[#e6e0db] bg-white/70 p-5 backdrop-blur-sm dark:border-zinc-700 dark:bg-zinc-900/60 md:p-6">
-                    <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-text-light dark:text-zinc-400">
+                    <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted dark:text-zinc-400">
                       Rendelt tételek
                     </h3>
                     <ul className="space-y-3">
@@ -786,7 +722,7 @@ const PostPaymentPage = () => {
                           className="flex items-center justify-between gap-3 border-b border-primary/10 pb-3"
                         >
                           <div className="flex min-w-0 items-center gap-3">
-                            <div className="h-12 w-12 overflow-hidden rounded-lg bg-bg-light dark:bg-zinc-700">
+                            <div className="h-12 w-12 overflow-hidden rounded-lg bg-surface dark:bg-zinc-700">
                               {item.picture_url ? (
                                 <img
                                   src={item.picture_url}
@@ -795,7 +731,7 @@ const PostPaymentPage = () => {
                                   loading="lazy"
                                 />
                               ) : (
-                                <div className="flex h-full w-full items-center justify-center text-text-light dark:text-zinc-400">
+                                <div className="flex h-full w-full items-center justify-center text-muted dark:text-zinc-400">
                                   <span className="material-symbols-outlined text-[18px]">
                                     restaurant
                                   </span>
@@ -803,16 +739,16 @@ const PostPaymentPage = () => {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="truncate text-sm font-bold text-text-dark dark:text-zinc-100">
+                              <p className="truncate text-sm font-bold text-foreground dark:text-zinc-100">
                                 {item.item_name}
                               </p>
-                              <p className="text-xs text-text-light dark:text-zinc-400">
+                              <p className="text-xs text-muted dark:text-zinc-400">
                                 {formatPrice(item.item_price)} / db
                               </p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-semibold text-text-dark dark:text-zinc-100">
+                            <p className="text-sm font-semibold text-foreground dark:text-zinc-100">
                               x{item.quantity}
                             </p>
                             <p className="text-xs font-semibold text-primary">
@@ -834,3 +770,4 @@ const PostPaymentPage = () => {
 };
 
 export default PostPaymentPage;
+

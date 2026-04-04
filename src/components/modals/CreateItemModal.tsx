@@ -410,7 +410,7 @@ export const CreateItemModal = ({
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 py-2.5 rounded-lg font-bold text-white bg-primary hover:bg-primary-hover disabled:opacity-50 transition-colors"
+            className="flex-1 py-2.5 rounded-lg font-bold text-white bg-primary hover:bg-primary-strong disabled:opacity-50 transition-colors"
           >
             {loading
               ? "Mentés..."
@@ -430,3 +430,4 @@ export const CreateItemModal = ({
     </Modal>
   );
 };
+

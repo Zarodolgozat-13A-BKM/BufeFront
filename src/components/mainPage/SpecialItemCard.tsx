@@ -12,7 +12,7 @@ interface SpecialItemCardProps {
 export const SpecialItemCard = ({ item, showModal, quantity, onUpdateQuantity }: SpecialItemCardProps) => {
 
   return (
-    <div className={`snap-center shrink-0 group flex flex-col gap-3 rounded-xl bg-bg-light dark:bg-zinc-800/50 border border-[#e6e0db] dark:border-zinc-800 min-w-65 w-65 overflow-hidden transition-all duration-300 relative ${item.is_active ? '' : ' opacity-50 cursor-not-allowed'}`}>
+    <div className={`snap-center shrink-0 group flex flex-col gap-3 rounded-xl bg-surface dark:bg-zinc-800/50 border border-[#e6e0db] dark:border-zinc-800 min-w-65 w-65 overflow-hidden transition-all duration-300 relative ${item.is_active ? '' : ' opacity-50 cursor-not-allowed'}`}>
       <button onClick={() => item.is_active? showModal(item) : null} className="cursor-pointer text-white text-4xl absolute inset-0 z-10 rounded-xl bg-black/40 opacity-0 hover:opacity-100 focus-visible:opacity-100 transition-opacity flex items-center justify-center">
         <span className="text-6xl text-white font-light material-symbols-outlined">add</span>
       </button>
@@ -26,11 +26,11 @@ export const SpecialItemCard = ({ item, showModal, quantity, onUpdateQuantity }:
       <div className="flex flex-1 flex-col p-4 pt-1 gap-3">
         <div>
           <div className="flex justify-between items-start mb-1">
-            <p className="text-text-dark dark:text-white text-lg font-bold leading-tight line-clamp-1">
+            <p className="text-foreground dark:text-white text-lg font-bold leading-tight line-clamp-1">
               {item.name}
             </p>
           </div>
-          <p className="text-text-light dark:text-zinc-400 text-xs font-medium leading-normal">
+          <p className="text-muted dark:text-zinc-400 text-xs font-medium leading-normal">
             {item.description?.substring(0, 60)}{item.description && item.description.length > 60 ? '...' : ''}
           </p>
         </div>
@@ -54,3 +54,4 @@ export const SpecialItemCard = ({ item, showModal, quantity, onUpdateQuantity }:
     </div>
   )
 }
+

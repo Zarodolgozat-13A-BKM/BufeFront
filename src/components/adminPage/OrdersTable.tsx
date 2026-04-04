@@ -67,7 +67,7 @@ const OrdersTable = ({
     return (
         <div className="overflow-x-auto rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800">
             <table className="w-full text-sm text-left border-collapse min-w-180">
-            <thead className="bg-bg-light dark:bg-zinc-800/80 border-b border-[#e6e0db] dark:border-zinc-700 text-text-dark dark:text-zinc-200">
+            <thead className="bg-surface dark:bg-zinc-800/80 border-b border-[#e6e0db] dark:border-zinc-700 text-foreground dark:text-zinc-200">
                     <tr className="h-10">
                         <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('id')}>
                             <span className="mr-1">▼</span>ID{sortIcon('id', orderSortField, orderSortDir)}
@@ -95,15 +95,15 @@ const OrdersTable = ({
                         return (
                         <Fragment key={order.id}>
                         <tr
-                            className="h-14 cursor-pointer border-b border-[#e6e0db] dark:border-zinc-700 hover:bg-bg-light dark:hover:bg-zinc-800/80 transition-colors"
+                            className="h-14 cursor-pointer border-b border-[#e6e0db] dark:border-zinc-700 hover:bg-surface dark:hover:bg-zinc-800/80 transition-colors"
                             onClick={() => toggleExpanded(order.id)}
                         >
-                            <td className="py-2 px-3 font-medium text-text-dark dark:text-white text-center select-none">
-                                <span className="mr-1.5 text-xs text-text-light dark:text-zinc-400">{isExpanded ? '▼' : '▶'}</span>
+                            <td className="py-2 px-3 font-medium text-foreground dark:text-white text-center select-none">
+                                <span className="mr-1.5 text-xs text-muted dark:text-zinc-400">{isExpanded ? '▼' : '▶'}</span>
                                 {order.id}
                             </td>
-                            <td className="py-2 px-3 font-medium text-text-dark dark:text-white text-center">#{order.order_identifier_number}</td>
-                            <td className="py-2 px-3 text-text-dark dark:text-white text-center">{order.user_username}</td>
+                            <td className="py-2 px-3 font-medium text-foreground dark:text-white text-center">#{order.order_identifier_number}</td>
+                            <td className="py-2 px-3 text-foreground dark:text-white text-center">{order.user_username}</td>
                             <td className="py-2 px-3 text-center">
                                 <div className="relative inline-block" ref={openStatusId === order.id ? popoverRef : undefined} onClick={(e) => e.stopPropagation()}>
                                     <button
@@ -122,7 +122,7 @@ const OrdersTable = ({
                                                     key={status}
                                                     type="button"
                                                     disabled={pendingStatusId === order.id}
-                                                    className={`block w-full px-3 py-2.5 text-left text-sm md:text-xs font-semibold transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-70 ${status === order.status ? 'bg-primary/10 text-primary' : 'text-text-dark dark:text-zinc-200'}`}
+                                                    className={`block w-full px-3 py-2.5 text-left text-sm md:text-xs font-semibold transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-70 ${status === order.status ? 'bg-primary/10 text-primary' : 'text-foreground dark:text-zinc-200'}`}
                                                     onClick={async () => {
                                                         setPendingStatusId(order.id)
                                                         try {
@@ -140,25 +140,25 @@ const OrdersTable = ({
                                     )}
                                 </div>
                             </td>
-                            <td className="py-2 px-3 text-text-dark dark:text-white text-center">
+                            <td className="py-2 px-3 text-foreground dark:text-white text-center">
                                 {order.delivery_date
                                     ? new Date(order.delivery_date).toLocaleString('hu-HU')
-                                    : <span className="text-text-light dark:text-zinc-500">—</span>
+                                    : <span className="text-muted dark:text-zinc-500">—</span>
                                 }
                             </td>
-                            <td className="py-2 px-3 text-text-dark dark:text-white text-center font-medium">
+                            <td className="py-2 px-3 text-foreground dark:text-white text-center font-medium">
                                 {(order.total_price ?? 0).toLocaleString('hu-HU')} Ft
                             </td>
                         </tr>
                         {isExpanded && (
-                            <tr className="bg-bg-light dark:bg-zinc-900/70 border-b border-[#e6e0db] dark:border-zinc-700">
+                            <tr className="bg-surface dark:bg-zinc-900/70 border-b border-[#e6e0db] dark:border-zinc-700">
                                 <td colSpan={6} className="px-6 py-3">
                                     {!order.items || order.items.length === 0 ? (
-                                        <p className="text-sm text-text-light dark:text-zinc-400">Nincs termék ebben a rendelésben.</p>
+                                        <p className="text-sm text-muted dark:text-zinc-400">Nincs termék ebben a rendelésben.</p>
                                     ) : (
                                         <table className="w-full text-xs text-left border-collapse">
                                             <thead>
-                                                <tr className="text-text-light dark:text-zinc-400 uppercase tracking-wide text-[10px] border-b border-[#e6e0db] dark:border-zinc-700">
+                                                <tr className="text-muted dark:text-zinc-400 uppercase tracking-wide text-[10px] border-b border-[#e6e0db] dark:border-zinc-700">
                                                     <th className="py-1.5 pr-4 font-semibold">Termék neve</th>
                                                     <th className="py-1.5 pr-4 font-semibold text-center">Mennyiség</th>
                                                     <th className="py-1.5 pr-4 font-semibold text-right">Egységár</th>
@@ -168,10 +168,10 @@ const OrdersTable = ({
                                             <tbody>
                                                 {order.items.map((item) => (
                                                     <tr key={item.item_id} className="border-b border-[#e6e0db] dark:border-zinc-800 last:border-0">
-                                                        <td className="py-1.5 pr-4 font-medium text-text-dark dark:text-white">{item.item_name}</td>
-                                                        <td className="py-1.5 pr-4 text-center text-text-dark dark:text-white">{item.quantity} db</td>
-                                                        <td className="py-1.5 pr-4 text-right text-text-dark dark:text-white">{item.item_price.toLocaleString('hu-HU')} Ft</td>
-                                                        <td className="py-1.5 text-right font-semibold text-text-dark dark:text-white">{item.price.toLocaleString('hu-HU')} Ft</td>
+                                                        <td className="py-1.5 pr-4 font-medium text-foreground dark:text-white">{item.item_name}</td>
+                                                        <td className="py-1.5 pr-4 text-center text-foreground dark:text-white">{item.quantity} db</td>
+                                                        <td className="py-1.5 pr-4 text-right text-foreground dark:text-white">{item.item_price.toLocaleString('hu-HU')} Ft</td>
+                                                        <td className="py-1.5 text-right font-semibold text-foreground dark:text-white">{item.price.toLocaleString('hu-HU')} Ft</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -190,3 +190,4 @@ const OrdersTable = ({
 }
 
 export default OrdersTable
+

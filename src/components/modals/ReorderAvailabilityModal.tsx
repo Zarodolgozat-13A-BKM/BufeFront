@@ -29,7 +29,7 @@ export const ReorderAvailabilityModal = ({
       title="Néhány tétel nem elérhető"
       maxWidth="lg"
     >
-      <p className="text-sm text-text-light dark:text-zinc-300">
+      <p className="text-sm text-muted dark:text-zinc-300">
         Az alábbi tételek nem tehetők most a kosárba:
       </p>
 
@@ -39,8 +39,8 @@ export const ReorderAvailabilityModal = ({
             key={`${item.itemId}-${item.name}`}
             className="rounded-lg border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 p-3"
           >
-            <p className="text-sm font-semibold text-text-dark dark:text-white">{item.name}</p>
-            <p className="text-xs text-text-light dark:text-zinc-300 mt-1">Kért mennyiség: {item.quantity}</p>
+            <p className="text-sm font-semibold text-foreground dark:text-white">{item.name}</p>
+            <p className="text-xs text-muted dark:text-zinc-300 mt-1">Kért mennyiség: {item.quantity}</p>
             <p className="text-xs text-red-600 dark:text-red-400 mt-1">{item.reason}</p>
           </div>
         ))}
@@ -57,7 +57,7 @@ export const ReorderAvailabilityModal = ({
         <button
           type="button"
           onClick={onScrapCart}
-          className="flex-1 rounded-xl border border-[#e6e0db] dark:border-zinc-700 px-4 py-3 text-sm font-bold text-text-dark dark:text-white transition-colors hover:bg-[#f5f1ec] dark:hover:bg-zinc-800"
+          className="flex-1 rounded-xl border border-[#e6e0db] dark:border-zinc-700 px-4 py-3 text-sm font-bold text-foreground dark:text-white transition-colors hover:bg-[#f5f1ec] dark:hover:bg-zinc-800"
         >
           Kosár elvetése
         </button>
@@ -65,3 +65,4 @@ export const ReorderAvailabilityModal = ({
     </Modal>
   )
 }
+

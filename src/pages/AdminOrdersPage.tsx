@@ -2,20 +2,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import type { OrderModel } from "../Models/OrderModel";
 import { GetAllActiveOrders, GetOneOrder } from "../services/OrderService";
-import { echo } from "../lib/echo";
 import DashBoardHeader from "../components/common/dashBoardHeader";
 import { OrderComponent } from "../components/adminOrdersPage/OrderComponent";
 import { GetRinging } from "../services/RingService";
 import type { Ringlist } from "../Models/RingModel";
 import { LoadingState } from "../components/common/LoadingState";
+import {
+	subscribeToOrderUpdates,
+	type OrderRealtimeEvent,
+} from "../services/OrderRealtimeService";
 
 type OrderFilter = "upcoming-break" | "whole-day";
 type SortDirection = "asc" | "desc";
 type OrderSortKey = "order-number" | "status" | "username" | "pickup-time" | "total-price" | "created-at";
-
-interface OrderStateChangedEvent {
-	order_id: string | number;
-}
 
 const CLOSED_ORDER_STATUSES = new Set(["átadva", "törölve"]);
 
@@ -238,12 +237,11 @@ export const AdminOrdersPage = () => {
 				}
 			});
 
-		const channelName = "orders_admin";
-		const channel = echo.private(channelName);
-		const pusherChannelName = `private-${channelName}`;
-		const pusherChannel = echo.connector.pusher.channel(pusherChannelName);
+		const handleOrderStateChanged = (event: OrderRealtimeEvent) => {
+			if (event.order_id == null) {
+				return;
+			}
 
-		const handleOrderStateChanged = (event: OrderStateChangedEvent) => {
 			console.log("order.state.changed event received:", event);
 			GetOneOrder(String(event.order_id))
 				.then((incomingOrder) => {
@@ -266,25 +264,20 @@ export const AdminOrdersPage = () => {
 				});
 		};
 
-		pusherChannel?.bind("pusher:subscription_succeeded", () => {
-			console.log(`Echo subscribed to ${pusherChannelName}`);
+		const unsubscribe = subscribeToOrderUpdates({
+			channelName: "orders_admin",
+			onOrderStateChanged: handleOrderStateChanged,
+			onSubscribed: () => {
+				console.log("Echo subscribed to private-orders_admin");
+			},
+			onSubscriptionError: (status) => {
+				console.error("Echo subscription error on private-orders_admin:", status);
+			},
 		});
-
-		pusherChannel?.bind("pusher:subscription_error", (status: number) => {
-			console.error(`Echo subscription error on ${pusherChannelName}:`, status);
-		});
-
-		// Keep both variants: Laravel Echo may require a leading dot when using broadcastAs.
-		channel.listen("order.state.changed", handleOrderStateChanged);
-		channel.listen(".order.state.changed", handleOrderStateChanged);
 
 		return () => {
 			isDisposed = true;
-			channel.stopListening("order.state.changed");
-			channel.stopListening(".order.state.changed");
-			pusherChannel?.unbind("pusher:subscription_succeeded");
-			pusherChannel?.unbind("pusher:subscription_error");
-			echo.leave(channelName);
+			unsubscribe();
 		};
 	}, [triggerNewOrderAlert]);
 
@@ -345,44 +338,44 @@ export const AdminOrdersPage = () => {
 	}, [filteredOrders, sortDirection, sortKey]);
 
 	return (
-		<div className='bg-background-light dark:bg-zinc-950 font-display antialiased'>
+		<div className='bg-secondary dark:bg-zinc-950 font-display antialiased'>
 			<div className='relative mx-auto flex w-full flex-col overflow-x-auto shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800'>
 				<DashBoardHeader name='Rendelések' showAdmin={false} backTo={"/admin"} />
 				<div className='p-4 md:p-6 space-y-5'>
-					<div className='w-full rounded-xl border border-[#e6e0db] bg-bg-light dark:bg-zinc-800/50 dark:border-zinc-800 p-4 md:p-5'>
+					<div className='w-full rounded-xl border border-[#e6e0db] bg-surface dark:bg-zinc-800/50 dark:border-zinc-800 p-4 md:p-5'>
 						<div className='flex flex-wrap items-start justify-between gap-3 mb-4'>
 							<div>
-								<h2 className='text-xl font-bold text-text-dark dark:text-white tracking-tight'>
+								<h2 className='text-xl font-bold text-foreground dark:text-white tracking-tight'>
 									Aktuális rendelések
 								</h2>
-								<p className='text-text-light dark:text-zinc-400 text-sm mt-1'>
+								<p className='text-muted dark:text-zinc-400 text-sm mt-1'>
 									Éppen feldolgozás alatt lévő tételek
 								</p>
 								{orderFilter === "upcoming-break" && nextBreakStart?.start && (
-									<span className='mt-1 block text-xs text-text-light dark:text-zinc-400'>
+									<span className='mt-1 block text-xs text-muted dark:text-zinc-400'>
 										Következő szünet kezdete: {nextBreakStart.start}
 									</span>
 								)}
 							</div>
 							<div className='flex flex-wrap items-center justify-end gap-2'>
 								<div className='flex items-center gap-2 rounded-full border border-[#e6e0db] bg-white px-2 py-1 dark:border-zinc-700 dark:bg-zinc-800'>
-									<span className='hidden text-[11px] font-semibold text-text-light dark:text-zinc-400 md:block'>Rendezés</span>
+									<span className='hidden text-[11px] font-semibold text-muted dark:text-zinc-400 md:block'>Rendezés</span>
 									<select
 										value={sortKey}
 										onChange={(event) => setSortKey(event.target.value as OrderSortKey)}
-										className='rounded-full border border-transparent bg-transparent px-2 py-1 text-xs font-semibold text-text-dark outline-none focus:border-primary/40 dark:text-zinc-100 dark:[color-scheme:dark]'
+										className='rounded-full border border-transparent bg-transparent px-2 py-1 text-xs font-semibold text-foreground outline-none focus:border-primary/40 dark:text-zinc-100 dark:scheme:dark'
 									>
-										<option className='bg-white text-text-dark dark:bg-zinc-900 dark:text-zinc-100' value='created-at'>Létrehozás ideje</option>
-										<option className='bg-white text-text-dark dark:bg-zinc-900 dark:text-zinc-100' value='order-number'>Rendelésszám</option>
-										<option className='bg-white text-text-dark dark:bg-zinc-900 dark:text-zinc-100' value='pickup-time'>Átvételi idő</option>
-										<option className='bg-white text-text-dark dark:bg-zinc-900 dark:text-zinc-100' value='status'>Státusz</option>
-										<option className='bg-white text-text-dark dark:bg-zinc-900 dark:text-zinc-100' value='username'>Felhasználó</option>
-										<option className='bg-white text-text-dark dark:bg-zinc-900 dark:text-zinc-100' value='total-price'>Összeg</option>
+										<option className='bg-white text-foreground dark:bg-zinc-900 dark:text-zinc-100' value='created-at'>Létrehozás ideje</option>
+										<option className='bg-white text-foreground dark:bg-zinc-900 dark:text-zinc-100' value='order-number'>Rendelésszám</option>
+										<option className='bg-white text-foreground dark:bg-zinc-900 dark:text-zinc-100' value='pickup-time'>Átvételi idő</option>
+										<option className='bg-white text-foreground dark:bg-zinc-900 dark:text-zinc-100' value='status'>Státusz</option>
+										<option className='bg-white text-foreground dark:bg-zinc-900 dark:text-zinc-100' value='username'>Felhasználó</option>
+										<option className='bg-white text-foreground dark:bg-zinc-900 dark:text-zinc-100' value='total-price'>Összeg</option>
 									</select>
 									<button
 										type='button'
 										onClick={() => setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))}
-										className='rounded-full border border-[#e6e0db] px-2.5 py-1 text-xs font-semibold text-text-dark transition-colors hover:bg-bg-light dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-700'
+										className='rounded-full border border-[#e6e0db] px-2.5 py-1 text-xs font-semibold text-foreground transition-colors hover:bg-surface dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-700'
 									>
 										{sortDirection === "asc" ? "Növekvő" : "Csökkenő"}
 									</button>
@@ -390,7 +383,7 @@ export const AdminOrdersPage = () => {
 								<button
 									type='button'
 									onClick={handleSoundToggle}
-									className='shrink-0 cursor-pointer rounded-full border border-[#e6e0db] bg-white px-3 py-1.5 text-xs font-semibold text-text-dark transition-colors hover:bg-bg-light dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'>
+									className='shrink-0 cursor-pointer rounded-full border border-[#e6e0db] bg-white px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-surface dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'>
 									<span className='inline-flex items-center gap-1'>
 										<span className='material-symbols-outlined text-base leading-none'>
 											{isSoundEnabled ? "notifications_active" : "notifications_off"}
@@ -402,7 +395,7 @@ export const AdminOrdersPage = () => {
 									type='button'
 									onClick={refreshOrders}
 									disabled={isRefreshingOrders}
-									className='shrink-0 cursor-pointer rounded-full border border-[#e6e0db] bg-white px-3 py-1.5 text-xs font-semibold text-text-dark transition-colors hover:bg-bg-light disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'>
+									className='shrink-0 cursor-pointer rounded-full border border-[#e6e0db] bg-white px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'>
 									{isRefreshingOrders ? 'Frissítés...' : 'Frissítés'}
 								</button>
 								<button
@@ -412,7 +405,7 @@ export const AdminOrdersPage = () => {
 										"shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
 										(orderFilter === "upcoming-break"
 											? "border-primary bg-primary text-white"
-											: "border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-text-dark dark:text-zinc-200")
+											: "border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-foreground dark:text-zinc-200")
 									}>
 									Következő szünet
 								</button>
@@ -423,7 +416,7 @@ export const AdminOrdersPage = () => {
 										"shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
 										(orderFilter === "whole-day"
 											? "border-primary bg-primary text-white"
-											: "border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-text-dark dark:text-zinc-200")
+											: "border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-foreground dark:text-zinc-200")
 									}>
 									Egész nap
 								</button>
@@ -437,10 +430,10 @@ export const AdminOrdersPage = () => {
 							<LoadingState message='Rendelések betöltése...' />
 						) : sortedOrders.length === 0 ? (
 							<div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800'>
-								<span className='material-symbols-outlined text-3xl text-text-light dark:text-zinc-400'>
+								<span className='material-symbols-outlined text-3xl text-muted dark:text-zinc-400'>
 									receipt_long
 								</span>
-								<p className='mt-2 text-text-light dark:text-zinc-300 text-sm font-normal leading-normal text-center'>
+								<p className='mt-2 text-muted dark:text-zinc-300 text-sm font-normal leading-normal text-center'>
 									{orderFilter === "upcoming-break"
 										? nextBreakStart
 											? "Jelenleg nincs rendelés a következő szünetig."
@@ -451,7 +444,7 @@ export const AdminOrdersPage = () => {
 									type='button'
 									onClick={refreshOrders}
 									disabled={isRefreshingOrders}
-									className='mt-4 rounded-lg border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-text-dark transition-colors hover:bg-bg-light disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800'>
+									className='mt-4 rounded-lg border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800'>
 									{isRefreshingOrders ? 'Frissítés...' : 'Frissítés'}
 								</button>
 							</div>
@@ -478,7 +471,7 @@ export const AdminOrdersPage = () => {
 							handleAlertClick();
 						}
 					}}
-					className='fixed right-4 top-4 z-[100] max-w-sm cursor-pointer rounded-xl border border-emerald-200 bg-white px-4 py-3 text-emerald-800 shadow-2xl dark:border-emerald-900 dark:bg-zinc-900 dark:text-emerald-200'
+					className='fixed right-4 top-4 z-100 max-w-sm cursor-pointer rounded-xl border border-emerald-200 bg-white px-4 py-3 text-emerald-800 shadow-2xl dark:border-emerald-900 dark:bg-zinc-900 dark:text-emerald-200'
 				>
 					<div className='flex items-start gap-2 pr-6'>
 						<span className='material-symbols-outlined text-lg'>notifications_active</span>
@@ -500,3 +493,4 @@ export const AdminOrdersPage = () => {
 		</div>
 	);
 };
+

@@ -75,7 +75,7 @@ function App() {
   }, [isLoggedIn, me, dispatch])
 
   return (
-    <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark font-display antialiased">
+    <div className="flex min-h-screen flex-col bg-secondary dark:bg-secondary-dark font-display antialiased">
       <main className="flex-1">
       <Routes>
         <Route
@@ -88,7 +88,7 @@ function App() {
             !isLoggedIn ? (
               <Navigate to="/login" replace />
             ) : isMeLoading ? (
-              <div className="min-h-screen bg-background-light dark:bg-background-dark" />
+              <div className="min-h-screen bg-secondary dark:bg-secondary-dark" />
             ) : me == null ? (
               <Navigate to="/login" replace />
             ) : (
@@ -110,7 +110,7 @@ function App() {
           element={isLoggedIn ? <ProfilePage /> : <Navigate to="/login" replace />}
         />
         <Route
-          path="/checkout"
+          path="/cart"
           element={
             isLoggedIn
               ? (cart.items.length > 0 ? <CheckoutPage /> : <Navigate to="/main" replace />)
@@ -123,7 +123,7 @@ function App() {
             !isLoggedIn ? (
               <Navigate to="/login" replace />
             ) : isMeLoading ? (
-              <div className="min-h-screen bg-background-light dark:bg-background-dark" />
+              <div className="min-h-screen bg-secondary dark:bg-secondary-dark" />
             ) : me == null ? (
               <Navigate to="/login" replace />
             ) : me.role === 'admin' ? (
@@ -139,7 +139,7 @@ function App() {
             !isLoggedIn ? (
               <Navigate to="/login" replace />
             ) : isMeLoading ? (
-              <div className="min-h-screen bg-background-light dark:bg-background-dark" />
+              <div className="min-h-screen bg-secondary dark:bg-secondary-dark" />
             ) : me == null ? (
               <Navigate to="/login" replace />
             ) : me.role === 'admin' ? (
@@ -155,7 +155,7 @@ function App() {
             !isLoggedIn ? (
               <Navigate to="/login" replace />
             ) : isMeLoading ? (
-              <div className="min-h-screen bg-background-light dark:bg-background-dark" />
+              <div className="min-h-screen bg-secondary dark:bg-secondary-dark" />
             ) : me == null ? (
               <Navigate to="/login" replace />
             ) : <PostPaymentPage />
@@ -168,33 +168,33 @@ function App() {
       </Routes>
       </main>
       {location.pathname !== '/login' ? (
-        <footer className="border-t border-[#e6e0db] bg-white/95 px-4 py-3 text-xs font-medium text-text-light backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/95 dark:text-zinc-400 text-center">
+        <footer className="border-t border-[#e6e0db] bg-white/95 px-4 py-3 text-xs font-medium text-muted backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/95 dark:text-zinc-400 text-center">
           <div className="mx-auto flex w-full max-w-6xl items-center justify-center gap-4 sm:gap-6">
             <a
               target="_blank"
               rel="noreferrer"
               href="https://gyor-jedlik.cms.intezmeny.edir.hu/uploads/GYSZC_Jedlik_Anyos_Technikum_GDPR_Adatkezelesi_es_adatvedelmi_szabalyzat_hatalyos_2022_01_01_tol_fca5c07ebb.pdf"
-              className="transition-colors hover:text-text-dark dark:hover:text-zinc-200"
+              className="transition-colors hover:text-foreground dark:hover:text-zinc-200"
             >
               Adatkezelés
             </a>
             <button
               type="button"
               onClick={() => navigate('/main')}
-              className="transition-colors hover:text-text-dark dark:hover:text-zinc-200"
+              className="transition-colors hover:text-foreground dark:hover:text-zinc-200"
             >
               Vissza a főoldalra
             </button>
             <button
               type="button"
               onClick={handleFooterLogout}
-              className="transition-colors hover:text-text-dark dark:hover:text-zinc-200"
+              className="transition-colors hover:text-foreground dark:hover:text-zinc-200"
             >
               Kijelentkezés
             </button>
           </div>
           <br />
-          <h1 className='text-lg'>{new Date().getFullYear()} BKM</h1>
+          <h1>{new Date().getFullYear()} BKM - Jedlik</h1>
         </footer>
       ) : null}
     </div>
@@ -202,3 +202,4 @@ function App() {
 }
 
 export default App
+

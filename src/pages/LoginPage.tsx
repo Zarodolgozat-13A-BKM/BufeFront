@@ -48,16 +48,28 @@ const LoginPage = () => {
         try {
             const token = await Login({ username, password }, rememberMe)
             if (token) {
-                dispatch(login({ token}))
+                dispatch(login({ token }))
                 const user: MeModel = await GetMe()
                 dispatch(setMe({ me: user }))
             }
         } catch (err: unknown) {
             console.error('Login failed:', err)
-            if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
-                setError('Nem sikerült csatlakozni a szerverhez. Ellenőrizd az internetkapcsolatot vagy próbáld újra később.');
+            const maybeAxiosError = err as {
+                response?: { status?: number }
+                code?: string
+                message?: string
+            }
+            const status = maybeAxiosError?.response?.status
+
+            if (status === 400 || status === 401 || status === 403 || status === 422) {
+                setError('Hibás felhasználónév vagy jelszó.')
+            } else if (
+                maybeAxiosError?.code === 'ERR_NETWORK' ||
+                (err instanceof TypeError && err.message.includes('Failed to fetch'))
+            ) {
+                setError('Nem sikerült csatlakozni a szerverhez. Ellenőrizd az internetkapcsolatot vagy próbáld újra később.')
             } else {
-                setError('Hibás bejelentkezési adatok vagy szerverhiba.');
+                setError('Szerverhiba történt. Kérlek próbáld újra később.')
             }
         } finally {
             setLoading(false)
@@ -75,8 +87,8 @@ const LoginPage = () => {
                 <div className="absolute inset-0 bg-black/30"></div>
             </div>
 
-                    <div className="relative z-10 w-full max-w-md px-4 py-6 sm:max-w-lg sm:px-6 sm:py-8 lg:max-w-5xl lg:scale-[1.5] lg:origin-center">
-                        <div className="backdrop-blur-lg bg-bg-overlay-light/10 dark:bg-black/10 rounded-xl p-5 sm:p-6 shadow-2xl border border-white/20">
+            <div className="relative z-10 w-full max-w-md px-4 py-6 sm:max-w-lg sm:px-6 sm:py-8 lg:max-w-5xl lg:scale-[1.5] lg:origin-center">
+                <div className="backdrop-blur-lg bg-surface-overlay/10 dark:bg-black/10 rounded-xl p-5 sm:p-6 shadow-2xl border border-white/20">
                     <div className="text-center mb-8">
                         <div className="w-16 h-16 rounded-lg bg-primary flex items-center justify-center shadow-lg mb-4 mx-auto">
                             <span className="material-symbols-outlined text-white text-4xl">restaurant</span>
@@ -148,7 +160,7 @@ const LoginPage = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-all active:scale-95 mt-4"
+                            className="w-full bg-primary hover:bg-primary-strong disabled:opacity-50 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-all active:scale-95 mt-4"
                         >
                             {loading ? 'Bejelentkezés...' : 'Bejelentkezés'}
                         </button>
@@ -158,6 +170,7 @@ const LoginPage = () => {
                 <div className="text-center mt-8 text-slate-600 dark:text-slate-400">
                     <div className="flex justify-center gap-6 text-xs uppercase tracking-widest text-slate-400 dark:text-slate-400">
                         <a target='_blank' href="https://gyor-jedlik.cms.intezmeny.edir.hu/uploads/GYSZC_Jedlik_Anyos_Technikum_GDPR_Adatkezelesi_es_adatvedelmi_szabalyzat_hatalyos_2022_01_01_tol_fca5c07ebb.pdf" className="hover:text-slate-700 dark:hover:text-slate-300">Adatkezelés</a>
+                        <h1>{new Date().getFullYear()} BKM - Jedlik</h1>
                     </div>
                 </div>
             </div>

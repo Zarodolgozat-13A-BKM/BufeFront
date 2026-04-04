@@ -30,6 +30,14 @@ const MainPage = () => {
     const [headerHeight, setHeaderHeight] = useState(0)
     const scrollContainerRef = useRef<HTMLDivElement | null>(null)
     const stickyHeaderRef = useRef<HTMLDivElement | null>(null)
+    const featuredScrollRef = useRef<HTMLDivElement | null>(null)
+    const dragStateRef = useRef({
+        isDragging: false,
+        startX: 0,
+        scrollLeft: 0,
+        hasMoved: false,
+    })
+    const suppressFeaturedClickRef = useRef(false)
 
     useEffect(() => {
         let isDisposed = false
@@ -110,7 +118,7 @@ const MainPage = () => {
 
 
     const handleCheckout = () => {
-        navigate('/checkout')
+        navigate('/cart')
     }
 
     const totalItems = useMemo(
@@ -204,8 +212,51 @@ const MainPage = () => {
         scrollToCategory(null)
     }
 
+    const handleFeaturedMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+        const container = featuredScrollRef.current
+        if (!container) return
+
+        dragStateRef.current.isDragging = true
+        dragStateRef.current.startX = event.pageX - container.offsetLeft
+        dragStateRef.current.scrollLeft = container.scrollLeft
+        dragStateRef.current.hasMoved = false
+        container.style.cursor = 'grabbing'
+    }
+
+    const handleFeaturedMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+        const container = featuredScrollRef.current
+        if (!container || !dragStateRef.current.isDragging) return
+
+        event.preventDefault()
+        const x = event.pageX - container.offsetLeft
+        const walk = x - dragStateRef.current.startX
+        if (Math.abs(walk) > 4) {
+            dragStateRef.current.hasMoved = true
+        }
+        container.scrollLeft = dragStateRef.current.scrollLeft - walk
+    }
+
+    const stopFeaturedDragging = () => {
+        const container = featuredScrollRef.current
+        if (dragStateRef.current.hasMoved) {
+            suppressFeaturedClickRef.current = true
+        }
+        dragStateRef.current.isDragging = false
+        if (container) {
+            container.style.cursor = 'grab'
+        }
+    }
+
+    const handleFeaturedClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (!suppressFeaturedClickRef.current) return
+
+        event.preventDefault()
+        event.stopPropagation()
+        suppressFeaturedClickRef.current = false
+    }
+
     return (
-        <div className="mx-auto bg-background-light dark:bg-zinc-900 font-display antialiased ">
+        <div className="mx-auto max-w-[90%] bg-secondary dark:bg-zinc-900 font-display antialiased ">
             <div
                 ref={scrollContainerRef}
                 className="mainpage-scrollbar relative flex w-full flex-col overflow-y-auto overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800"
@@ -223,7 +274,7 @@ const MainPage = () => {
                 </div>
             </div>
 
-            <div aria-hidden style={{ height: headerHeight }} className="min-h-[160px]" />
+            <div aria-hidden style={{ height: headerHeight }} className="min-h-40" />
 
             <main className="flex-1 mx-auto w-full pb-8 md:pb-10">
             {isLoadingMainData ? (
@@ -234,11 +285,19 @@ const MainPage = () => {
                 <>
             <div className="pt-5 pb-2">
                 <div className="flex items-center justify-between px-4 lg:px-6 2xl:px-8 pb-3">
-                    <h2 className="text-text-dark dark:text-white tracking-tight text-xl sm:text-2xl lg:text-3xl 2xl:text-4xl font-bold leading-tight">
+                    <h2 className="text-foreground dark:text-white tracking-tight text-xl sm:text-2xl lg:text-3xl 2xl:text-4xl font-bold leading-tight">
                         <span className="text-primary"></span> Napi válogatás
                     </h2>
                 </div>
-                <div className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 lg:px-6 2xl:px-8 gap-3 lg:gap-4 2xl:gap-5 no-scrollbar">
+                <div
+                    ref={featuredScrollRef}
+                    onMouseDown={handleFeaturedMouseDown}
+                    onMouseMove={handleFeaturedMouseMove}
+                    onMouseUp={stopFeaturedDragging}
+                    onMouseLeave={stopFeaturedDragging}
+                    onClickCapture={handleFeaturedClickCapture}
+                    className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 lg:px-6 2xl:px-8 gap-3 lg:gap-4 2xl:gap-5 no-scrollbar cursor-grab"
+                >
                     {featuredItems.map((item: ItemModel) => (
                         <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={itemQuantityById[item.id] ?? 0} onUpdateQuantity={updateQuantity}/>
                     ))
@@ -249,11 +308,11 @@ const MainPage = () => {
             <div className="h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 lg:mx-6 2xl:mx-8 my-2"></div>
 
             {hasSearchQuery && !hasAnySearchResults ? (
-                <div className="px-4 pt-8 ">
-                    <div className="rounded-2xl border border-[#e6e0db] bg-bg-light px-5 py-6 text-center dark:border-zinc-700 dark:bg-zinc-800/60 max-w-2xl mx-auto">
-                        <span className="material-symbols-outlined text-3xl text-text-light dark:text-zinc-400">search_off</span>
-                        <h3 className="mt-3 text-base sm:text-lg lg:text-xl font-bold text-text-dark dark:text-white">Nincs találat erre: "{searchQuery.trim()}"</h3>
-                        <p className="mt-2 text-sm text-text-light dark:text-zinc-400">
+                <div className="px-4 pt-8">
+                    <div className="mx-auto max-w-2xl rounded-2xl border border-[#e6e0db] bg-white px-5 py-6 text-center dark:border-zinc-700 dark:bg-zinc-900">
+                        <span className="material-symbols-outlined text-3xl text-muted dark:text-zinc-400">search_off</span>
+                        <h3 className="mt-3 text-base sm:text-lg lg:text-xl font-bold text-foreground dark:text-white">Nincs találat erre: "{searchQuery.trim()}"</h3>
+                        <p className="mt-2 text-sm text-muted dark:text-zinc-400">
                             Próbálj rövidebb keresést, vagy válassz egy ajánlott kategóriát.
                         </p>
                         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
@@ -273,7 +332,7 @@ const MainPage = () => {
                                         setActiveCategory(category)
                                         scrollToCategory(category.id)
                                     }}
-                                    className="rounded-full border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-text-dark transition-colors hover:border-primary/45 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+                                    className="rounded-full border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:border-primary/45 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
                                 >
                                     {category.name}
                                 </button>
@@ -288,7 +347,7 @@ const MainPage = () => {
 
                 return (
                     <div key={category.id} data-category-id={category.id} className="flex flex-col gap-3 lg:gap-4 2xl:gap-6 px-4 lg:px-6 2xl:px-8 pt-6 scroll-mt-32">
-                        <h3 className="text-text-dark dark:text-white text-base sm:text-lg lg:text-xl 2xl:text-2xl font-bold leading-tight flex items-center gap-2 mt-5">
+                        <h3 className="text-foreground dark:text-white text-base sm:text-lg lg:text-xl 2xl:text-2xl font-bold leading-tight flex items-center gap-2 mt-5">
                             <span className="w-1 h-5 bg-primary rounded-full"></span>
                             {category.name}
                         </h3>
