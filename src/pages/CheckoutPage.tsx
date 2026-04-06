@@ -36,13 +36,6 @@ const isAfterOrderCutoff = (date: Date) => {
 	return currentMinutes >= cutoffMinutes;
 };
 
-const waitForNextPaint = () =>
-	new Promise<void>((resolve) => {
-		window.requestAnimationFrame(() => {
-			window.requestAnimationFrame(() => resolve());
-		});
-	});
-
 export const CheckoutPage = () => {
 	const navigate = useNavigate();
 	const [ringing, setRinging] = useState<Ringlist[]>([]);
@@ -84,7 +77,6 @@ export const CheckoutPage = () => {
 
 		setIsSubmittingOrder(true);
 		const submitStartedAt = Date.now();
-		await waitForNextPaint();
 		try {
 			const createdAt = new Date();
 			const orderData: OrderCreateModel = {
@@ -123,7 +115,10 @@ export const CheckoutPage = () => {
 				navigate("/payment", { state: { clientSecret }, replace: true });
 			}
 			else{
-				navigate("/orderstatus", {replace: true})
+				navigate("/orderstatus", {
+					replace: true,
+					state: { clearCartOnArrival: true },
+				})
 			}
 		} catch (error) {
 			console.error("Failed to create order:", error);

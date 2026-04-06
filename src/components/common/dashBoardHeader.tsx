@@ -3,13 +3,34 @@ import { Link } from "react-router";
 import { Logout as ApiLogout } from '../../services/APIservice'
 import { getThemePreference, toggleTheme, type ThemePreference } from "../../services/themeService";
 import { logout } from "../../store/authSlice";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 const DashBoardHeader = ({ name, showAdmin, backTo }: { name: ReactNode; showAdmin: boolean; backTo: string }) => {
     const [theme, setTheme] = useState<ThemePreference>(() => getThemePreference())
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const mobileMenuRef = useRef<HTMLDivElement | null>(null)
     const me = useAppSelector((state) => state.auth.me)
     const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        if (!isMobileMenuOpen) return
+
+        const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+            const target = event.target as Node | null
+            if (!target) return
+            if (mobileMenuRef.current?.contains(target)) return
+            setIsMobileMenuOpen(false)
+        }
+
+        window.addEventListener('mousedown', handleOutsideClick)
+        window.addEventListener('touchstart', handleOutsideClick)
+
+        return () => {
+            window.removeEventListener('mousedown', handleOutsideClick)
+            window.removeEventListener('touchstart', handleOutsideClick)
+        }
+    }, [isMobileMenuOpen])
+
     const handleThemeToggle = () => {
         setTheme(toggleTheme())
         setIsMobileMenuOpen(false)
@@ -48,7 +69,7 @@ const DashBoardHeader = ({ name, showAdmin, backTo }: { name: ReactNode; showAdm
                         <span className="material-symbols-outlined">logout</span>
                     </button>
                 </div>
-                <div className="absolute right-0 md:hidden">
+                <div ref={mobileMenuRef} className="absolute right-0 md:hidden">
                     <button
                         type="button"
                         aria-label="Menü megnyitása"

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { OrderModel } from "../Models/OrderModel";
 import DashBoardHeader from "../components/common/dashBoardHeader";
-import { GetAllActiveOrders, GetOneOrder } from "../services/OrderService";
+import { GetAllOrders, GetOneOrder } from "../services/OrderService";
 import {
   subscribeToOrderUpdates,
   type OrderRealtimeEvent,
 } from "../services/OrderRealtimeService";
-import { useAppSelector } from "../store/hooks";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { clearCart } from "../store/cartSlice";
 import { Link, useLocation } from "react-router";
 import BlinkingCircle from "../components/common/blinker";
 import { LoadingState } from "../components/common/LoadingState";
@@ -14,6 +15,7 @@ import { LoadingState } from "../components/common/LoadingState";
 type PostPaymentLocationState = {
   paymentSuccess?: boolean;
   paidAt?: number;
+  clearCartOnArrival?: boolean;
 };
 
 const ORDER_STATUS = {
@@ -100,6 +102,7 @@ const getDisplayedPreparingStatus = (status: string): string => {
 
 const PostPaymentPage = () => {
   const location = useLocation();
+  const dispatch = useAppDispatch();
   const locationState =
     (location.state as PostPaymentLocationState | null) ?? null;
   const me = useAppSelector((state) => state.auth.me);
@@ -116,6 +119,14 @@ const PostPaymentPage = () => {
   const audioUnlockedRef = useRef(false);
   const previousStatusByOrderIdRef = useRef<Map<number, string>>(new Map());
   const hasHydratedStatusesRef = useRef(false);
+
+  useEffect(() => {
+    if (!locationState?.clearCartOnArrival) {
+      return;
+    }
+
+    dispatch(clearCart());
+  }, [dispatch, locationState?.clearCartOnArrival]);
 
   const getAudioContext = useCallback(() => {
     if (audioContextRef.current) {
@@ -166,7 +177,7 @@ const PostPaymentPage = () => {
   }, [getAudioContext]);
 
   const refreshOpenOrders = useCallback(async () => {
-    const allOrders = await GetAllActiveOrders();
+    const allOrders = await GetAllOrders();
     setOrders(allOrders.filter(isOpenOrder));
   }, []);
 
@@ -653,10 +664,10 @@ const PostPaymentPage = () => {
                               Hozzáfűzésed
                             </span>
                             <div className="mb-4 rounded-xl bg-white px-5 py-4 text-center shadow-md">
-                              <p className="mt-1 text-2xl font-black tracking-[0.25em] text-[#6d3900]">
+                              <p className="mt-1 text-sm font-black tracking-[0.25em] text-[#6d3900]">
                                 {selectedOrder.comment
                                   ? selectedOrder.comment
-                                      .slice(0, 20)
+                                      .slice(0, 200)
                                       .toUpperCase()
                                   : "N/A"}
                               </p>
