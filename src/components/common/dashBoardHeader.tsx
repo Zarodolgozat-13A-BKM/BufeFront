@@ -5,7 +5,15 @@ import { getThemePreference, toggleTheme, type ThemePreference } from "../../ser
 import { logout } from "../../store/authSlice";
 import { useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-const DashBoardHeader = ({ name, showAdmin, backTo }: { name: ReactNode; showAdmin: boolean; backTo: string }) => {
+type DashBoardHeaderProps = {
+    name: ReactNode
+    showAdmin: boolean
+    backTo: string
+    isSoundEnabled?: boolean
+    onSoundToggle?: () => void | Promise<void>
+}
+
+const DashBoardHeader = ({ name, showAdmin, backTo, isSoundEnabled, onSoundToggle }: DashBoardHeaderProps) => {
     const [theme, setTheme] = useState<ThemePreference>(() => getThemePreference())
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const mobileMenuRef = useRef<HTMLDivElement | null>(null)
@@ -35,6 +43,13 @@ const DashBoardHeader = ({ name, showAdmin, backTo }: { name: ReactNode; showAdm
         setTheme(toggleTheme())
         setIsMobileMenuOpen(false)
     }
+
+    const handleSoundToggle = async () => {
+        if (!onSoundToggle) return
+        await onSoundToggle()
+        setIsMobileMenuOpen(false)
+    }
+
     const handleLogout = async () => {
         try {
             await ApiLogout()
@@ -55,6 +70,19 @@ const DashBoardHeader = ({ name, showAdmin, backTo }: { name: ReactNode; showAdm
                     {showAdmin && me?.role === 'admin' ?
                         <Link to="/orders" className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors"><span className="material-symbols-outlined">order_play</span></Link> :""
                     }
+                    {typeof isSoundEnabled === 'boolean' && onSoundToggle ? (
+                        <button
+                            type="button"
+                            onClick={handleSoundToggle}
+                            aria-label={isSoundEnabled ? "Értesítési hang kikapcsolása" : "Értesítési hang bekapcsolása"}
+                            title={isSoundEnabled ? "Értesítési hang be" : "Értesítési hang ki"}
+                            className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+                        >
+                            <span className="material-symbols-outlined">
+                                {isSoundEnabled ? 'notifications_active' : 'notifications_off'}
+                            </span>
+                        </button>
+                    ) : null}
                     <button
                         onClick={handleThemeToggle}
                         aria-label="Téma váltása"
@@ -94,6 +122,19 @@ const DashBoardHeader = ({ name, showAdmin, backTo }: { name: ReactNode; showAdm
                                 <span className="material-symbols-outlined text-[20px]">order_play</span>
                                 Rendeléskezelő
                             </Link>
+                        ) : null}
+
+                        {typeof isSoundEnabled === 'boolean' && onSoundToggle ? (
+                            <button
+                                type="button"
+                                onClick={handleSoundToggle}
+                                className="text-foreground dark:text-white flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-zinc-800"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">
+                                    {isSoundEnabled ? 'notifications_active' : 'notifications_off'}
+                                </span>
+                                {isSoundEnabled ? 'Hang be' : 'Hang ki'}
+                            </button>
                         ) : null}
 
                         <button

@@ -340,7 +340,13 @@ export const AdminOrdersPage = () => {
 	return (
 		<div className='bg-secondary dark:bg-zinc-950 font-display antialiased'>
 			<div className='relative mx-auto flex w-full flex-col overflow-x-auto shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800'>
-				<DashBoardHeader name='Rendelések' showAdmin={false} backTo={"/admin"} />
+				<DashBoardHeader
+					name='Rendelések'
+					showAdmin={false}
+					backTo={"/admin"}
+					isSoundEnabled={isSoundEnabled}
+					onSoundToggle={handleSoundToggle}
+				/>
 				<div className='p-4 md:p-6 space-y-5'>
 					<div className='w-full rounded-xl border border-[#e6e0db] bg-surface dark:bg-zinc-800/50 dark:border-zinc-800 p-4 md:p-5'>
 						<div className='flex flex-wrap items-start justify-between gap-3 mb-4'>
@@ -380,17 +386,6 @@ export const AdminOrdersPage = () => {
 										{sortDirection === "asc" ? "Növekvő" : "Csökkenő"}
 									</button>
 								</div>
-								<button
-									type='button'
-									onClick={handleSoundToggle}
-									className='shrink-0 cursor-pointer rounded-full border border-[#e6e0db] bg-white px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-surface dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'>
-									<span className='inline-flex items-center gap-1'>
-										<span className='material-symbols-outlined text-base leading-none'>
-											{isSoundEnabled ? "notifications_active" : "notifications_off"}
-										</span>
-										{isSoundEnabled ? "Hang be" : "Hang ki"}
-									</span>
-								</button>
 								<button
 									type='button'
 									onClick={refreshOrders}

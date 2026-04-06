@@ -100,6 +100,8 @@ const getDisplayedPreparingStatus = (status: string): string => {
   return toStatusKey(status) === "atadva" ? "Várakozik" : toStatusKey(status) === "fizetesre var" ? "" : "Készül";
 };
 
+const POST_PAYMENT_ALERT_SOUND_KEY = "post-payment-alert-sound";
+
 const PostPaymentPage = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
@@ -115,6 +117,10 @@ const PostPaymentPage = () => {
     Boolean(locationState?.paymentSuccess),
   );
   const [isLiveConnected, setIsLiveConnected] = useState(false);
+  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.localStorage.getItem(POST_PAYMENT_ALERT_SOUND_KEY) !== "off";
+  });
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioUnlockedRef = useRef(false);
   const previousStatusByOrderIdRef = useRef<Map<number, string>>(new Map());
@@ -144,6 +150,10 @@ const PostPaymentPage = () => {
   }, []);
 
   const playReadyAlert = useCallback(async () => {
+    if (!isSoundEnabled) {
+      return;
+    }
+
     const context = getAudioContext();
     if (!context) {
       return;
@@ -174,7 +184,19 @@ const PostPaymentPage = () => {
     } catch (error) {
       console.error("Failed to play ready alert sound:", error);
     }
-  }, [getAudioContext]);
+  }, [getAudioContext, isSoundEnabled]);
+
+  const handleSoundToggle = useCallback(async () => {
+    const nextEnabled = !isSoundEnabled;
+    setIsSoundEnabled(nextEnabled);
+
+    if (nextEnabled) {
+      const context = getAudioContext();
+      if (context && context.state !== "running") {
+        await context.resume();
+      }
+    }
+  }, [getAudioContext, isSoundEnabled]);
 
   const refreshOpenOrders = useCallback(async () => {
     const allOrders = await GetAllOrders();
@@ -257,6 +279,14 @@ const PostPaymentPage = () => {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(
+      POST_PAYMENT_ALERT_SOUND_KEY,
+      isSoundEnabled ? "on" : "off",
+    );
+  }, [isSoundEnabled]);
+
+  useEffect(() => {
     const unlockAudio = () => {
       const context = getAudioContext();
       if (!context) {
@@ -305,12 +335,12 @@ const PostPaymentPage = () => {
       return previousStatus !== "atveheto" && nextStatus === "atveheto";
     });
 
-    if (hasTransitionedToReady && audioUnlockedRef.current) {
+    if (hasTransitionedToReady && audioUnlockedRef.current && isSoundEnabled) {
       void playReadyAlert();
     }
 
     previousStatusByOrderIdRef.current = currentStatuses;
-  }, [playReadyAlert, sortedOrders]);
+  }, [isSoundEnabled, playReadyAlert, sortedOrders]);
 
   useEffect(() => {
     if (!showPaymentSuccess) return;
@@ -424,6 +454,8 @@ const PostPaymentPage = () => {
           name="Rendelés követése"
           showAdmin={false}
           backTo="/me"
+          isSoundEnabled={isSoundEnabled}
+          onSoundToggle={handleSoundToggle}
         />
 
         <div className="p-4 md:p-6">
@@ -616,11 +648,6 @@ const PostPaymentPage = () => {
                           <div>
                             <p className="font-bold text-foreground dark:text-white">
                               Készítés alatt
-                            </p>
-                            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-muted dark:text-zinc-400">
-                              {getDisplayedPreparingStatus(
-                                selectedOrder.status,
-                              )}
                             </p>
                           </div>
                         </div>
