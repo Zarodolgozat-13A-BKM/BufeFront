@@ -350,7 +350,7 @@ const AdminPage = () => {
         <DashBoardHeader showAdmin={true} backTo="/main" name={(<div className="rounded-xl p-4">
           <div className="flex flex-wrap items-center justify-between">
             <div>
-              <h1 className="text-2xl text-center font-bold tracking-tight text-foreground dark:text-white mb-5">Admin Dashboard</h1>
+              <h1 className="text-2xl text-center font-bold tracking-tight text-foreground dark:text-white mb-5">Admin felület</h1>
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
                 <button onClick={() => { setCategoryTableVisible(true); setItemTableVisible(false); setOrderTableVisible(false) }} className={"shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " + (CategoryTableVisible ? "border-primary bg-primary text-white" : "border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-foreground dark:text-zinc-200")}>
                   Kategóriák
