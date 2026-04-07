@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactElement } from 'react'
 import MainPage from './pages/MainPage'
 import { useAppDispatch, useAppSelector } from './store/hooks'
 import LoginPage from './pages/LoginPage'
@@ -23,6 +23,40 @@ function App() {
   const { isLoggedIn } = useAppSelector((state) => state.auth)
   const me = useAppSelector((state) => state.auth.me)
   const [isMeLoading, setIsMeLoading] = useState(false)
+  const authLoadingFallback = <div className="min-h-screen bg-secondary dark:bg-secondary-dark" />
+
+  const requireLogin = (element: ReactElement) => {
+    return isLoggedIn ? element : <Navigate to="/login" replace />
+  }
+
+  const requireHydratedUser = (element: ReactElement) => {
+    if (!isLoggedIn) {
+      return <Navigate to="/login" replace />
+    }
+    if (isMeLoading) {
+      return authLoadingFallback
+    }
+    if (me == null) {
+      return <Navigate to="/login" replace />
+    }
+    return element
+  }
+
+  const requireAdmin = (element: ReactElement) => {
+    if (!isLoggedIn) {
+      return <Navigate to="/login" replace />
+    }
+    if (isMeLoading) {
+      return authLoadingFallback
+    }
+    if (me == null) {
+      return <Navigate to="/login" replace />
+    }
+    if (me.role !== 'admin') {
+      return <Navigate to="/me" replace />
+    }
+    return element
+  }
 
   const handleFooterLogout = async () => {
     try {
@@ -80,17 +114,7 @@ function App() {
         <Routes>
           <Route
             path='/payment'
-            element={
-              !isLoggedIn ? (
-                <Navigate to="/login" replace />
-              ) : isMeLoading ? (
-                <div className="min-h-screen bg-secondary dark:bg-secondary-dark" />
-              ) : me == null ? (
-                <Navigate to="/login" replace />
-              ) : (
-                <PaymentPage />
-              )
-            }
+            element={requireHydratedUser(<PaymentPage />)}
           />
           <Route
             path="/login"
@@ -98,12 +122,12 @@ function App() {
           />
           <Route
             path="/main"
-            element={isLoggedIn ? <MainPage /> : <Navigate to="/login" replace />}
+            element={requireLogin(<MainPage />)}
           />
 
           <Route
             path="/me"
-            element={isLoggedIn ? me?.role !== 'admin' ? <ProfilePage /> : <Navigate to="/admin" replace /> : <Navigate to="/login" replace />}
+            element={requireHydratedUser(me?.role !== 'admin' ? <ProfilePage /> : <Navigate to="/admin" replace />)}
           />
           <Route
             path="/"
@@ -111,76 +135,23 @@ function App() {
           />
           <Route
             path="/cart"
-            element={
-              isLoggedIn
-                ? <CheckoutPage />
-                : <Navigate to="/login" replace />
-            }
+            element={requireLogin(<CheckoutPage />)}
           />
           <Route
             path="/admin"
-            element={
-              !isLoggedIn ? (
-                <Navigate to="/login" replace />
-              ) : isMeLoading ? (
-                <div className="min-h-screen bg-secondary dark:bg-secondary-dark" />
-              ) : me == null ? (
-                <Navigate to="/login" replace />
-              ) : me.role === 'admin' ? (
-                <AdminPage />
-              ) : (
-                <Navigate to="/me" replace />
-              )
-            }
+            element={requireAdmin(<AdminPage />)}
           />
           <Route
-            path='/orders'
-            element={
-              !isLoggedIn ? (
-                <Navigate to="/login" replace />
-              ) : isMeLoading ? (
-                <div className="min-h-screen bg-secondary dark:bg-secondary-dark" />
-              ) : me == null ? (
-                <Navigate to="/login" replace />
-              ) : me.role === 'admin' ? (
-                <AdminOrdersPage />
-              ) : (
-                <Navigate to="/me" replace />
-              )
-            }
+            path='/admin/orders'
+            element={requireAdmin(<AdminOrdersPage />)}
           />
           <Route
             path='/admin/pos'
-            element={
-              !isLoggedIn ? (
-                <Navigate to="/login" replace />
-              ) : isMeLoading ? (
-                <div className="min-h-screen bg-secondary dark:bg-secondary-dark" />
-              ) : me == null ? (
-                <Navigate to="/login" replace />
-              ) : me.role === 'admin' ? (
-                <AdminPosPage />
-              ) : (
-                <Navigate to="/me" replace />
-              )
-            }
+            element={requireAdmin(<AdminPosPage />)}
           />
           <Route
             path='/orderstatus'
-            element={
-              !isLoggedIn ? (
-                <Navigate to="/login" replace />
-              ) : isMeLoading ? (
-                <div className="min-h-screen bg-secondary dark:bg-secondary-dark" />
-              ) : me == null ? (
-                <Navigate to="/login" replace />
-              ) :
-                me.role === 'admin' ? (
-                  <AdminOrdersPage />
-                ) : (
-                  <PostPaymentPage />
-                )
-            }
+            element={requireHydratedUser(me?.role === 'admin' ? <AdminOrdersPage /> : <PostPaymentPage />)}
           />
           <Route
             path="*"
