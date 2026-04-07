@@ -69,7 +69,7 @@ const DashBoardHeader = ({ name, showAdmin = false,showPos = false, backTo, isSo
                 <h2 className="text-foreground dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">{name}</h2>
                 <div className="absolute right-0 hidden shrink-0 items-center gap-1 md:flex">
                     {showAdmin && me?.role === 'admin' ?
-                        <Link to="/admin/orders" className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-surface-hover dark:hover:bg-zinc-800 rounded-full transition-colors"><span className="material-symbols-outlined">order_play</span></Link> :""
+                        <Link to="/orders" className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-surface-hover dark:hover:bg-zinc-800 rounded-full transition-colors"><span className="material-symbols-outlined">order_play</span></Link> :""
                     }
                     {showPos && me?.role === 'admin' ?
                         <Link to="/admin/pos" className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-surface-hover dark:hover:bg-zinc-800 rounded-full transition-colors"><span className="material-symbols-outlined">point_of_sale</span></Link> :""
@@ -117,25 +117,26 @@ const DashBoardHeader = ({ name, showAdmin = false,showPos = false, backTo, isSo
                     {isMobileMenuOpen ? (
                         <div className="absolute right-0 top-12 z-30 w-56 rounded-xl border border-[#e6e0db] bg-white p-2 shadow-lg dark:border-zinc-700 dark:bg-zinc-900 md:hidden">
                             {showAdmin && me?.role === 'admin' ? (
+                                <>
                                     <Link
-                                        to="/admin/orders"
+                                        to="/orders"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                         className="text-foreground dark:text-white flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-300 dark:hover:bg-zinc-800"
                                     >
                                         <span className="material-symbols-outlined text-[20px]">order_play</span>
                                         Rendeléskezelő
                                     </Link>
-                                ) : null}
-                                {showPos && me?.role === 'admin' ? (
                                     <Link
                                         to="/admin/pos"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                         className="text-foreground dark:text-white flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-300 dark:hover:bg-zinc-800"
-                                        >
+                                    >
                                         <span className="material-symbols-outlined text-[20px]">point_of_sale</span>
                                         Pult mód
                                     </Link>
-                                ) : null}
+                                </>
+                            ) : null}
+
                             {typeof isSoundEnabled === 'boolean' && onSoundToggle ? (
                                 <button
                                     type="button"
