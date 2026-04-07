@@ -11,8 +11,8 @@ interface MenuItemCardProps {
 
 export const MenuItemCard = ({ item, quantity, showModal, onUpdateQuantity }: MenuItemCardProps) => {
   return (
-    <div className={"relative flex items-center gap-4 bg-white dark:bg-zinc-800/50 p-3 rounded-xl border border-[#e6e0db] dark:border-zinc-800 transition-all cursor-pointer overflow-hidden" + (item.is_active ? "" : " opacity-50 cursor-not-allowed")}>
-      <button onClick={() => item.is_active? showModal(item) : null} className="cursor-pointer text-white text-4xl absolute inset-0 z-10 rounded-xl bg-black/40 opacity-0 hover:opacity-100 focus-visible:opacity-100 transition-opacity flex items-center justify-center">
+    <div data-cy={`main-item-card-${item.id}`} className={"relative flex items-center gap-4 bg-white dark:bg-zinc-800/50 p-3 rounded-xl border border-[#e6e0db] dark:border-zinc-800 transition-all cursor-pointer overflow-hidden" + (item.is_active ? "" : " opacity-50 cursor-not-allowed")}>
+      <button data-cy={`main-item-open-${item.id}`} onClick={() => item.is_active? showModal(item) : null} className="cursor-pointer text-white text-4xl absolute inset-0 z-10 rounded-xl bg-black/40 opacity-0 hover:opacity-100 focus-visible:opacity-100 transition-opacity flex items-center justify-center">
         <span className="text-6xl text-white font-light material-symbols-outlined">add</span>
       </button>
 
@@ -30,7 +30,7 @@ export const MenuItemCard = ({ item, quantity, showModal, onUpdateQuantity }: Me
       <div className="flex flex-1 flex-col h-24 justify-between py-1">
         <div>
           <div className="flex justify-between">
-            <h4 className="text-foreground dark:text-white font-bold text-base line-clamp-1">
+            <h4 data-cy={`main-item-name-${item.id}`} className="text-foreground dark:text-white font-bold text-base line-clamp-1">
               {item.name}
             </h4>
           </div>

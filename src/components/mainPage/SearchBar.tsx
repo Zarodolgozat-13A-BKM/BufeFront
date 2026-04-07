@@ -12,7 +12,7 @@ export const SearchBar = ({ value, onChange, placeholder = "Nem találsz valamit
           <div className="text-muted dark:text-zinc-400 flex items-center justify-center pl-4 pr-2">
             <span className="material-symbols-outlined">search</span>
           </div>
-          <input className="flex w-full min-w-0 flex-1 resize-none overflow-hidden bg-transparent text-foreground dark:text-white focus:outline-0 focus:ring-0 border-none h-full placeholder:text-muted dark:placeholder:text-zinc-500 px-2 text-base font-normal leading-normal" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
+          <input data-cy="main-search-input" className="flex w-full min-w-0 flex-1 resize-none overflow-hidden bg-transparent text-foreground dark:text-white focus:outline-0 focus:ring-0 border-none h-full placeholder:text-muted dark:placeholder:text-zinc-500 px-2 text-base font-normal leading-normal" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
         </div>
       </label>
     </div>

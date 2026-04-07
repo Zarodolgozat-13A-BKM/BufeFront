@@ -43,7 +43,7 @@ const LoginPage = () => {
 		return valid;
 	};
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setError(null);
 		if (!validateFields()) {
@@ -114,7 +114,9 @@ const LoginPage = () => {
 						<p className='text-slate-400'>Töltsd fel magad a tanuláshoz.</p>
 					</div>
 					{error && (
-						<div className='rounded-lg mb-4 p-3 bg-error/10 text-error-text border border-error/20 text-sm font-semibold'>
+						<div
+							data-cy='login-error'
+							className='rounded-lg mb-4 p-3 bg-error/10 text-error-text border border-error/20 text-sm font-semibold'>
 							{error}
 						</div>
 					)}
@@ -132,6 +134,7 @@ const LoginPage = () => {
 									alt='profile'
 								/>
 								<input
+									data-cy='login-username'
 									type='text'
 									placeholder='vezetéknév.keresztnév'
 									value={username}
@@ -146,7 +149,9 @@ const LoginPage = () => {
 								/>
 							</div>
 							{usernameError && (
-								<p className='mt-1 text-xs font-medium text-red-300'>
+								<p
+									data-cy='login-username-error'
+									className='mt-1 text-xs font-medium text-red-300'>
 									{usernameError}
 								</p>
 							)}
@@ -163,6 +168,7 @@ const LoginPage = () => {
 									alt='lock'
 								/>
 								<input
+									data-cy='login-password'
 									type={showPassword ? 'text' : 'password'}
 									placeholder='••••••••'
 									value={password}
@@ -183,28 +189,15 @@ const LoginPage = () => {
 								/>
 							</div>
 							{passwordError && (
-								<p className='mt-1 text-xs font-medium text-red-300'>
+								<p
+									data-cy='login-password-error'
+									className='mt-1 text-xs font-medium text-red-300'>
 									{passwordError}
 								</p>
 							)}
 						</div>
-						{/* <div className="flex items-center">
-                            <label className="flex items-center cursor-pointer relative" htmlFor="check-2">
-                                <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="peer h-5 w-5 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-slate-300 checked:bg-slate-800 checked:border-slate-800" id="check-2" />
-                                <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"
-                                        stroke="currentColor" strokeWidth={1}>
-                                        <path fillRule="evenodd"
-                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                            clipRule="evenodd"></path>
-                                    </svg>
-                                </span>
-                            </label>
-                            <label className="cursor-pointer ml-2 text-slate-200 text-sm leading-5" htmlFor="check-2">
-                                Emlékezz rám
-                            </label>
-                        </div> */}
 						<button
+							data-cy='login-submit'
 							type='submit'
 							disabled={loading}
 							className='w-full bg-primary hover:bg-primary-strong disabled:opacity-50 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-all active:scale-95 mt-4'>

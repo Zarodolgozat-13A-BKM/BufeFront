@@ -44,11 +44,12 @@ export const TopAppBar = ({
           <button
             type="button"
             onClick={onCartClick}
-            className="inline-flex min-h-10 items-center gap-2.5 rounded-full border border-primary/35 bg-primary/10 px-4 py-2 text-primary shadow-sm hover:bg-surface-hover hover:text-primary-strong transition-colors"
+            data-cy="main-cart-summary"
+            className="group inline-flex min-h-10 items-center gap-2.5 rounded-full border border-primary/35 bg-primary/10 px-4 py-2 text-primary shadow-sm hover:bg-primary/15 hover:text-primary-strong transition-colors"
             aria-label="Kosár megnyitása"
           >
             <span className="text-sm font-bold">{totalItems}</span>
-            <span className="material-symbols-outlined text-lg">shopping_cart</span>
+            <span className="material-symbols-outlined text-lg transition-colors group-hover:text-primary-strong">shopping_cart</span>
             <span className="text-sm font-semibold">{totalPrice}Ft</span>
           </button>
         ) : null}

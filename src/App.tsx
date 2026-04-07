@@ -22,7 +22,7 @@ function App() {
   const navigate = useNavigate()
   const { isLoggedIn } = useAppSelector((state) => state.auth)
   const me = useAppSelector((state) => state.auth.me)
-  const [isMeLoading, setIsMeLoading] = useState(false)
+  const [isMeLoading, setIsMeLoading] = useState(() => isLoggedIn && me == null)
   const authLoadingFallback = <div className="min-h-screen bg-secondary dark:bg-secondary-dark" />
 
   const requireLogin = (element: ReactElement) => {

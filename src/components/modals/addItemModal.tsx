@@ -116,6 +116,7 @@ const handleAddToCart = () => { if (qty === 0) { dispatch(addItemToCart({ item, 
 
 					<div className='flex gap-3 pt-4'>
 						<button
+							data-cy='add-item-confirm'
 							onClick={handleAddToCart}
 							disabled={!item.is_active}
 							className={`flex-1 py-3 rounded-lg font-bold bg-black text-white transition-all ${item.is_active ? 'bg-primary hover:bg-primary-strong active:scale-[0.98]' : 'bg-gray-400 cursor-not-allowed'}`}>
@@ -131,6 +132,7 @@ const handleAddToCart = () => { if (qty === 0) { dispatch(addItemToCart({ item, 
 							)}
 						</button>
 						<button
+							data-cy='add-item-cancel'
 							onClick={onClose}
 							className='px-6 py-3 rounded-lg font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors'>
 							Mégse

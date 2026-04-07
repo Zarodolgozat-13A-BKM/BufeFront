@@ -190,7 +190,6 @@ const MainPage = () => {
 
             scrollContainer.scrollTo({ top: Math.max(0, containerScrollTop), behavior: 'smooth' })
 
-            // Fallback for cases where page scroll is driven by window instead of the inner container.
             const windowScrollTop = targetElement.getBoundingClientRect().top + window.scrollY - topOffset - 8
             window.scrollTo({ top: Math.max(0, windowScrollTop), behavior: 'smooth' })
         })
@@ -262,6 +261,7 @@ const MainPage = () => {
         <div className="mx-auto max-w-[90%] bg-surface dark:bg-zinc-900 font-display antialiased ">
             <div
                 ref={scrollContainerRef}
+                data-cy="main-scroll-container"
                 className="mainpage-scrollbar relative flex w-full flex-col overflow-y-auto overflow-x-hidden shadow-sm bg-surface dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800"
             >
                 <div className=" fixed top-0 left-0 right-0 z-50">
@@ -286,9 +286,9 @@ const MainPage = () => {
                         </div>
                     ) : (
 
-                        <>
+                        <div data-cy="mainpage-content" >
                             {featuredItems.length > 0 && (
-                            <div className="pt-5 pb-2">
+                            <div data-cy="main-featured-section" className="pt-5 pb-2">
                                 <div className="flex items-center justify-between px-4 lg:px-6 2xl:px-8 pb-3">
                                     <h2 className="text-foreground dark:text-white tracking-tight text-xl sm:text-2xl lg:text-3xl 2xl:text-4xl font-bold leading-tight">
                                         <span className="text-primary"></span> Napi válogatás
@@ -314,7 +314,7 @@ const MainPage = () => {
 
                             {hasSearchQuery && !hasAnySearchResults ? (
                                 <div className="px-4 pt-8">
-                                    <div className="mx-auto max-w-2xl rounded-2xl border border-[#e6e0db] bg-surface dark:bg-zinc-900">
+                                    <div data-cy="main-no-results" className="mx-auto max-w-2xl rounded-2xl border border-[#e6e0db] bg-surface dark:bg-zinc-900">
                                         <span className="material-symbols-outlined text-3xl text-muted dark:text-zinc-400">search_off</span>
                                         <h3 className="mt-3 text-base sm:text-lg lg:text-xl font-bold text-foreground dark:text-white">Nincs találat erre: "{searchQuery.trim()}"</h3>
                                         <p className="mt-2 text-sm text-muted dark:text-zinc-400">
@@ -322,6 +322,7 @@ const MainPage = () => {
                                         </p>
                                         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                                             <button
+                                                data-cy="main-search-reset"
                                                 type="button"
                                                 onClick={resetSearch}
                                                 className="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
@@ -351,8 +352,8 @@ const MainPage = () => {
                                 if (filteredItems.length === 0) return <span key={category.id} />
 
                                 return (
-                                    <div key={category.id} data-category-id={category.id} className="flex flex-col gap-3 lg:gap-4 2xl:gap-6 px-4 lg:px-6 2xl:px-8 pt-6 scroll-mt-32">
-                                        <h3 className="text-foreground dark:text-white text-base sm:text-lg lg:text-xl 2xl:text-2xl font-bold leading-tight flex items-center gap-2 mt-5">
+                                    <div key={category.id} data-category-id={category.id} data-cy={`main-category-section-${category.id}`} className="flex flex-col gap-3 lg:gap-4 2xl:gap-6 px-4 lg:px-6 2xl:px-8 pt-6 scroll-mt-32">
+                                        <h3 data-cy={`main-category-name-${category.id}`} className="text-foreground dark:text-white text-base sm:text-lg lg:text-xl 2xl:text-2xl font-bold leading-tight flex items-center gap-2 mt-5">
                                             <span className="w-1 h-5 bg-primary rounded-full"></span>
                                             {category.name}
                                         </h3>
@@ -365,7 +366,7 @@ const MainPage = () => {
                                 )
                             })}
                             <div className="h-6"></div>
-                        </>
+                        </div>
                     )}
                 </main>
                 <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? (itemQuantityById[selectedItem.id] ?? 0) : 0} />

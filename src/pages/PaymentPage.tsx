@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe, type StripeElementsOptions } from '@stripe/stripe-js';
 import { Link, useLocation } from 'react-router';
@@ -8,13 +8,12 @@ import { GetStripeKey } from '../services/OrderService';
 
 type PaymentLocationState = { clientSecret?: string };
 
-const stripePromise = loadStripe(await GetStripeKey());
-
 const PaymentPage = () => {
 	const location = useLocation();
 	const state = (location.state as PaymentLocationState | null) ?? null;
 	const clientSecret = state?.clientSecret?.trim() ?? '';
 	const resolvedTheme = getResolvedTheme(getThemePreference());
+	const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
 
 	const elementsOptions = useMemo<StripeElementsOptions>(
 		() => ({
@@ -23,6 +22,22 @@ const PaymentPage = () => {
 		}),
 		[clientSecret, resolvedTheme],
 	);
+	useEffect(() => {
+		let isCancelled = false;
+
+		const loadStripeKey = async () => {
+			const key = await GetStripeKey();
+			if (!isCancelled) {
+				setStripePromise(loadStripe(key));
+			}
+		};
+
+		void loadStripeKey();
+
+		return () => {
+			isCancelled = true;
+		};
+	}, []);
 
 	if (!clientSecret) {
 		return (
@@ -40,6 +55,14 @@ const PaymentPage = () => {
 						Ugrás a kosárhoz
 					</Link>
 				</div>
+			</div>
+		);
+	}
+
+	if (!stripePromise) {
+		return (
+			<div className='bg-secondary dark:bg-secondary-dark flex items-center justify-center p-4'>
+				<p className='text-muted dark:text-zinc-300 text-sm'>Fizetés előkészítése...</p>
 			</div>
 		);
 	}
