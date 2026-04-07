@@ -5,7 +5,7 @@ interface MenuItemCardProps {
   item: ItemModel
   quantity: number
   showModal: (item: ItemModel) => void
-  onUpdateQuantity: (itemId: number, delta: number) => void
+  onUpdateQuantity: (item: ItemModel, delta: number) => void
 
 }
 
@@ -47,8 +47,8 @@ export const MenuItemCard = ({ item, quantity, showModal, onUpdateQuantity }: Me
           >
             {item.is_active? <QuantityControl
               quantity={quantity}
-              onDecrease={() => onUpdateQuantity(item.id, -1)}
-              onIncrease={() => onUpdateQuantity(item.id, 1)}
+              onDecrease={() => onUpdateQuantity(item, -1)}
+              onIncrease={() => onUpdateQuantity(item, 1)}
               size="sm"
               shadowClassName="shadow-md"
             />: null}

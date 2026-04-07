@@ -9,9 +9,9 @@ export const GetAllItems = async () => {
   return response.data;
 };
 
-export const GetOneItem = async (id: string) => {
-  const response = await api.get<ItemModel>(`/items/${id}`);
-  return response.data;
+export const GetOneItem = async (id: number) => {
+  const response = await api.get(`/items/${id}`);
+  return response.data.item as ItemModel;
 };
 
 export const CreateItem = async (postData: ItemPayload) => {
@@ -24,22 +24,22 @@ export const CreateItem = async (postData: ItemPayload) => {
   }
 };
 
-export const UpdateItem = async (id: string, postData: FormData) => {
+export const UpdateItem = async (id: number, postData: FormData) => {
   const response = await fileapi.patch<ItemModel>(`/items/${id}`, postData);
   return response.data;
 };
 
-export const DeleteItem = async (id: string) => {
+export const DeleteItem = async (id: number) => {
   const response = await api.delete<ItemModel>(`/items/${id}`);
   return response.data;
 };
 
-export const ToggleActive = async (id: string) => {
+export const ToggleActive = async (id: number) => {
   const response = await api.post(`/items/${id}/toggle-active`);
   return response.data;
 };
 
-export const ToggleFeatured = async (id: string) => {
+export const ToggleFeatured = async (id: number) => {
   const response = await api.post(`/items/${id}/toggle-featured`);
   return response.data;
 };

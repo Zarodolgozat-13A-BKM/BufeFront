@@ -1,4 +1,4 @@
-
+﻿
 import type {
   OrderCreateModel,
   OrderModel,
@@ -27,6 +27,11 @@ export const GetOneOrder = async (id: string) => {
   const response = await api.get<OrderModel>(`/orders/${id}`);
   return response.data;
 };
+
+export const GetStripeKey = async () => {
+  const response = await api.get<{ key: string }>(`/payment/stripe-key`);
+  return response.data.key;
+}
 
 export const CreateOrder = async (postData: OrderCreateModel) => {
   if (import.meta.env.DEV) {

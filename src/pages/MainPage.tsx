@@ -95,20 +95,24 @@ const MainPage = () => {
         return map
     }, [cartItems])
 
-    const updateQuantity = (itemId: number, delta: number) => {
+    const updateQuantity = (item: ItemModel, delta: number) => {
         if (delta === 0) return
 
-        const currentQuantity = itemQuantityById[itemId] ?? 0
-
+        const currentQuantity = itemQuantityById[item.id] ?? 0
+        if(currentQuantity + delta > item.inventory_count)
+        {
+            alert(`Nincs elég készlet a "${item.name}"-ból. Jelenleg ${item.inventory_count} darab elérhető.`)
+            return
+        }
         if (currentQuantity === 0 && delta > 0) {
-            const itemToAdd = allItems.find((item) => item.id === itemId)
+            const itemToAdd = allItems.find((foundItem) => foundItem.id === item.id)
             if (!itemToAdd) return
 
             dispatch(addItemToCart({ item: itemToAdd, quantity: delta }))
             return
         }
 
-        dispatch(updateItemQuantity({ item_id: itemId, delta }))
+        dispatch(updateItemQuantity({ item_id: item.id, delta }))
     }
 
     const showModal = (item: ItemModel) => {

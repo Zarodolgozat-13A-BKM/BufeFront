@@ -39,14 +39,12 @@ const OrdersTable = ({
     const [openStatusId, setOpenStatusId] = useState<number | null>(null)
     const [pendingStatusId, setPendingStatusId] = useState<number | null>(null)
     const popoverRef = useRef<HTMLDivElement>(null)
-    const [expandedRowKeys, setExpandedRowKeys] = useState<Set<number>>(new Set())
+    const [expandedRowKeys, setExpandedRowKeys] = useState<number[]>([])
 
     const toggleExpanded = (id: number) => {
         setExpandedRowKeys((prev) => {
-            const next = new Set(prev)
-            if (next.has(id)) next.delete(id)
-            else next.add(id)
-            return next
+            if (prev.includes(id)) return prev.filter((rowId) => rowId !== id)
+            return [...prev, id]
         })
     }
 
@@ -91,7 +89,7 @@ const OrdersTable = ({
                 </thead>
                 <tbody>
                     {sortedOrders.map((order: OrderModel) => {
-                        const isExpanded = expandedRowKeys.has(order.id)
+                        const isExpanded = expandedRowKeys.includes(order.id)
                         return (
                         <Fragment key={order.id}>
                         <tr

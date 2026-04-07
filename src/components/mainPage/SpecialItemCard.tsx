@@ -6,7 +6,7 @@ interface SpecialItemCardProps {
   item: ItemModel
   showModal: (item: ItemModel) => void
   quantity: number
-  onUpdateQuantity: (itemId: number, delta: number) => void
+  onUpdateQuantity: (item: ItemModel, delta: number) => void
 }
 
 export const SpecialItemCard = ({ item, showModal, quantity, onUpdateQuantity }: SpecialItemCardProps) => {
@@ -42,8 +42,8 @@ export const SpecialItemCard = ({ item, showModal, quantity, onUpdateQuantity }:
             {item.is_active ? (
               <QuantityControl
                 quantity={quantity}
-                onDecrease={() => onUpdateQuantity(item.id, -1)}
-                onIncrease={() => onUpdateQuantity(item.id, 1)}
+                onDecrease={() => onUpdateQuantity(item, -1)}
+                onIncrease={() => onUpdateQuantity(item, 1)}
                 size="sm"
                 shadowClassName="shadow-lg"
               />

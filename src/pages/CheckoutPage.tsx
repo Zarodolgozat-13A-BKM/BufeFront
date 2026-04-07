@@ -1,19 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
+import { isAxiosError } from "axios";
 import { GetRinging } from "../services/RingService";
 import type { Ringlist } from "../Models/RingModel";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Link, useNavigate } from "react-router";
-import { removeItemFromCart, updateItemQuantity } from "../store/cartSlice";
-import type { OrderCreateModel } from "../Models/OrderModel";
+import { clearCart, removeItemFromCart, updateItemQuantity } from "../store/cartSlice";
+import type { CartItemModel, OrderCreateModel } from "../Models/OrderModel";
 import { CreateOrder } from "../services/OrderService";
 import { QuantityControl } from "../components/mainPage/QuantityControl";
+import { GetOneItem } from "../services/ItemService";
 
-const TAX_RATE = 0.27;
-// const SERVICE_FEE_RATE = 0.1;
-const SUBTOTAL_RATE = 1 - TAX_RATE; // 0.73
-const ORDER_CUTOFF_HOUR = 14;
-const ORDER_CUTOFF_MINUTE = 30;
-const MIN_SPINNER_DISPLAY_MS = 400;
+const dph = 0.27;
+const DealerIncome = 1 - dph;
+const SpinnerDisplTime = 400;
 
 type CheckoutOrderResponse = {
 	client_secret?: string;
@@ -30,24 +29,24 @@ const formatLocalDateTime = (date: Date): string => {
 	return `${formatLocalDate(date)}T${toTwoDigits(date.getHours())}:${toTwoDigits(date.getMinutes())}`;
 };
 
-const isAfterOrderCutoff = (date: Date) => {
-	const currentMinutes = date.getHours() * 60 + date.getMinutes();
-	const cutoffMinutes = ORDER_CUTOFF_HOUR * 60 + ORDER_CUTOFF_MINUTE;
-	return currentMinutes >= cutoffMinutes;
-};
-
 export const CheckoutPage = () => {
 	const navigate = useNavigate();
+	const { me } = useAppSelector((state) => state.auth);
 	const [ringing, setRinging] = useState<Ringlist[]>([]);
 	const [comment, setComment] = useState<string>("");
 	const [isCommentOpen, setIsCommentOpen] = useState(false);
 	const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
 	const [checkoutError, setCheckoutError] = useState<string | null>(null);
 	const [deliverydatetime, setDeliverydatetime] = useState<string>("");
-	const [now, setNow] = useState(() => new Date());
+	const [isAvailabilityLoaded, setIsAvailabilityLoaded] = useState(false);
+	const [isOrderingClosedByBackend, setIsOrderingClosedByBackend] = useState(true);
 	const dispatch = useAppDispatch();
 	const cart = useAppSelector((state) => state.cart.cart);
-	const orderingClosed = import.meta.env.PROD && isAfterOrderCutoff(now);
+	const orderingClosed = import.meta.env.PROD && isAvailabilityLoaded && isOrderingClosedByBackend;
+	const orderingUnavailable = import.meta.env.PROD && (!isAvailabilityLoaded || orderingClosed);
+	const orderingClosedMessage = orderingClosed
+		? "A rendelésfelvétel szünetel. Kérünk, gyere vissza később."
+		: null;
 
 	const isPast = (endTime: string) => {
 		const [h, m] = endTime.split(":").map((s) => Number(s));
@@ -56,8 +55,12 @@ export const CheckoutPage = () => {
 		return endDate.getTime() <= now.getTime();
 	};
 
-	const updateQuantity = (itemId: number, delta: number) => {
-		dispatch(updateItemQuantity({ item_id: itemId, delta }));
+	const updateQuantity = (item: CartItemModel, delta: number) => {
+		if (item.quantity && delta + item.quantity > item.inventory_count) {
+			alert(`Nincs elég készlet a "${item.name}"-ból. Jelenleg ${item.inventory_count} darab elérhető.`)
+			return
+		}
+		dispatch(updateItemQuantity({ item_id: item.id, delta }));
 	};
 
 	const removeItem = (itemId: number) => {
@@ -70,8 +73,13 @@ export const CheckoutPage = () => {
 
 		setCheckoutError(null);
 
-		if (import.meta.env.PROD && isAfterOrderCutoff(new Date())) {
-			setCheckoutError("Rendelést 14:30 után már nem lehet leadni.");
+		if (import.meta.env.PROD && !isAvailabilityLoaded) {
+			setCheckoutError("A rendelhetőség ellenőrzése folyamatban van. Kérlek várj egy pillanatot.");
+			return;
+		}
+
+		if (orderingClosed) {
+			setCheckoutError(orderingClosedMessage ?? "A rendelésfelvétel jelenleg szünetel. Kérünk, gyere vissza később.");
 			return;
 		}
 
@@ -106,27 +114,48 @@ export const CheckoutPage = () => {
 				}
 
 				const elapsed = Date.now() - submitStartedAt;
-				if (elapsed < MIN_SPINNER_DISPLAY_MS) {
+				if (elapsed < SpinnerDisplTime) {
 					await new Promise((resolve) =>
-						window.setTimeout(resolve, MIN_SPINNER_DISPLAY_MS - elapsed),
+						window.setTimeout(resolve, SpinnerDisplTime - elapsed),
 					);
 				}
 
 				navigate("/payment", { state: { clientSecret }, replace: true });
 			}
-			else{
+			else {
 				navigate("/orderstatus", {
 					replace: true,
-					state: { clearCartOnArrival: true },
 				})
+				dispatch(clearCart());
 			}
 		} catch (error) {
-			console.error("Failed to create order:", error);
-			if (error instanceof Error) {
-				setCheckoutError(error.message);
-			} else {
-				setCheckoutError("A rendelés leadása nem sikerült. Kérlek próbáld újra.");
+			let errorMessage = "A rendelés leadása nem sikerült. Kérlek próbáld újra.";
+
+			if (isAxiosError(error) && error.response?.data?.message) {
+				errorMessage = error.response.data.message;
+				if (error.response.status === 400) {
+					cart.items.forEach((item) => {
+						GetOneItem(item.id)
+							.then((data) => {
+								if (item.quantity && data.inventory_count < item.quantity) {
+									if (data.inventory_count === 0) {
+										confirm(`Sajnáljuk, de a "${item.name}" nevű termék jelenleg nincs készleten. Szeretnéd eltávolítani a kosárból?`) && dispatch(removeItemFromCart(item.id))
+
+									}
+									else {
+										confirm(`Sajnáljuk, de a "${item.name}" nevű termékből már csak ${data.inventory_count} darab elérhető. Szeretnéd frissíteni a kosárban lévő mennyiséget?`) &&
+											dispatch(updateItemQuantity({ item_id: item.id, delta: data.inventory_count - item.quantity! }))
+									}
+								}
+							})
+					})
+				}
+			} else if (error instanceof Error) {
+				errorMessage = error.message;
 			}
+
+			console.error("Failed to create order:", errorMessage);
+			setCheckoutError(errorMessage);
 			setIsSubmittingOrder(false);
 		}
 	};
@@ -137,24 +166,19 @@ export const CheckoutPage = () => {
 				const data = await GetRinging();
 				if (data && Array.isArray(data.breaks) && data.breaks.length > 0) {
 					setRinging(data.breaks);
+					setIsOrderingClosedByBackend(false);
 				} else {
-					console.error("Failed to fetch ringing data: unexpected response shape", data);
+					setRinging([]);
+					setIsOrderingClosedByBackend(true);
 				}
+				setIsAvailabilityLoaded(true);
 			} catch (error) {
-				console.error("Failed to fetch ringing data:", error);
+				console.error(error);
+				setIsOrderingClosedByBackend(true);
+				setIsAvailabilityLoaded(true);
 			}
 		};
 		fetchRinging();
-	}, []);
-
-	useEffect(() => {
-		const intervalId = window.setInterval(() => {
-			setNow(new Date());
-		}, 30000);
-
-		return () => {
-			window.clearInterval(intervalId);
-		};
 	}, []);
 
 	const baseTotal = useMemo(
@@ -194,10 +218,10 @@ export const CheckoutPage = () => {
 										className='appearance-none w-full rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal text-foreground dark:text-white transition-shadow outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20'>
 										{orderingClosed ? (
 											<option value='' disabled>
-												Ma már nem lehet rendelni, kérlek térj vissza holnap!
+												{orderingClosedMessage ?? "Ma már nem lehet rendelni, kérlek térj vissza holnap!"}
 											</option>
 										) : null}
-										<option value='' disabled={orderingClosed}>
+										<option value='' disabled={orderingUnavailable}>
 											Lehető leghamarabb
 										</option>
 										{ringing.map((ring, index) => {
@@ -232,7 +256,7 @@ export const CheckoutPage = () => {
 										schedule
 									</span>
 									<p className='text-red-700 dark:text-red-400 text-sm font-medium leading-normal'>
-										A rendelésfelvétel mára véget ért (14:30). Kérünk, gyere vissza holnap.
+										{orderingClosedMessage ?? "A rendelésfelvétel jelenleg szünetel. Kérünk, gyere vissza később."}
 									</p>
 								</div>
 							)}
@@ -311,8 +335,8 @@ export const CheckoutPage = () => {
 												size='sm'
 
 												quantity={cartItem.quantity ?? 0}
-												onIncrease={() => updateQuantity(cartItem.id, 1)}
-												onDecrease={() => updateQuantity(cartItem.id, -1)}
+												onIncrease={() => updateQuantity(cartItem, 1)}
+												onDecrease={() => updateQuantity(cartItem, -1)}
 											/>
 										</div>
 										<button
@@ -331,13 +355,13 @@ export const CheckoutPage = () => {
 							<div className='flex justify-between items-center mb-1'>
 								<p className='text-muted dark:text-zinc-400 text-sm'>Részösszeg</p>
 								<p className='text-foreground dark:text-white text-sm font-medium'>
-									{Math.floor(baseTotal * SUBTOTAL_RATE)}Ft
+									{Math.floor(baseTotal * DealerIncome)}Ft
 								</p>
 							</div>
 							<div className='flex justify-between items-center mb-3'>
 								<p className='text-muted dark:text-zinc-400 text-sm'>Adó</p>
 								<p className='text-foreground dark:text-white text-sm font-medium'>
-									{Math.ceil(baseTotal * TAX_RATE)}Ft
+									{Math.ceil(baseTotal * dph)}Ft
 								</p>
 							</div>
 							<hr className='pt-4 pb-4 text-muted' />
@@ -362,56 +386,79 @@ export const CheckoutPage = () => {
 							{checkoutError}
 						</div>
 					) : null}
-					<div className='flex gap-5'>
-					<button
-						onClick={() => handleCheckout(true)}
-						disabled={orderingClosed || isSubmittingOrder}
-						className={
-							"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " +
-							(orderingClosed
-								? "bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
-								: isSubmittingOrder
-									? "bg-primary/90 text-white cursor-wait"
-									: "bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]")
-						}>
-						{isSubmittingOrder ? (
-							<>
-								<span
-									className='inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-r-transparent'
-									aria-hidden='true'></span>
-								<span>Rendelés feldolgozása...</span>
-							</>
-						) : (
-							<>
-								<span>Fizetés átvételkor</span>
-							</>
-						)}
-					</button>
-					<button
-						onClick={() => handleCheckout(false)}
-						disabled={orderingClosed || isSubmittingOrder}
-						className={
-							"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " +
-							(orderingClosed
-								? "bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
-								: isSubmittingOrder
-									? "bg-primary/90 text-white cursor-wait"
-									: "bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]")
-						}>
-						{isSubmittingOrder ? (
-							<>
-								<span
-									className='inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-r-transparent'
-									aria-hidden='true'></span>
-								<span>Rendelés feldolgozása...</span>
-							</>
-						) : (
-							<>
-								<span>Bankkártyás fizetés</span>
-							</>
-						)}
-					</button>
+					{me?.role !== "admin" ? (
+						<div className='flex gap-5'>
+							<button
+								onClick={() => handleCheckout(true)}
+								disabled={orderingUnavailable || isSubmittingOrder}
+								className={
+									"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " +
+									(orderingUnavailable
+										? "bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
+										: isSubmittingOrder
+											? "bg-primary/90 text-white cursor-wait"
+											: "bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]")
+								}>
+								{isSubmittingOrder ? (
+									<>
+										<span
+											className='inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-r-transparent'
+											aria-hidden='true'></span>
+										<span>Rendelés feldolgozása...</span>
+									</>
+								) : (
+									<>
+										<span>Fizetés átvételkor</span>
+									</>
+								)}
+							</button>
+							<button
+								onClick={() => handleCheckout(false)}
+								disabled={orderingUnavailable || isSubmittingOrder}
+								className={
+									"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " +
+									(orderingUnavailable
+										? "bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
+										: isSubmittingOrder
+											? "bg-primary/90 text-white cursor-wait"
+											: "bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]")
+								}>
+								{isSubmittingOrder ? (
+									<>
+										<span
+											className='inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-r-transparent'
+											aria-hidden='true'></span>
+										<span>Rendelés feldolgozása...</span>
+									</>
+								) : (
+									<>
+										<span>Bankkártyás fizetés</span>
+									</>
+								)}
+							</button>
 						</div>
+					) : (
+						<div className='flex gap-5'>
+							<button
+								onClick={() => handleCheckout(true)}
+								className={
+									"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]"
+								}>
+								{isSubmittingOrder ? (
+									<>
+										<span
+											className='inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-r-transparent'
+											aria-hidden='true'></span>
+										<span>Rendelés feldolgozása...</span>
+									</>
+								) : (
+									<>
+										<span>Rendelés felvétele</span>
+									</>
+								)}
+							</button>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

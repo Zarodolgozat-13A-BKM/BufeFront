@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { GetAllOrders } from "../services/OrderService"
+import { GetAllActiveOrders } from "../services/OrderService"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
 import { GetMe } from "../services/APIservice"
 import { setMe } from "../store/authSlice"
@@ -123,7 +123,7 @@ const ProfilePage = () => {
     const getOrders = async () => {
       setIsLoadingOrders(true)
       try {
-        const data = await GetAllOrders()
+        const data = await GetAllActiveOrders()
         setOrders(data)
       } catch (error) {
         console.error('Failed to fetch orders:', error)

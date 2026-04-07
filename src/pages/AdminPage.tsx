@@ -129,9 +129,9 @@ const AdminPage = () => {
     field: "is_active" | "is_featured",
   ) => {
     if (field === 'is_active') {
-      await ToggleActive(id.toString())
+      await ToggleActive(id)
     } else {
-      await ToggleFeatured(id.toString())
+      await ToggleFeatured(id)
     }
 
     const updated = categories.map((category) => ({
@@ -167,7 +167,7 @@ const AdminPage = () => {
 
   const handleItemDelete = async (item: ItemModel) => {
     if (confirm(`Biztosan törölni szeretnéd a(z) "${item.name}" terméket? Ez a művelet nem visszavonható!`)) {
-      await DeleteItem(item.id.toString())
+      await DeleteItem(item.id)
 
       const updated = categories.map((category) => ({
         ...category,
@@ -207,14 +207,14 @@ const AdminPage = () => {
       const updatesByItemId = new Map(
         categoryUpdates.map((item) => [item.id, item] as const),
       );
-      const existingItemIds = new Set(category.items.map((item) => item.id));
+      const existingItemIds = category.items.map((item) => item.id);
 
       const mergedItems = category.items.map(
         (item) => updatesByItemId.get(item.id) ?? item,
       );
 
       for (const item of categoryUpdates) {
-        if (!existingItemIds.has(item.id)) {
+        if (!existingItemIds.includes(item.id)) {
           mergedItems.push(item);
         }
       }

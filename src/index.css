@@ -20,7 +20,7 @@
   --color-secondary-dark: #18181b;
   --color-foreground: #1f2937;
   --color-muted: #6b7280;
-  --color-surface: #f8f7f6;
+  --color-surface: #ffedd4;
   --color-surface-overlay: rgba(248, 247, 246, 0.85);
   --font-display: "Plus Jakarta Sans", sans-serif;
   --color-white: #ffffff;
@@ -57,7 +57,6 @@
   --color-error: #dc2626;
   --color-error-text: #ed3737;
   --color-error-border: #fecaca;
-  --color-orange-100: #fed7aa;
   --color-orange-400: #fb923c;
   --color-orange-900: #7c2d12;
   --animate-fade-in: fade-in 220ms ease-out;

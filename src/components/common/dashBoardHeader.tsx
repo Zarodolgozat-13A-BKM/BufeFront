@@ -60,15 +60,15 @@ const DashBoardHeader = ({ name, showAdmin, backTo, isSoundEnabled, onSoundToggl
         setIsMobileMenuOpen(false)
     }
     return (
-        <div className="sticky top-0 z-20 border-b border-[#e6e0db] bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="sticky top-0 z-20 border-b border-[#e6e0db] bg-surface p-4 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="relative flex items-center justify-center">
-                <Link to={backTo} className="absolute left-0 text-foreground dark:text-white flex size-12 shrink-0 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+                <Link to={backTo} className="absolute left-0 text-foreground dark:text-white flex size-12 shrink-0 items-center justify-center cursor-pointer hover:bg-orange-300 dark:hover:bg-zinc-800 rounded-full transition-colors">
                     <span className="material-symbols-outlined">arrow_back</span>
                 </Link>
                 <h2 className="text-foreground dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">{name}</h2>
                 <div className="absolute right-0 hidden shrink-0 items-center gap-1 md:flex">
                     {showAdmin && me?.role === 'admin' ?
-                        <Link to="/orders" className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors"><span className="material-symbols-outlined">order_play</span></Link> :""
+                        <Link to="/orders" className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-orange-300 dark:hover:bg-zinc-800 rounded-full transition-colors"><span className="material-symbols-outlined">order_play</span></Link> :""
                     }
                     {typeof isSoundEnabled === 'boolean' && onSoundToggle ? (
                         <button
@@ -76,7 +76,7 @@ const DashBoardHeader = ({ name, showAdmin, backTo, isSoundEnabled, onSoundToggl
                             onClick={handleSoundToggle}
                             aria-label={isSoundEnabled ? "Értesítési hang kikapcsolása" : "Értesítési hang bekapcsolása"}
                             title={isSoundEnabled ? "Értesítési hang be" : "Értesítési hang ki"}
-                            className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+                            className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-orange-300 dark:hover:bg-zinc-800 rounded-full transition-colors"
                         >
                             <span className="material-symbols-outlined">
                                 {isSoundEnabled ? 'notifications_active' : 'notifications_off'}
@@ -87,13 +87,13 @@ const DashBoardHeader = ({ name, showAdmin, backTo, isSoundEnabled, onSoundToggl
                         onClick={handleThemeToggle}
                         aria-label="Téma váltása"
                         title="Téma váltása"
-                        className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+                        className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-orange-300 dark:hover:bg-zinc-800 rounded-full transition-colors"
                     >
                         <span className="material-symbols-outlined">
                             {theme === 'dark' ? 'dark_mode' : theme === 'light' ? 'light_mode' : 'computer'}
                         </span>
                     </button>
-                    <button onClick={() => { if (confirm('Kijelentkezés megerősítése')) { handleLogout() } }} className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+                    <button onClick={() => { if (confirm('Kijelentkezés megerősítése')) { handleLogout() } }} className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-orange-300 dark:hover:bg-zinc-800 rounded-full transition-colors">
                         <span className="material-symbols-outlined">logout</span>
                     </button>
                 </div>

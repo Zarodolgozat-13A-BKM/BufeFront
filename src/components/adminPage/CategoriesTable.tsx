@@ -43,7 +43,7 @@ const CategoriesTable = ({
     handleCatDelete
 
 }: CategoriesTableProps) => {
-    const [expandedRowKeys, setExpandedRowKeys] = useState<Set<string>>(new Set())
+    const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([])
 
     const getRowKey = (category: CategoryModel, index: number) => `${String(category.id)}-${category.name}-${index}`
 
@@ -60,31 +60,24 @@ const CategoriesTable = ({
 
     const toggleExpanded = (rowKey: string) => {
         setExpandedRowKeys((current) => {
-            const next = new Set(current)
-            if (next.has(rowKey)) {
-                next.delete(rowKey)
-            } else {
-                next.add(rowKey)
+            if (current.includes(rowKey)) {
+                return current.filter((key) => key !== rowKey)
             }
-            return next
+            return [...current, rowKey]
         })
     }
 
     const toggleAllExpanded = () => {
         setExpandedRowKeys((current) => {
-            if (current.size === sortedCategories.length && sortedCategories.length > 0) {
-                return new Set()
+            if (current.length === sortedCategories.length && sortedCategories.length > 0) {
+                return []
             }
 
-            const next = new Set<string>()
-            sortedCategories.forEach((category, index) => {
-                next.add(getRowKey(category, index))
-            })
-            return next
+            return sortedCategories.map((category, index) => getRowKey(category, index))
         })
     }
 
-    const allExpanded = sortedCategories.length > 0 && expandedRowKeys.size === sortedCategories.length
+    const allExpanded = sortedCategories.length > 0 && expandedRowKeys.length === sortedCategories.length
 
     return (
         <div className="overflow-x-auto rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800">
@@ -105,7 +98,7 @@ const CategoriesTable = ({
             <tbody>
                 {sortedCategories.map((category, index) => {
                     const rowKey = getRowKey(category, index)
-                    const isExpanded = expandedRowKeys.has(rowKey)
+                    const isExpanded = expandedRowKeys.includes(rowKey)
 
                     return (
                         <Fragment key={rowKey}>

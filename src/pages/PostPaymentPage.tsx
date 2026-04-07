@@ -7,7 +7,6 @@ import {
   type OrderRealtimeEvent,
 } from "../services/OrderRealtimeService";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { clearCart } from "../store/cartSlice";
 import { Link, useLocation } from "react-router";
 import BlinkingCircle from "../components/common/blinker";
 import { LoadingState } from "../components/common/LoadingState";
@@ -27,10 +26,10 @@ const ORDER_STATUS = {
   WAITING_PAYMENT: "fizetésre vár",
 } as const;
 
-const CLOSED_ORDER_STATUS_KEYS: Set<string> = new Set([
+const CLOSED_ORDER_STATUS_KEYS: string[] = [
   "atadva",
   "torolve",
-]);
+];
 
 const STATUS_PROGRESS: Record<string, number> = {
   [ORDER_STATUS.WAITING_PAYMENT]: 10,
@@ -53,7 +52,7 @@ const toStatusKey = (status: string): string => {
 };
 
 const isOpenOrder = (order: OrderModel) => {
-  return !CLOSED_ORDER_STATUS_KEYS.has(toStatusKey(order.status));
+  return !CLOSED_ORDER_STATUS_KEYS.includes(toStatusKey(order.status));
 };
 
 const upsertOrders = (current: OrderModel[], next: OrderModel[]) => {
@@ -96,15 +95,10 @@ const getTimelineFillPercentage = (timelineState: number) => {
   return 0;
 };
 
-const getDisplayedPreparingStatus = (status: string): string => {
-  return toStatusKey(status) === "atadva" ? "Várakozik" : toStatusKey(status) === "fizetesre var" ? "" : "Készül";
-};
 
-const POST_PAYMENT_ALERT_SOUND_KEY = "post-payment-alert-sound";
 
 const PostPaymentPage = () => {
   const location = useLocation();
-  const dispatch = useAppDispatch();
   const locationState =
     (location.state as PostPaymentLocationState | null) ?? null;
   const me = useAppSelector((state) => state.auth.me);
@@ -119,20 +113,13 @@ const PostPaymentPage = () => {
   const [isLiveConnected, setIsLiveConnected] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
     if (typeof window === "undefined") return true;
-    return window.localStorage.getItem(POST_PAYMENT_ALERT_SOUND_KEY) !== "off";
+    return window.localStorage.getItem("post-payment-alert-sound") !== "off";
   });
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioUnlockedRef = useRef(false);
   const previousStatusByOrderIdRef = useRef<Map<number, string>>(new Map());
   const hasHydratedStatusesRef = useRef(false);
 
-  useEffect(() => {
-    if (!locationState?.clearCartOnArrival) {
-      return;
-    }
-
-    dispatch(clearCart());
-  }, [dispatch, locationState?.clearCartOnArrival]);
 
   const getAudioContext = useCallback(() => {
     if (audioContextRef.current) {
@@ -281,7 +268,7 @@ const PostPaymentPage = () => {
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(
-      POST_PAYMENT_ALERT_SOUND_KEY,
+      "post-payment-alert-sound",
       isSoundEnabled ? "on" : "off",
     );
   }, [isSoundEnabled]);

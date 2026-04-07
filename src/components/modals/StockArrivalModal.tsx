@@ -55,8 +55,7 @@ export const StockArrivalModal = ({
     }, [pickerOptions]);
 
     const selectedItems = useMemo(() => {
-        const selectedSet = new Set(selectedItemIds);
-        return sortedItems.filter((item) => selectedSet.has(item.id));
+        return sortedItems.filter((item) => selectedItemIds.includes(item.id));
     }, [selectedItemIds, sortedItems]);
 
     const canAddSelectedItem = useMemo(() => {

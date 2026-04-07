@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { OrderModel } from "../../Models/OrderModel";
 import { UpdateOrderStatus } from "../../services/OrderService";
+import { useAppSelector } from "../../store/hooks";
 
 const getOrderBaseDate = (order: OrderModel): Date | null => {
   const sourceDate = order.created_at ?? order.delivery_date;
@@ -22,6 +23,7 @@ export const OrderComponent = ({ order, highlighted = false }: { order: OrderMod
   const [statusError, setStatusError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const isCashPayment = order.payment_intent_id == null;
+  const me = useAppSelector((state) => state.auth.me);
   const orderBaseDate = useMemo(() => getOrderBaseDate(order), [order]);
 
   useEffect(() => {
@@ -63,11 +65,11 @@ export const OrderComponent = ({ order, highlighted = false }: { order: OrderMod
       setIsUpdatingStatus(false);
     }
   };
-  return <div id={`admin-order-${order.id}`} className={"bg-white dark:bg-zinc-800 rounded-xl p-4 md:p-5 border flex flex-col transition-all " + (highlighted ? "border-primary ring-2 ring-primary/40 shadow-lg shadow-primary/10 animate-pulse" : "border-[#e6e0db] dark:border-zinc-700 hover:bg-surface dark:hover:bg-zinc-800/90") }>
+  return <div id={`admin-order-${order.id}`} className={"bg-gray-200  dark:bg-zinc-800 rounded-xl p-4 md:p-5 border flex flex-col transition-all " + (highlighted ? "border-primary ring-2 ring-primary/40 shadow-lg shadow-primary/10 animate-pulse" : "border-[#e6e0db] dark:border-zinc-700 ") }>
     <div className="flex justify-between items-start mb-4">
       <div>
         <span className="px-3 py-1 bg-primary/10 border border-primary/20 text-[10px] font-semibold rounded-full text-primary tracking-wider uppercase">{order.delivery_date}</span>
-        <h4 className="mt-1 text-lg font-bold text-foreground dark:text-white">{order.user_username.replaceAll(".", " ")}</h4>
+        <h4 className="mt-1 text-lg font-bold text-foreground dark:text-white">{order.user_username.replaceAll(".", " ") === me?.full_name ? "Helyben leadott rendelés" : order.user_username.replaceAll(".", " ")}</h4>
       </div>
       <div className="mt-1 flex flex-col items-end gap-1">
         <h4 className="text-lg text-end font-bold text-primary">#{order.order_identifier_number}</h4>
@@ -85,8 +87,8 @@ export const OrderComponent = ({ order, highlighted = false }: { order: OrderMod
             {elapsedMinutes} perc
           </span>
         )}
-        <span className={"rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide " + (isCashPayment ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900/60 dark:bg-green-900/20 dark:text-green-300" : "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-900/20 dark:text-sky-300")}>
-          {isCashPayment ? "Készpénz" : "Kártya"}
+        <span className={"rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide " + (isCashPayment ? (me?.full_name.replaceAll(" ", ".")!==order.user_username ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900/60 dark:bg-green-900/20 dark:text-green-300": "border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-900/60 dark:bg-purple-900/20 dark:text-purple-300" ): "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-900/20 dark:text-sky-300")}>
+          {isCashPayment ? me?.full_name.replaceAll(" ", ".")!==order.user_username ? "Készpénz" : "Helyben" : "Kártya"}
         </span>
       </div>
     </div>

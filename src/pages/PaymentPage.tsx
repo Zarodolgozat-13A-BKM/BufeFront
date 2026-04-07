@@ -6,17 +6,13 @@ import { loadStripe, type StripeElementsOptions } from "@stripe/stripe-js";
 import { Link, useLocation } from "react-router";
 import { getResolvedTheme, getThemePreference } from "../services/themeService";
 import PaymentForm from "../components/paymentPage/paymentForm";
+import { GetStripeKey } from "../services/OrderService";
 
 type PaymentLocationState = {
   clientSecret?: string;
 };
 
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ??
-    "pk_test_51TA3EGGgiPPFOSXmor9Q8gLotODmBE2VNMgzMlVbpwybuCBNJCLxewp0FEd90cgZi9WnczQXqmRhYnI8Lsv0Vs7b00Vsijv7hr",
-);
-
-
+const stripePromise = loadStripe(await GetStripeKey());
 
 const PaymentPage = () => {
   const location = useLocation();

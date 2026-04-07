@@ -8,7 +8,7 @@ interface AddItemModalProps {
     isOpen: boolean
     onClose: () => void
     item: ItemModel | null
-    onUpdateQuantity: (itemId: number, delta: number) => void
+    onUpdateQuantity: (item: ItemModel, delta: number) => void
     qty: number
 }
 
@@ -37,7 +37,7 @@ const AddItemModalContent = ({ isOpen, onClose, item, onUpdateQuantity, qty }: A
         } else {
             const delta = quantity - qty
             if (delta !== 0) {
-                onUpdateQuantity(item.id, delta)
+                onUpdateQuantity(item, delta)
             }
         }
         onClose()

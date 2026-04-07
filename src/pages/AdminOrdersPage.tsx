@@ -16,10 +16,10 @@ type OrderFilter = "upcoming-break" | "whole-day";
 type SortDirection = "asc" | "desc";
 type OrderSortKey = "order-number" | "status" | "username" | "pickup-time" | "total-price" | "created-at";
 
-const CLOSED_ORDER_STATUSES = new Set(["átadva", "törölve"]);
+const CLOSED_ORDER_STATUSES = ["átadva", "törölve"];
 
 const isClosedOrder = (status: string): boolean => {
-	return CLOSED_ORDER_STATUSES.has(status.trim().toLocaleLowerCase("hu-HU"));
+	return CLOSED_ORDER_STATUSES.includes(status.trim().toLocaleLowerCase("hu-HU"));
 };
 
 const toMinutes = (time: string): number => {

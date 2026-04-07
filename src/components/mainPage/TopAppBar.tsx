@@ -30,7 +30,7 @@ export const TopAppBar = ({
             className="group inline-flex items-center gap-1.5 text-foreground dark:text-white text-lg font-bold leading-tight"
           >
             <span>{displayName}</span>
-            <span
+            <span 
               aria-hidden="true"
               className="material-symbols-outlined text-base text-muted dark:text-zinc-400 opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100 group-focus-visible:translate-x-0 group-hover:animate-[spin_2.8s_linear_infinite] group-focus-visible:animate-[spin_2.8s_linear_infinite]"
             >
