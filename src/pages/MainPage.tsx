@@ -267,7 +267,7 @@ const MainPage = () => {
                 <div className=" fixed top-0 left-0 right-0 z-50">
                     <div ref={stickyHeaderRef} className="w-full bg-surface dark:bg-zinc-900 border-b border-x border-[#e6e0db] dark:border-zinc-800">
                         <TopAppBar
-                            username={me?.full_name ?? 'Guest'}
+                            username={me?.role !== 'admin' ? me?.full_name ??  'Guest': 'Kattints ide az adminfelület megnyitásához'}
                             totalItems={totalItems}
                             totalPrice={totalPrice}
                             onCartClick={handleCheckout}

@@ -400,6 +400,7 @@ export const AdminOrdersPage = () => {
 				<DashBoardHeader
 					name='Rendelések'
 					showAdmin={false}
+					showPos={true}
 					backTo={'/admin'}
 					isSoundEnabled={isSoundEnabled}
 					onSoundToggle={handleSoundToggle}

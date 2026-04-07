@@ -387,6 +387,7 @@ const AdminPage = () => {
 			<div className='relative mx-auto flex w-full flex-col overflow-x-auto shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800'>
 				<DashBoardHeader
 					showAdmin={true}
+          showPos={true}
 					backTo='/main'
 					name={
 						<div className='rounded-xl p-4'>

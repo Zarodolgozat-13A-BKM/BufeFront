@@ -12,6 +12,7 @@ import { GetMe, Logout as ApiLogout } from './services/APIservice'
 import { logout, setMe } from './store/authSlice'
 import PaymentPage from './pages/PaymentPage'
 import PostPaymentPage from './pages/PostPaymentPage'
+import AdminPosPage from './pages/AdminPosPage'
 import { useLocation, useNavigate } from 'react-router'
 
 function App() {
@@ -143,6 +144,22 @@ function App() {
                 <Navigate to="/login" replace />
               ) : me.role === 'admin' ? (
                 <AdminOrdersPage />
+              ) : (
+                <Navigate to="/me" replace />
+              )
+            }
+          />
+          <Route
+            path='/admin/pos'
+            element={
+              !isLoggedIn ? (
+                <Navigate to="/login" replace />
+              ) : isMeLoading ? (
+                <div className="min-h-screen bg-secondary dark:bg-secondary-dark" />
+              ) : me == null ? (
+                <Navigate to="/login" replace />
+              ) : me.role === 'admin' ? (
+                <AdminPosPage />
               ) : (
                 <Navigate to="/me" replace />
               )

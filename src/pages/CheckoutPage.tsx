@@ -1,26 +1,25 @@
-import { useEffect, useMemo, useState } from 'react';
-import { isAxiosError } from 'axios';
-import { GetRinging } from '../services/RingService';
-import type { Ringlist } from '../Models/RingModel';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { Link, useNavigate } from 'react-router';
-import {
-	clearCart,
-	removeItemFromCart,
-	updateItemQuantity,
-} from '../store/cartSlice';
-import type { CartItemModel, OrderCreateModel } from '../Models/OrderModel';
-import { CreateOrder } from '../services/OrderService';
-import { QuantityControl } from '../components/mainPage/QuantityControl';
-import { GetOneItem } from '../services/ItemService';
+import { useEffect, useMemo, useState } from "react";
+import { isAxiosError } from "axios";
+import { GetRinging } from "../services/RingService";
+import type { Ringlist } from "../Models/RingModel";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { Link, useNavigate } from "react-router";
+import { clearCart, removeItemFromCart, updateItemQuantity } from "../store/cartSlice";
+import type { CartItemModel, OrderCreateModel } from "../Models/OrderModel";
+import { CreateOrder } from "../services/OrderService";
+import { QuantityControl } from "../components/mainPage/QuantityControl";
+import { GetOneItem } from "../services/ItemService";
 
 const dph = 0.27;
 const DealerIncome = 1 - dph;
 const SpinnerDisplTime = 400;
 
-type CheckoutOrderResponse = { client_secret?: string; clientSecret?: string };
+type CheckoutOrderResponse = {
+	client_secret?: string;
+	clientSecret?: string;
+};
 
-const toTwoDigits = (value: number): string => String(value).padStart(2, '0');
+const toTwoDigits = (value: number): string => String(value).padStart(2, "0");
 
 const formatLocalDate = (date: Date): string => {
 	return `${date.getFullYear()}-${toTwoDigits(date.getMonth() + 1)}-${toTwoDigits(date.getDate())}`;
@@ -34,44 +33,33 @@ export const CheckoutPage = () => {
 	const navigate = useNavigate();
 	const { me } = useAppSelector((state) => state.auth);
 	const [ringing, setRinging] = useState<Ringlist[]>([]);
-	const [comment, setComment] = useState<string>('');
+	const [comment, setComment] = useState<string>("");
 	const [isCommentOpen, setIsCommentOpen] = useState(false);
 	const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
 	const [checkoutError, setCheckoutError] = useState<string | null>(null);
-	const [deliverydatetime, setDeliverydatetime] = useState<string>('');
+	const [deliverydatetime, setDeliverydatetime] = useState<string>("");
 	const [isAvailabilityLoaded, setIsAvailabilityLoaded] = useState(false);
-	const [isOrderingClosedByBackend, setIsOrderingClosedByBackend] =
-		useState(true);
+	const [isOrderingClosedByBackend, setIsOrderingClosedByBackend] = useState(true);
 	const dispatch = useAppDispatch();
 	const cart = useAppSelector((state) => state.cart.cart);
 	const isCartEmpty = cart.items.length === 0;
-	const orderingClosed =
-		import.meta.env.PROD && isAvailabilityLoaded && isOrderingClosedByBackend;
-	const orderingUnavailable =
-		import.meta.env.PROD && (!isAvailabilityLoaded || orderingClosed);
+	const orderingClosed = import.meta.env.PROD && isAvailabilityLoaded && isOrderingClosedByBackend;
+	const orderingUnavailable = import.meta.env.PROD && (!isAvailabilityLoaded || orderingClosed);
 	const orderingClosedMessage = orderingClosed
-		? 'A rendelésfelvétel szünetel. Kérünk, gyere vissza később.'
+		? "A rendelésfelvétel szünetel. Kérünk, gyere vissza később."
 		: null;
 
 	const isPast = (endTime: string) => {
-		const [h, m] = endTime.split(':').map((s) => Number(s));
+		const [h, m] = endTime.split(":").map((s) => Number(s));
 		const now = new Date();
-		const endDate = new Date(
-			now.getFullYear(),
-			now.getMonth(),
-			now.getDate(),
-			h,
-			m,
-		);
+		const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
 		return endDate.getTime() <= now.getTime();
 	};
 
 	const updateQuantity = (item: CartItemModel, delta: number) => {
 		if (item.quantity && delta + item.quantity > item.inventory_count) {
-			alert(
-				`Nincs elég készlet a "${item.name}"-ból. Jelenleg ${item.inventory_count} darab elérhető.`,
-			);
-			return;
+			alert(`Nincs elég készlet a "${item.name}"-ból. Jelenleg ${item.inventory_count} darab elérhető.`)
+			return
 		}
 		dispatch(updateItemQuantity({ item_id: item.id, delta }));
 	};
@@ -85,26 +73,19 @@ export const CheckoutPage = () => {
 		}
 
 		if (isCartEmpty) {
-			setCheckoutError(
-				'A kosarad jelenleg üres. Kérlek adj hozzá legalább egy terméket.',
-			);
+			setCheckoutError("A kosarad jelenleg üres. Kérlek adj hozzá legalább egy terméket.");
 			return;
 		}
 
 		setCheckoutError(null);
 
 		if (import.meta.env.PROD && !isAvailabilityLoaded) {
-			setCheckoutError(
-				'A rendelhetőség ellenőrzése folyamatban van. Kérlek várj egy pillanatot.',
-			);
+			setCheckoutError("A rendelhetőség ellenőrzése folyamatban van. Kérlek várj egy pillanatot.");
 			return;
 		}
 
 		if (orderingClosed) {
-			setCheckoutError(
-				orderingClosedMessage ??
-					'A rendelésfelvétel jelenleg szünetel. Kérünk, gyere vissza később.',
-			);
+			setCheckoutError(orderingClosedMessage ?? "A rendelésfelvétel jelenleg szünetel. Kérünk, gyere vissza később.");
 			return;
 		}
 
@@ -114,13 +95,14 @@ export const CheckoutPage = () => {
 			const createdAt = new Date();
 			const orderData: OrderCreateModel = {
 				delivery_date:
-					deliverydatetime !== ''
+					deliverydatetime !== ""
 						? `${formatLocalDate(createdAt)}T${deliverydatetime}`
 						: formatLocalDateTime(createdAt),
 				comment: comment,
 				items: cart.items.map((item) => ({
 					item_id: item.id,
 					quantity: item.quantity ?? 0,
+
 				})),
 				cash: cash,
 			};
@@ -128,16 +110,13 @@ export const CheckoutPage = () => {
 				console.log(orderData);
 			}
 			const orderResponse = await CreateOrder(orderData);
-			console.log('Order creation response:', orderResponse);
+			console.log("Order creation response:", orderResponse);
 			if (!cash) {
 				const paymentResponse = orderResponse as CheckoutOrderResponse;
-				const clientSecret =
-					paymentResponse.client_secret ?? paymentResponse.clientSecret;
+				const clientSecret = paymentResponse.client_secret ?? paymentResponse.clientSecret;
 
 				if (!clientSecret) {
-					throw new Error(
-						'No client secret received from server. Payment initialization failed.',
-					);
+					throw new Error('No client secret received from server. Payment initialization failed.');
 				}
 
 				const elapsed = Date.now() - submitStartedAt;
@@ -147,45 +126,41 @@ export const CheckoutPage = () => {
 					);
 				}
 
-				navigate('/payment', { state: { clientSecret }, replace: true });
-			} else {
-				navigate('/orderstatus', { replace: true });
+				navigate("/payment", { state: { clientSecret }, replace: true });
+			}
+			else {
+				navigate("/orderstatus", {
+					replace: true,
+				})
 				dispatch(clearCart());
 			}
 		} catch (error) {
-			let errorMessage =
-				'A rendelés leadása nem sikerült. Kérlek próbáld újra.';
+			let errorMessage = "A rendelés leadása nem sikerült. Kérlek próbáld újra.";
 
 			if (isAxiosError(error) && error.response?.data?.message) {
 				errorMessage = error.response.data.message;
 				if (error.response.status === 400) {
 					cart.items.forEach((item) => {
-						GetOneItem(item.id).then((data) => {
-							if (item.quantity && data.inventory_count < item.quantity) {
-								if (data.inventory_count === 0) {
-									confirm(
-										`Sajnáljuk, de a "${item.name}" nevű termék jelenleg nincs készleten. Szeretnéd eltávolítani a kosárból?`,
-									) && dispatch(removeItemFromCart(item.id));
-								} else {
-									confirm(
-										`Sajnáljuk, de a "${item.name}" nevű termékből már csak ${data.inventory_count} darab elérhető. Szeretnéd frissíteni a kosárban lévő mennyiséget?`,
-									) &&
-										dispatch(
-											updateItemQuantity({
-												item_id: item.id,
-												delta: data.inventory_count - item.quantity!,
-											}),
-										);
+						GetOneItem(item.id)
+							.then((data) => {
+								if (item.quantity && data.inventory_count < item.quantity) {
+									if (data.inventory_count === 0) {
+										confirm(`Sajnáljuk, de a "${item.name}" nevű termék jelenleg nincs készleten. Szeretnéd eltávolítani a kosárból?`) && dispatch(removeItemFromCart(item.id))
+
+									}
+									else {
+										confirm(`Sajnáljuk, de a "${item.name}" nevű termékből már csak ${data.inventory_count} darab elérhető. Szeretnéd frissíteni a kosárban lévő mennyiséget?`) &&
+											dispatch(updateItemQuantity({ item_id: item.id, delta: data.inventory_count - item.quantity! }))
+									}
 								}
-							}
-						});
-					});
+							})
+					})
 				}
 			} else if (error instanceof Error) {
 				errorMessage = error.message;
 			}
 
-			console.error('Failed to create order:', errorMessage);
+			console.error("Failed to create order:", errorMessage);
 			setCheckoutError(errorMessage);
 			setIsSubmittingOrder(false);
 		}
@@ -213,11 +188,7 @@ export const CheckoutPage = () => {
 	}, []);
 
 	const baseTotal = useMemo(
-		() =>
-			cart.items.reduce(
-				(total, item) => total + item.price * (item.quantity ?? 0),
-				0,
-			),
+		() => cart.items.reduce((total, item) => total + item.price * (item.quantity ?? 0), 0),
 		[cart.items],
 	);
 
@@ -235,9 +206,7 @@ export const CheckoutPage = () => {
 					</h2>
 				</div>
 				<main className='flex-1 pb-6'>
-					<div
-						className='block animate-fade-in'
-						id='pickup-section'>
+					<div className='block animate-fade-in' id='pickup-section'>
 						<div className='px-4 pt-4 pb-2'>
 							<h3 className='text-foreground dark:text-white tracking-tight text-2xl font-bold leading-tight text-left'>
 								Mikor szeretnéd átvenni?
@@ -254,16 +223,11 @@ export const CheckoutPage = () => {
 										onChange={(e) => setDeliverydatetime(e.target.value)}
 										className='appearance-none w-full rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal text-foreground dark:text-white transition-shadow outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20'>
 										{orderingClosed ? (
-											<option
-												value=''
-												disabled>
-												{orderingClosedMessage ??
-													'Ma már nem lehet rendelni, kérlek térj vissza holnap!'}
+											<option value='' disabled>
+												{orderingClosedMessage ?? "Ma már nem lehet rendelni, kérlek térj vissza holnap!"}
 											</option>
 										) : null}
-										<option
-											value=''
-											disabled={orderingUnavailable}>
+										<option value='' disabled={orderingUnavailable}>
 											Lehető leghamarabb
 										</option>
 										{ringing.map((ring, index) => {
@@ -280,18 +244,14 @@ export const CheckoutPage = () => {
 										})}
 									</select>
 									<div className='pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted dark:text-zinc-500'>
-										<span className='material-symbols-outlined'>
-											expand_more
-										</span>
+										<span className='material-symbols-outlined'>expand_more</span>
 									</div>
 								</div>
 							</label>
 						</div>
 						<div className='px-4 pb-4'>
 							<div className='flex items-center gap-2 p-3 bg-primary/10 rounded-lg border mt-5 mb-4 border-primary/20'>
-								<span className='material-symbols-outlined text-primary text-xl'>
-									storefront
-								</span>
+								<span className='material-symbols-outlined text-primary text-xl'>storefront</span>
 								<p className='text-foreground dark:text-zinc-200 text-sm font-medium leading-normal '>
 									Átvétel az iskolai büfében.
 								</p>
@@ -302,8 +262,7 @@ export const CheckoutPage = () => {
 										schedule
 									</span>
 									<p className='text-red-700 dark:text-red-400 text-sm font-medium leading-normal'>
-										{orderingClosedMessage ??
-											'A rendelésfelvétel jelenleg szünetel. Kérünk, gyere vissza később.'}
+										{orderingClosedMessage ?? "A rendelésfelvétel jelenleg szünetel. Kérünk, gyere vissza később."}
 									</p>
 								</div>
 							)}
@@ -325,7 +284,7 @@ export const CheckoutPage = () => {
 									</p>
 								</div>
 								<span className='material-symbols-outlined text-muted dark:text-zinc-400'>
-									{isCommentOpen ? 'expand_less' : 'expand_more'}
+									{isCommentOpen ? "expand_less" : "expand_more"}
 								</span>
 							</button>
 							{isCommentOpen && (
@@ -361,88 +320,78 @@ export const CheckoutPage = () => {
 							Rendelés összesítése
 						</h4>
 						<div className='bg-white dark:bg-zinc-800/50 rounded-xl p-4 space-y-3 border border-[#e6e0db] dark:border-zinc-800'>
-							{isCartEmpty ? (
-								<div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-surface py-10 dark:border-zinc-700 dark:bg-zinc-800/40'>
-									<span className='material-symbols-outlined text-3xl text-muted dark:text-zinc-400'>
-										shopping_cart_off
-									</span>
-									<p className='mt-2 text-muted dark:text-zinc-300 text-sm font-normal text-center'>
-										A kosarad jelenleg üres.
-									</p>
-									<Link
-										to='/main'
-										className='mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#e07b1a]'>
-										Vissza a menühöz
-									</Link>
-								</div>
-							) : (
-								<>
-									{cart.items.map((cartItem, index) => (
-										<div
-											key={`${cartItem.id}-${index}`}
-											className='flex justify-between mb-3 items-center'>
-											<div className='flex gap-3'>
-												<div
-													className='w-12 h-12 bg-gray-200 rounded-lg bg-cover bg-center shrink-0 '
-													data-alt={cartItem.name}
-													style={{
-														backgroundImage: `url('${cartItem.picture_url ?? ''}')`,
-													}}></div>
-												<div className='flex items-center justify-center'>
+								{isCartEmpty ? (
+									<div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-surface py-10 dark:border-zinc-700 dark:bg-zinc-800/40'>
+										<span className='material-symbols-outlined text-3xl text-muted dark:text-zinc-400'>shopping_cart_off</span>
+										<p className='mt-2 text-muted dark:text-zinc-300 text-sm font-normal text-center'>
+											A kosarad jelenleg üres.
+										</p>
+										<Link
+											to='/main'
+											className='mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#e07b1a]'>
+											Vissza a menühöz
+										</Link>
+									</div>
+								) : (
+									<>
+										{cart.items.map((cartItem, index) => (
+											<div
+												key={`${cartItem.id}-${index}`}
+												className='flex justify-between mb-3 items-center'>
+												<div className='flex gap-3'>
+													<div
+														className='w-12 h-12 bg-gray-200 rounded-lg bg-cover bg-center shrink-0 '
+														data-alt={cartItem.name}
+														style={{ backgroundImage: `url('${cartItem.picture_url ?? ""}')` }}></div>
+													<div className='flex items-center justify-center'>
+														<p className='text-foreground dark:text-white text-sm font-medium'>
+															{cartItem.name}
+														</p>
+													</div>
+												</div>
+												<div className='flex items-center gap-2 '>
+													<div className='mt-1 flex items-center gap-2 float-end'>
+														<QuantityControl
+															size='sm'
+															quantity={cartItem.quantity ?? 0}
+															onIncrease={() => updateQuantity(cartItem, 1)}
+															onDecrease={() => updateQuantity(cartItem, -1)}
+														/>
+													</div>
+													<button
+														onClick={() => removeItem(cartItem.id)}
+														className='w-7 h-7 flex items-center justify-center hover:text-error/50 text-error rounded-md'>
+														<span className='material-symbols-outlined text-sm'>close</span>
+													</button>
 													<p className='text-foreground dark:text-white text-sm font-medium'>
-														{cartItem.name}
+														{cartItem.price * (cartItem.quantity ?? 0)}Ft
 													</p>
 												</div>
 											</div>
-											<div className='flex items-center gap-2 '>
-												<div className='mt-1 flex items-center gap-2 float-end'>
-													<QuantityControl
-														size='sm'
-														quantity={cartItem.quantity ?? 0}
-														onIncrease={() => updateQuantity(cartItem, 1)}
-														onDecrease={() => updateQuantity(cartItem, -1)}
-													/>
-												</div>
-												<button
-													onClick={() => removeItem(cartItem.id)}
-													className='w-7 h-7 flex items-center justify-center hover:text-error/50 text-error rounded-md'>
-													<span className='material-symbols-outlined text-sm'>
-														close
-													</span>
-												</button>
-												<p className='text-foreground dark:text-white text-sm font-medium'>
-													{cartItem.price * (cartItem.quantity ?? 0)}Ft
-												</p>
-											</div>
+										))}
+										<hr className='pt-4 pb-4 text-muted' />
+										<div className='h-px bg-gray-200 dark:bg-zinc-700 my-3'></div>
+										<div className='flex justify-between items-center mb-1'>
+											<p className='text-muted dark:text-zinc-400 text-sm'>Részösszeg</p>
+											<p className='text-foreground dark:text-white text-sm font-medium'>
+												{Math.floor(baseTotal * DealerIncome)}Ft
+											</p>
 										</div>
-									))}
-									<hr className='pt-4 pb-4 text-muted' />
-									<div className='h-px bg-gray-200 dark:bg-zinc-700 my-3'></div>
-									<div className='flex justify-between items-center mb-1'>
-										<p className='text-muted dark:text-zinc-400 text-sm'>
-											Részösszeg
-										</p>
-										<p className='text-foreground dark:text-white text-sm font-medium'>
-											{Math.floor(baseTotal * DealerIncome)}Ft
-										</p>
-									</div>
-									<div className='flex justify-between items-center mb-3'>
-										<p className='text-muted dark:text-zinc-400 text-sm'>Adó</p>
-										<p className='text-foreground dark:text-white text-sm font-medium'>
-											{Math.ceil(baseTotal * dph)}Ft
-										</p>
-									</div>
-									<hr className='pt-4 pb-4 text-muted' />
-									<div className='flex justify-between items-center pt-1'>
-										<p className='text-foreground dark:text-white text-base font-bold'>
-											Összesen
-										</p>
-										<p className='text-foreground dark:text-white text-xl font-bold'>
-											{Math.floor(baseTotal)}Ft
-										</p>
-									</div>
-								</>
-							)}
+										<div className='flex justify-between items-center mb-3'>
+											<p className='text-muted dark:text-zinc-400 text-sm'>Adó</p>
+											<p className='text-foreground dark:text-white text-sm font-medium'>
+												{Math.ceil(baseTotal * dph)}Ft
+											</p>
+										</div>
+										<hr className='pt-4 pb-4 text-muted' />
+										<div className='flex justify-between items-center pt-1'>
+											<p className='text-foreground dark:text-white text-base font-bold'>Összesen</p>
+											<p className='text-foreground dark:text-white text-xl font-bold'>
+												{Math.floor(baseTotal)}Ft
+											</p>
+										</div>
+									</>
+								)}
 						</div>
 					</div>
 					{/* <div className="px-4 pb-6">
@@ -458,18 +407,18 @@ export const CheckoutPage = () => {
 							{checkoutError}
 						</div>
 					) : null}
-					{me?.role !== 'admin' ? (
+					{me?.role !== "admin" ? (
 						<div className='flex gap-5'>
 							<button
 								onClick={() => handleCheckout(true)}
 								disabled={orderingUnavailable || isSubmittingOrder}
 								className={
-									'w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all ' +
+									"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " +
 									(orderingUnavailable
-										? 'bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
+										? "bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
 										: isSubmittingOrder
-											? 'bg-primary/90 text-white cursor-wait'
-											: 'bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]')
+											? "bg-primary/90 text-white cursor-wait"
+											: "bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]")
 								}>
 								{isSubmittingOrder ? (
 									<>
@@ -488,12 +437,12 @@ export const CheckoutPage = () => {
 								onClick={() => handleCheckout(false)}
 								disabled={orderingUnavailable || isSubmittingOrder}
 								className={
-									'w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all ' +
+									"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " +
 									(orderingUnavailable
-										? 'bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
+										? "bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
 										: isSubmittingOrder
-											? 'bg-primary/90 text-white cursor-wait'
-											: 'bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]')
+											? "bg-primary/90 text-white cursor-wait"
+											: "bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]")
 								}>
 								{isSubmittingOrder ? (
 									<>
@@ -514,7 +463,7 @@ export const CheckoutPage = () => {
 							<button
 								onClick={() => handleCheckout(true)}
 								className={
-									'w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]'
+									"w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]"
 								}>
 								{isSubmittingOrder ? (
 									<>
@@ -538,3 +487,4 @@ export const CheckoutPage = () => {
 };
 
 export default CheckoutPage;
+
