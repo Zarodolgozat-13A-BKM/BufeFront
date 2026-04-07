@@ -142,6 +142,8 @@ const defaultMocks: ApiMockConfig = {
 	broadcastAuth: {},
 }
 
+let activeMocks: ApiMockConfig = { ...defaultMocks }
+
 const toResponse = <T,>(value: MockReply<T>): { statusCode: number; body: T } => {
 	if (
 		typeof value === 'object' &&
@@ -156,7 +158,8 @@ const toResponse = <T,>(value: MockReply<T>): { statusCode: number; body: T } =>
 }
 
 const registerApiMocks = (overrides: Partial<ApiMockConfig> = {}) => {
-	const mocks: ApiMockConfig = { ...defaultMocks, ...overrides }
+	activeMocks = { ...activeMocks, ...overrides }
+	const mocks: ApiMockConfig = activeMocks
 
 	const replyWithMockApi = (req: Cypress.Request) => {
 	const { method, url } = req
@@ -292,5 +295,6 @@ Cypress.on('window:before:load', (win) => {
 })
 
 beforeEach(() => {
+	activeMocks = { ...defaultMocks }
 	cy.mockApi()
 })
