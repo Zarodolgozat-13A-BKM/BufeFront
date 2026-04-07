@@ -16,20 +16,36 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 
+type MockReply<T> =
+	| T
+	| {
+			statusCode: number
+			body: T
+	  }
+
+type ApiMockConfig = {
+	me: MockReply<Record<string, unknown>>
+	login: MockReply<Record<string, unknown>>
+	logout: MockReply<Record<string, unknown>>
+	stripeKey: MockReply<Record<string, unknown>>
+	checkout: MockReply<Record<string, unknown>>
+	categories: MockReply<Array<Record<string, unknown>>>
+	items: MockReply<Array<Record<string, unknown>>>
+	itemById: MockReply<Record<string, unknown>>
+	activeOrders: MockReply<Array<Record<string, unknown>>>
+	breaks: MockReply<Record<string, unknown>>
+	orderById: MockReply<Record<string, unknown>>
+	orders: MockReply<Array<Record<string, unknown>>>
+	statuses: MockReply<Array<Record<string, unknown>>>
+	broadcastAuth: MockReply<Record<string, unknown>>
+}
+
 const mockUser = {
 	id: 1,
 	full_name: 'Teszt Elek',
 	username: 'teszt.elek',
 	role: 'user',
 	email: 'teszt.elek@example.com',
-}
-
-const mockAdminUser = {
-	id: 2,
-	full_name: 'Admin User',
-	username: 'admin.user',
-	role: 'admin',
-	email: 'admin.user@example.com',
 }
 
 const mockCategories = [
@@ -109,85 +125,109 @@ const mockStatuses = [
 	{ id: 5, name: 'Törölve' },
 ]
 
-const replyWithMockApi = (req: Cypress.Request) => {
+const defaultMocks: ApiMockConfig = {
+	me: mockUser,
+	login: { access_token: 'mock-token-default' },
+	logout: {},
+	stripeKey: { key: 'pk_test_mock_key' },
+	checkout: { id: 1, client_secret: 'mock-client-secret' },
+	categories: mockCategories,
+	items: mockCategories.flatMap((category) => category.items) as Array<Record<string, unknown>>,
+	itemById: { item: mockCategories[0].items[0] },
+	activeOrders: mockOrders as Array<Record<string, unknown>>,
+	breaks: { breaks: mockBreaks },
+	orderById: mockOrders[0] as Record<string, unknown>,
+	orders: mockOrders as Array<Record<string, unknown>>,
+	statuses: mockStatuses as Array<Record<string, unknown>>,
+	broadcastAuth: {},
+}
+
+const toResponse = <T,>(value: MockReply<T>): { statusCode: number; body: T } => {
+	if (
+		typeof value === 'object' &&
+		value !== null &&
+		'statusCode' in value &&
+		'body' in value
+	) {
+		return value as { statusCode: number; body: T }
+	}
+
+	return { statusCode: 200, body: value as T }
+}
+
+const registerApiMocks = (overrides: Partial<ApiMockConfig> = {}) => {
+	const mocks: ApiMockConfig = { ...defaultMocks, ...overrides }
+
+	const replyWithMockApi = (req: Cypress.Request) => {
 	const { method, url } = req
 
 	if (method === 'GET' && url.includes('/api/account/me')) {
-		req.reply({
-			statusCode: 200,
-			body: mockUser,
-		})
+		req.reply(toResponse(mocks.me))
 		return
 	}
 
 	if (method === 'POST' && url.includes('/api/account/login')) {
-		req.reply({ statusCode: 200, body: { access_token: 'mock-token-default' } })
+		req.reply(toResponse(mocks.login))
 		return
 	}
 
 	if (method === 'POST' && url.includes('/api/account/logout')) {
-		req.reply({ statusCode: 200, body: {} })
+		req.reply(toResponse(mocks.logout))
 		return
 	}
 
 	if (method === 'GET' && url.includes('/api/payment/stripe-key')) {
-		req.reply({ statusCode: 200, body: { key: 'pk_test_mock_key' } })
+		req.reply(toResponse(mocks.stripeKey))
 		return
 	}
 
 	if (method === 'POST' && url.includes('/api/payment/checkout')) {
-		req.reply({ statusCode: 200, body: { id: 1, client_secret: 'mock-client-secret' } })
+		req.reply(toResponse(mocks.checkout))
 		return
 	}
 
 	if (method === 'GET' && url.includes('/api/categories')) {
-		req.reply({ statusCode: 200, body: mockCategories })
+		req.reply(toResponse(mocks.categories))
 		return
 	}
 
 	if (method === 'GET' && url.includes('/api/items')) {
 		if (/\/api\/items\/\d+$/.test(url)) {
-			req.reply({
-				statusCode: 200,
-				body: { item: mockCategories[0].items[0] },
-			})
+			req.reply(toResponse(mocks.itemById))
 			return
 		}
 
-		req.reply({ statusCode: 200, body: mockCategories.flatMap((category) => category.items) })
+		req.reply(toResponse(mocks.items))
 		return
 	}
 
 	if (method === 'GET' && url.includes('/api/orders/active')) {
-		req.reply({ statusCode: 200, body: mockOrders })
+		req.reply(toResponse(mocks.activeOrders))
 		return
 	}
 
 	if (method === 'GET' && url.includes('/api/orders/breaks/')) {
-		req.reply({ statusCode: 200, body: { breaks: mockBreaks } })
+		req.reply(toResponse(mocks.breaks))
 		return
 	}
 
 	if (method === 'GET' && /\/api\/orders\/\d+$/.test(url)) {
-		req.reply({
-			statusCode: 200,
-			body: mockOrders[0],
-		})
+		req.reply(toResponse(mocks.orderById))
 		return
 	}
 
 	if (method === 'GET' && url.includes('/api/orders')) {
-		req.reply({ statusCode: 200, body: mockOrders })
+		req.reply(toResponse(mocks.orders))
 		return
 	}
 
 	if (method === 'GET' && url.includes('/api/statuses')) {
-		req.reply({ statusCode: 200, body: mockStatuses })
+		req.reply(toResponse(mocks.statuses))
 		return
 	}
 
 	if (url.includes('/broadcasting/auth')) {
-		req.reply({ statusCode: 200, body: {} })
+		req.reply(toResponse(mocks.broadcastAuth))
 		return
 	}
 
@@ -198,6 +238,24 @@ const replyWithMockApi = (req: Cypress.Request) => {
 
 	req.reply({ statusCode: 200, body: {} })
 }
+
+	cy.intercept('https://bufeapi.jcloud.jedlik.cloud/**', (req) => {
+		replyWithMockApi(req)
+	}).as('mockAllBackendRequests')
+
+	cy.intercept('**/api/**', (req) => {
+		replyWithMockApi(req)
+	}).as('mockAnyApiHost')
+
+	// Keep common endpoint aliases for existing tests.
+	cy.intercept('POST', '**/account/login', toResponse(mocks.login)).as('mockLoginDefault')
+	cy.intercept('GET', '**/account/me', toResponse(mocks.me)).as('mockMeDefault')
+	cy.intercept('GET', '**/payment/stripe-key', toResponse(mocks.stripeKey)).as('mockStripeKeyDefault')
+}
+
+Cypress.Commands.add('mockApi', (overrides: Partial<ApiMockConfig> = {}) => {
+	registerApiMocks(overrides)
+})
 
 Cypress.on('window:before:load', (win) => {
 	// Disable realtime backend sockets in tests so Echo/Pusher never reaches remote infra.
@@ -234,28 +292,5 @@ Cypress.on('window:before:load', (win) => {
 })
 
 beforeEach(() => {
-	// Catch-all backend mock to guarantee tests never talk to the real API.
-	cy.intercept('https://bufeapi.jcloud.jedlik.cloud/**', (req) => {
-		replyWithMockApi(req)
-	}).as('mockAllBackendRequests')
-
-	cy.intercept('**/api/**', (req) => {
-		replyWithMockApi(req)
-	}).as('mockAnyApiHost')
-
-	// Default API mocks for all tests; specific specs can override these intercepts.
-	cy.intercept('POST', '**/account/login', {
-		statusCode: 200,
-		body: { access_token: 'mock-token-default' },
-	}).as('mockLoginDefault')
-
-	cy.intercept('GET', '**/account/me', {
-		statusCode: 200,
-		body: mockUser,
-	}).as('mockMeDefault')
-
-	cy.intercept('GET', '**/payment/stripe-key', {
-		statusCode: 200,
-		body: { key: 'pk_test_mock_key' },
-	}).as('mockStripeKeyDefault')
+	cy.mockApi()
 })

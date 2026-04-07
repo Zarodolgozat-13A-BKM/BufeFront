@@ -8,23 +8,21 @@ describe('admin orders page', () => {
   };
 
   const mockAdminMe = () => {
-    cy.intercept('GET', '**/account/me', {
-      statusCode: 200,
-      body: {
+    cy.mockApi({
+      me: {
         id: 1,
         username: 'admin.user',
         full_name: 'Admin User',
         role: 'admin',
       },
-    }).as('getAdminMe');
+    });
   };
 
   it('renders active orders list for admin', () => {
     mockAdminMe();
-    
-    cy.intercept('GET', '**/orders/active', {
-      statusCode: 200,
-      body: [
+
+    cy.mockApi({
+      activeOrders: [
         {
           id: 21,
           user_id: 1,
@@ -46,17 +44,12 @@ describe('admin orders page', () => {
           ],
         },
       ],
-    }).as('getActiveOrders');
-    
-    cy.intercept('GET', '**/orders/breaks/**', {
-      statusCode: 200,
-      body: { breaks: [{ start: '10:00', end: '10:15' }] },
-    }).as('getBreaks');
-    
+      breaks: { breaks: [{ start: '10:00', end: '10:15' }] },
+    });
+
     visitWithToken();
-    cy.wait('@getAdminMe');
     cy.url().should('include', '/admin/orders');
-    
+
     cy.contains('Aktuális rendelések').should('be.visible');
     cy.contains('Egész nap').click();
     cy.contains('teszt elek').should('be.visible');
@@ -66,36 +59,24 @@ describe('admin orders page', () => {
   it('shows no-break message when there are no remaining breaks today', () => {
     mockAdminMe();
 
-    cy.intercept('GET', '**/orders/active', {
-      statusCode: 200,
-      body: [],
-    }).as('getActiveOrdersEmpty');
-
-    cy.intercept('GET', '**/orders/breaks/**', {
-      statusCode: 200,
-      body: { breaks: [] },
-    }).as('getBreaksEmpty');
+    cy.mockApi({
+      activeOrders: [],
+      breaks: { breaks: [] },
+    });
 
     visitWithToken('/admin/orders');
-    cy.wait('@getAdminMe');
     cy.contains('Mára nincs több szünet.').should('be.visible');
   });
 
   it('shows whole-day empty state when there are no active orders', () => {
     mockAdminMe();
 
-    cy.intercept('GET', '**/orders/active', {
-      statusCode: 200,
-      body: [],
-    }).as('getActiveOrdersEmpty');
-
-    cy.intercept('GET', '**/orders/breaks/**', {
-      statusCode: 200,
-      body: { breaks: [{ start: '10:00', end: '10:15' }] },
-    }).as('getBreaksOne');
+    cy.mockApi({
+      activeOrders: [],
+      breaks: { breaks: [{ start: '10:00', end: '10:15' }] },
+    });
 
     visitWithToken('/admin/orders');
-    cy.wait('@getAdminMe');
     cy.contains('Egész nap').click();
     cy.contains('Jelenleg nincs aktív rendelés.').should('be.visible');
   });
@@ -103,9 +84,8 @@ describe('admin orders page', () => {
   it('toggles sort direction button text', () => {
     mockAdminMe();
 
-    cy.intercept('GET', '**/orders/active', {
-      statusCode: 200,
-      body: [
+    cy.mockApi({
+      activeOrders: [
         {
           id: 31,
           user_id: 1,
@@ -127,38 +107,27 @@ describe('admin orders page', () => {
           ],
         },
       ],
-    }).as('getActiveOrdersSingle');
-
-    cy.intercept('GET', '**/orders/breaks/**', {
-      statusCode: 200,
-      body: { breaks: [{ start: '10:00', end: '10:15' }] },
-    }).as('getBreaks');
+      breaks: { breaks: [{ start: '10:00', end: '10:15' }] },
+    });
 
     visitWithToken('/admin/orders');
-    cy.wait('@getAdminMe');
 
     cy.contains('Csökkenő').should('be.visible').click();
     cy.contains('Növekvő').should('be.visible');
   });
 
   it('redirects non-admin users to profile page', () => {
-    cy.intercept('GET', '**/account/me', {
-      statusCode: 200,
-      body: {
+    cy.mockApi({
+      me: {
         id: 1,
         username: 'teszt.elek',
         full_name: 'Teszt Elek',
         role: 'user',
       },
-    }).as('getUserMe');
-
-    cy.intercept('GET', '**/orders/active', {
-      statusCode: 200,
-      body: [],
-    }).as('getActiveOrders');
+      activeOrders: [],
+    });
 
     visitWithToken('/admin/orders');
-    cy.wait('@getUserMe');
     cy.url().should('include', '/me');
   });
 });

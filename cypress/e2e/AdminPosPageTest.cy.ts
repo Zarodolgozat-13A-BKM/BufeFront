@@ -8,19 +8,14 @@ describe('admin pos page', () => {
   };
 
   it('renders pos layout and supports search filtering', () => {
-    cy.intercept('GET', '**/account/me', {
-      statusCode: 200,
-      body: {
+    cy.mockApi({
+      me: {
         id: 1,
         username: 'admin.user',
         full_name: 'Admin User',
         role: 'admin',
       },
-    }).as('getAdminMe');
-
-    cy.intercept('GET', '**/categories', {
-      statusCode: 200,
-      body: [
+      categories: [
         {
           id: 1,
           name: 'Szendvicsek',
@@ -40,17 +35,10 @@ describe('admin pos page', () => {
           ],
         },
       ],
-    }).as('getCategories');
-
-    cy.intercept('GET', '**/orders/breaks/**', {
-      statusCode: 200,
-      body: { breaks: [{ start: '10:00', end: '10:15' }] },
-    }).as('getBreaks');
+      breaks: { breaks: [{ start: '10:00', end: '10:15' }] },
+    });
 
     visitWithToken();
-    cy.wait('@getAdminMe');
-    cy.wait('@getCategories');
-    cy.wait('@getBreaks');
 
     cy.contains('Admin rendelőfelület').should('be.visible');
     cy.contains('Pénztár').should('be.visible');
@@ -61,102 +49,65 @@ describe('admin pos page', () => {
   });
 
   it('redirects non-admin users to profile page', () => {
-    cy.intercept('GET', '**/account/me', {
-      statusCode: 200,
-      body: {
+    cy.mockApi({
+      me: {
         id: 1,
         username: 'teszt.elek',
         full_name: 'Teszt Elek',
         role: 'user',
       },
-    }).as('getUserMe');
-
-    cy.intercept('GET', '**/orders/active', {
-      statusCode: 200,
-      body: [],
-    }).as('getActiveOrders');
+      activeOrders: [],
+    });
 
     visitWithToken('/admin/pos');
-    cy.wait('@getUserMe');
-    cy.wait('@getActiveOrders');
     cy.url().should('include', '/me');
   });
 
   it('keeps admin users on /admin/pos route', () => {
-    cy.intercept('GET', '**/account/me', {
-      statusCode: 200,
-      body: {
+    cy.mockApi({
+      me: {
         id: 1,
         username: 'admin.user',
         full_name: 'Admin User',
         role: 'admin',
       },
-    }).as('getAdminMe');
-
-    cy.intercept('GET', '**/categories', {
-      statusCode: 200,
-      body: [],
-    }).as('getCategories');
-
-    cy.intercept('GET', '**/orders/breaks/**', {
-      statusCode: 200,
-      body: { breaks: [] },
-    }).as('getBreaks');
+      categories: [],
+      breaks: { breaks: [] },
+    });
 
     visitWithToken('/admin/pos');
-    cy.wait('@getAdminMe');
     cy.url().should('include', '/admin/pos');
   });
 
   it('shows empty cart message in checkout panel by default', () => {
-    cy.intercept('GET', '**/account/me', {
-      statusCode: 200,
-      body: {
+    cy.mockApi({
+      me: {
         id: 1,
         username: 'admin.user',
         full_name: 'Admin User',
         role: 'admin',
       },
-    }).as('getAdminMe');
-
-    cy.intercept('GET', '**/categories', {
-      statusCode: 200,
-      body: [],
-    }).as('getCategories');
-
-    cy.intercept('GET', '**/orders/breaks/**', {
-      statusCode: 200,
-      body: { breaks: [] },
-    }).as('getBreaks');
+      categories: [],
+      breaks: { breaks: [] },
+    });
 
     visitWithToken('/admin/pos');
-    cy.wait('@getAdminMe');
     cy.contains('A kosár üres.').should('be.visible');
   });
 
   it('shows new order reset action button', () => {
-    cy.intercept('GET', '**/account/me', {
-      statusCode: 200,
-      body: {
+    cy.mockApi({
+      me: {
         id: 1,
         username: 'admin.user',
         full_name: 'Admin User',
         role: 'admin',
       },
-    }).as('getAdminMe');
-
-    cy.intercept('GET', '**/categories', {
-      statusCode: 200,
-      body: [],
-    }).as('getCategories');
-
-    cy.intercept('GET', '**/orders/breaks/**', {
-      statusCode: 200,
-      body: { breaks: [] },
-    }).as('getBreaks');
+      categories: [],
+      breaks: { breaks: [] },
+    });
 
     visitWithToken('/admin/pos');
-    cy.wait('@getAdminMe');
     cy.contains('Új rendelés').should('be.visible');
   });
 });
