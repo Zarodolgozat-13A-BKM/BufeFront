@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { isAxiosError } from 'axios';
-import { useNavigate } from 'react-router';
 import type { OrderCreateModel } from '../Models/OrderModel';
 import type { Ringlist } from '../Models/RingModel';
 import { GetAllCategories } from '../services/CategoryService';
@@ -31,7 +30,6 @@ const formatLocalDateTime = (date: Date): string => {
 
 const AdminPosPage = () => {
 	const dispatch = useAppDispatch();
-	const navigate = useNavigate();
 	const categories = useAppSelector((state) => state.category.categories);
 	const allItems = useAppSelector(selectAllItems);
 	const cartItems = useAppSelector((state) => state.cart.cart.items);
@@ -192,9 +190,8 @@ const AdminPosPage = () => {
 			dispatch(clearCart());
 			setComment('');
 			setDeliverydatetime('');
-			navigate('/orderstatus', { replace: true });
 		} catch (error) {
-			let errorMessage = 'A rendeles rogzitese nem sikerult. Probald ujra.';
+			let errorMessage = 'A rendeles rögzítése nem sikerült. Próbáld újra.';
 
 			if (isAxiosError(error) && error.response?.data?.message) {
 				errorMessage = error.response.data.message;
@@ -243,7 +240,7 @@ const AdminPosPage = () => {
 
 				<main className='px-4 pb-6 md:px-6'>
 					{isLoading ? (
-						<LoadingState message='POS kinalat betoltese...' />
+						<LoadingState message='Kínálat betöltése...' />
 					) : (
 						<div className='grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]'>
 							<section>
@@ -275,7 +272,7 @@ const AdminPosPage = () => {
 																			{item.name}
 																		</p>
 																		<p className='text-xs text-muted dark:text-zinc-400'>
-																			Raktaron: {item.inventory_count} db
+																			Raktáron: {item.inventory_count} db
 																		</p>
 																	</div>
 																	<p className='text-sm font-bold text-foreground dark:text-zinc-100'>
