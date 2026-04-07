@@ -67,8 +67,8 @@ const PaymentForm = () => {
   // };
 
   return (
-    <div className='bg-white dark:bg-zinc-900 min-h-screen font-display antialiased w-full'>
-      <div className='mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-4 py-8'>
+    <div className='bg-surface dark:bg-zinc-900 font-display antialiased w-full min-h-[calc(100dvh-8rem)] flex items-center'>
+      <div className='mx-auto flex w-full max-w-5xl items-center justify-center px-4 py-8'>
         <div className='grid w-full gap-4 lg:grid-cols-[1.1fr_0.9fr]'>
           <section className='rounded-2xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900'>
             <div className='mb-6 flex items-start justify-between gap-3'>

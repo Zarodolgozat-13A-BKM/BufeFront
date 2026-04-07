@@ -65,7 +65,7 @@ export const OrderComponent = ({ order, highlighted = false }: { order: OrderMod
       setIsUpdatingStatus(false);
     }
   };
-  return <div id={`admin-order-${order.id}`} className={"bg-gray-200  dark:bg-zinc-800 rounded-xl p-4 md:p-5 border flex flex-col transition-all " + (highlighted ? "border-primary ring-2 ring-primary/40 shadow-lg shadow-primary/10 animate-pulse" : "border-[#e6e0db] dark:border-zinc-700 ") }>
+  return <div id={`admin-order-${order.id}`} className={"bg-white  dark:bg-zinc-800 rounded-xl p-4 md:p-5 border flex flex-col transition-all " + (highlighted ? "border-primary ring-2 ring-primary/40 shadow-lg shadow-primary/10 animate-pulse" : "border-[#e6e0db] dark:border-zinc-700 ") }>
     <div className="flex justify-between items-start mb-4">
       <div>
         <span className="px-3 py-1 bg-primary/10 border border-primary/20 text-[10px] font-semibold rounded-full text-primary tracking-wider uppercase">{order.delivery_date}</span>

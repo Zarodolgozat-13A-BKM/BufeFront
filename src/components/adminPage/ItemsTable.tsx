@@ -97,9 +97,9 @@ const ItemsTable = ({
             <tr
               key={item.id}
               className={
-                item.inventory_count >= 2
+                item.inventory_count > 0
                   ? "h-14 border-b border-[#e6e0db] dark:border-zinc-700 hover:bg-surface dark:hover:bg-zinc-800/80 transition-colors"
-                  : "h-14 border-b border-[#e6e0db] dark:border-zinc-700 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+                  : "h-14 border-b border-[#e6e0db] dark:border-zinc-700 bg-red-900/20 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
               }
             >
               <td className="py-2 px-3 text-center">

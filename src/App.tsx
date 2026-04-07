@@ -74,7 +74,7 @@ function App() {
   }, [isLoggedIn, me, dispatch])
 
   return (
-    <div className="flex min-h-screen flex-col bg-secondary dark:bg-secondary-dark font-display antialiased">
+    <div className="flex min-h-screen flex-col bg-surface dark:bg-secondary-dark font-display antialiased">
       <main className="flex-1">
         <Routes>
           <Route
@@ -172,7 +172,7 @@ function App() {
         </Routes>
       </main>
       {location.pathname !== '/login' ? (
-        <footer className="border-t border-[#e6e0db] bg-white/95 px-4 py-3 text-xs font-medium text-muted backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/95 dark:text-zinc-400 text-center">
+        <footer className="border-t border-[#e6e0db] bg-surface dark:bg-zinc-900/95 px-4 py-3 text-xs font-medium text-muted backdrop-blur dark:border-zinc-800 dark:text-zinc-400 text-center">
           <div className="mx-auto flex w-full max-w-6xl items-center justify-center gap-4 sm:gap-6">
             <a
               target="_blank"

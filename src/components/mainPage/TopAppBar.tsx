@@ -44,7 +44,7 @@ export const TopAppBar = ({
           <button
             type="button"
             onClick={onCartClick}
-            className="inline-flex min-h-10 items-center gap-2.5 rounded-full border border-primary/35 bg-primary/10 px-4 py-2 text-primary shadow-sm"
+            className="inline-flex min-h-10 items-center gap-2.5 rounded-full border border-primary/35 bg-primary/10 px-4 py-2 text-primary shadow-sm hover:bg-surface-hover hover:text-primary-strong transition-colors"
             aria-label="Kosár megnyitása"
           >
             <span className="text-sm font-bold">{totalItems}</span>

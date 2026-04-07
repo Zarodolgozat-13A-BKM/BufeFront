@@ -99,8 +99,7 @@ const MainPage = () => {
         if (delta === 0) return
 
         const currentQuantity = itemQuantityById[item.id] ?? 0
-        if(currentQuantity + delta > item.inventory_count)
-        {
+        if (currentQuantity + delta > item.inventory_count) {
             alert(`Nincs elég készlet a "${item.name}"-ból. Jelenleg ${item.inventory_count} darab elérhető.`)
             return
         }
@@ -260,115 +259,117 @@ const MainPage = () => {
     }
 
     return (
-        <div className="mx-auto max-w-[90%] bg-secondary dark:bg-zinc-900 font-display antialiased ">
+        <div className="mx-auto max-w-[90%] bg-surface dark:bg-zinc-900 font-display antialiased ">
             <div
                 ref={scrollContainerRef}
-                className="mainpage-scrollbar relative flex w-full flex-col overflow-y-auto overflow-x-hidden shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800"
+                className="mainpage-scrollbar relative flex w-full flex-col overflow-y-auto overflow-x-hidden shadow-sm bg-surface dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800"
             >
-            <div className=" fixed top-0 left-0 right-0 z-50">
-                <div ref={stickyHeaderRef} className="w-full bg-white dark:bg-zinc-900 border-b border-x border-[#e6e0db] dark:border-zinc-800">
-                    <TopAppBar
-                        username={me?.full_name ?? 'Guest'}
-                        totalItems={totalItems}
-                        totalPrice={totalPrice}
-                        onCartClick={handleCheckout}
-                    />
-                    <SearchBar value={searchQuery} onChange={setSearchQuery} />
-                    <CategoryChips categories={categories} searchQuery={searchQuery} activeCategory={activeCategory} onCategoryClick={(category) => { setActiveCategory(category); scrollToCategory(category.id) }} />
+                <div className=" fixed top-0 left-0 right-0 z-50">
+                    <div ref={stickyHeaderRef} className="w-full bg-surface dark:bg-zinc-900 border-b border-x border-[#e6e0db] dark:border-zinc-800">
+                        <TopAppBar
+                            username={me?.full_name ?? 'Guest'}
+                            totalItems={totalItems}
+                            totalPrice={totalPrice}
+                            onCartClick={handleCheckout}
+                        />
+                        <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                        <CategoryChips categories={categories} searchQuery={searchQuery} activeCategory={activeCategory} onCategoryClick={(category) => { setActiveCategory(category); scrollToCategory(category.id) }} />
+                    </div>
                 </div>
-            </div>
 
-            <div aria-hidden style={{ height: headerHeight }} className="min-h-40" />
+                <div aria-hidden style={{ height: headerHeight }} className="min-h-40" />
 
-            <main className="flex-1 mx-auto w-full pb-8 md:pb-10">
-            {isLoadingMainData ? (
-                <div className="px-4 pt-5">
-                    <LoadingState message="Kínálat betöltése..." />
-                </div>
-            ) : (
-                <>
-            <div className="pt-5 pb-2">
-                <div className="flex items-center justify-between px-4 lg:px-6 2xl:px-8 pb-3">
-                    <h2 className="text-foreground dark:text-white tracking-tight text-xl sm:text-2xl lg:text-3xl 2xl:text-4xl font-bold leading-tight">
-                        <span className="text-primary"></span> Napi válogatás
-                    </h2>
-                </div>
-                <div
-                    ref={featuredScrollRef}
-                    onMouseDown={handleFeaturedMouseDown}
-                    onMouseMove={handleFeaturedMouseMove}
-                    onMouseUp={stopFeaturedDragging}
-                    onMouseLeave={stopFeaturedDragging}
-                    onClickCapture={handleFeaturedClickCapture}
-                    className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 lg:px-6 2xl:px-8 gap-3 lg:gap-4 2xl:gap-5 no-scrollbar cursor-grab"
-                >
-                    {featuredItems.map((item: ItemModel) => (
-                        <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={itemQuantityById[item.id] ?? 0} onUpdateQuantity={updateQuantity}/>
-                    ))
-                    }
-                </div>
-            </div>
+                <main className="flex-1 mx-auto w-full pb-8 md:pb-10">
+                    {isLoadingMainData ? (
+                        <div className="px-4 pt-5">
+                            <LoadingState message="Kínálat betöltése..." />
+                        </div>
+                    ) : (
 
-            <div className="h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 lg:mx-6 2xl:mx-8 my-2"></div>
-
-            {hasSearchQuery && !hasAnySearchResults ? (
-                <div className="px-4 pt-8">
-                    <div className="mx-auto max-w-2xl rounded-2xl border border-[#e6e0db] bg-white px-5 py-6 text-center dark:border-zinc-700 dark:bg-zinc-900">
-                        <span className="material-symbols-outlined text-3xl text-muted dark:text-zinc-400">search_off</span>
-                        <h3 className="mt-3 text-base sm:text-lg lg:text-xl font-bold text-foreground dark:text-white">Nincs találat erre: "{searchQuery.trim()}"</h3>
-                        <p className="mt-2 text-sm text-muted dark:text-zinc-400">
-                            Próbálj rövidebb keresést, vagy válassz egy ajánlott kategóriát.
-                        </p>
-                        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                            <button
-                                type="button"
-                                onClick={resetSearch}
-                                className="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
-                            >
-                                Keresés törlése
-                            </button>
-                            {suggestedCategories.map(({ category }) => (
-                                <button
-                                    key={category.id}
-                                    type="button"
-                                    onClick={() => {
-                                        setSearchQuery('')
-                                        setActiveCategory(category)
-                                        scrollToCategory(category.id)
-                                    }}
-                                    className="rounded-full border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:border-primary/45 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                        <>
+                            {featuredItems.length > 0 && (
+                            <div className="pt-5 pb-2">
+                                <div className="flex items-center justify-between px-4 lg:px-6 2xl:px-8 pb-3">
+                                    <h2 className="text-foreground dark:text-white tracking-tight text-xl sm:text-2xl lg:text-3xl 2xl:text-4xl font-bold leading-tight">
+                                        <span className="text-primary"></span> Napi válogatás
+                                    </h2>
+                                </div>
+                                <div
+                                    ref={featuredScrollRef}
+                                    onMouseDown={handleFeaturedMouseDown}
+                                    onMouseMove={handleFeaturedMouseMove}
+                                    onMouseUp={stopFeaturedDragging}
+                                    onMouseLeave={stopFeaturedDragging}
+                                    onClickCapture={handleFeaturedClickCapture}
+                                    className="flex overflow-x-auto scroll-pl-4 snap-x pb-4 px-4 lg:px-6 2xl:px-8 gap-3 lg:gap-4 2xl:gap-5 no-scrollbar cursor-grab"
                                 >
-                                    {category.name}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            ) : null}
+                                    {featuredItems.map((item: ItemModel) => (
+                                        <SpecialItemCard key={item.id} item={item} showModal={showModal} quantity={itemQuantityById[item.id] ?? 0} onUpdateQuantity={updateQuantity} />
+                                    ))
+                                    }
+                                </div>
+                            </div>)}
 
-            {filteredCategories.map(({ category, filteredItems }) => {
-                if (filteredItems.length === 0) return <span key={category.id} />
+                            <div className="h-px bg-[#e6e0db] dark:bg-zinc-800 mx-4 lg:mx-6 2xl:mx-8 my-2"></div>
 
-                return (
-                    <div key={category.id} data-category-id={category.id} className="flex flex-col gap-3 lg:gap-4 2xl:gap-6 px-4 lg:px-6 2xl:px-8 pt-6 scroll-mt-32">
-                        <h3 className="text-foreground dark:text-white text-base sm:text-lg lg:text-xl 2xl:text-2xl font-bold leading-tight flex items-center gap-2 mt-5">
-                            <span className="w-1 h-5 bg-primary rounded-full"></span>
-                            {category.name}
-                        </h3>
-                        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 4xl:grid-cols-4 gap-3 lg:gap-4 2xl:gap-6">
-                            {filteredItems.map((item) => (
-                                <MenuItemCard key={item.id} item={item} onUpdateQuantity={updateQuantity} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} />
-                            ))}
-                        </div>
-                    </div>
-                )
-            })}
-            <div className="h-6"></div>
-                </>
-            )}
-            </main>
-            <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? (itemQuantityById[selectedItem.id] ?? 0) : 0} />
-        </div>
+                            {hasSearchQuery && !hasAnySearchResults ? (
+                                <div className="px-4 pt-8">
+                                    <div className="mx-auto max-w-2xl rounded-2xl border border-[#e6e0db] bg-surface dark:bg-zinc-900">
+                                        <span className="material-symbols-outlined text-3xl text-muted dark:text-zinc-400">search_off</span>
+                                        <h3 className="mt-3 text-base sm:text-lg lg:text-xl font-bold text-foreground dark:text-white">Nincs találat erre: "{searchQuery.trim()}"</h3>
+                                        <p className="mt-2 text-sm text-muted dark:text-zinc-400">
+                                            Próbálj rövidebb keresést, vagy válassz egy ajánlott kategóriát.
+                                        </p>
+                                        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={resetSearch}
+                                                className="rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+                                            >
+                                                Keresés törlése
+                                            </button>
+                                            {suggestedCategories.map(({ category }) => (
+                                                <button
+                                                    key={category.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSearchQuery('')
+                                                        setActiveCategory(category)
+                                                        scrollToCategory(category.id)
+                                                    }}
+                                                    className="rounded-full border border-[#e6e0db] bg-white px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:border-primary/45 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                                                >
+                                                    {category.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : null}
+
+                            {filteredCategories.map(({ category, filteredItems }) => {
+                                if (filteredItems.length === 0) return <span key={category.id} />
+
+                                return (
+                                    <div key={category.id} data-category-id={category.id} className="flex flex-col gap-3 lg:gap-4 2xl:gap-6 px-4 lg:px-6 2xl:px-8 pt-6 scroll-mt-32">
+                                        <h3 className="text-foreground dark:text-white text-base sm:text-lg lg:text-xl 2xl:text-2xl font-bold leading-tight flex items-center gap-2 mt-5">
+                                            <span className="w-1 h-5 bg-primary rounded-full"></span>
+                                            {category.name}
+                                        </h3>
+                                        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 4xl:grid-cols-4 gap-3 lg:gap-4 2xl:gap-6">
+                                            {filteredItems.map((item) => (
+                                                <MenuItemCard key={item.id} item={item} onUpdateQuantity={updateQuantity} quantity={itemQuantityById[item.id] ?? 0} showModal={showModal} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                            <div className="h-6"></div>
+                        </>
+                    )}
+                </main>
+                <AddItemModal isOpen={isAddItemModalOpen} onClose={() => setIsAddItemModalOpen(false)} item={selectedItem} onUpdateQuantity={updateQuantity} qty={selectedItem ? (itemQuantityById[selectedItem.id] ?? 0) : 0} />
+            </div>
         </div>
     )
 }

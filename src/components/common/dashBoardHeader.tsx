@@ -62,13 +62,13 @@ const DashBoardHeader = ({ name, showAdmin, backTo, isSoundEnabled, onSoundToggl
     return (
         <div className="sticky top-0 z-20 border-b border-[#e6e0db] bg-surface p-4 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="relative flex items-center justify-center">
-                <Link to={backTo} className="absolute left-0 text-foreground dark:text-white flex size-12 shrink-0 items-center justify-center cursor-pointer hover:bg-orange-300 dark:hover:bg-zinc-800 rounded-full transition-colors">
+                <Link to={backTo} className="absolute left-0 text-foreground dark:text-white flex size-12 shrink-0 items-center justify-center cursor-pointer hover:bg-surface-hover dark:hover:bg-zinc-800 rounded-full transition-colors">
                     <span className="material-symbols-outlined">arrow_back</span>
                 </Link>
                 <h2 className="text-foreground dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">{name}</h2>
                 <div className="absolute right-0 hidden shrink-0 items-center gap-1 md:flex">
                     {showAdmin && me?.role === 'admin' ?
-                        <Link to="/orders" className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-orange-300 dark:hover:bg-zinc-800 rounded-full transition-colors"><span className="material-symbols-outlined">order_play</span></Link> :""
+                        <Link to="/orders" className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-surface-hover dark:hover:bg-zinc-800 rounded-full transition-colors"><span className="material-symbols-outlined">order_play</span></Link> :""
                     }
                     {typeof isSoundEnabled === 'boolean' && onSoundToggle ? (
                         <button
@@ -76,7 +76,7 @@ const DashBoardHeader = ({ name, showAdmin, backTo, isSoundEnabled, onSoundToggl
                             onClick={handleSoundToggle}
                             aria-label={isSoundEnabled ? "Értesítési hang kikapcsolása" : "Értesítési hang bekapcsolása"}
                             title={isSoundEnabled ? "Értesítési hang be" : "Értesítési hang ki"}
-                            className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-orange-300 dark:hover:bg-zinc-800 rounded-full transition-colors"
+                            className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-surface-hover dark:hover:bg-zinc-800 rounded-full transition-colors"
                         >
                             <span className="material-symbols-outlined">
                                 {isSoundEnabled ? 'notifications_active' : 'notifications_off'}
@@ -87,13 +87,13 @@ const DashBoardHeader = ({ name, showAdmin, backTo, isSoundEnabled, onSoundToggl
                         onClick={handleThemeToggle}
                         aria-label="Téma váltása"
                         title="Téma váltása"
-                        className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-orange-300 dark:hover:bg-zinc-800 rounded-full transition-colors"
+                        className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-surface-hover dark:hover:bg-zinc-800 rounded-full transition-colors"
                     >
                         <span className="material-symbols-outlined">
                             {theme === 'dark' ? 'dark_mode' : theme === 'light' ? 'light_mode' : 'computer'}
                         </span>
                     </button>
-                    <button onClick={() => { if (confirm('Kijelentkezés megerősítése')) { handleLogout() } }} className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-orange-300 dark:hover:bg-zinc-800 rounded-full transition-colors">
+                    <button onClick={() => { if (confirm('Kijelentkezés megerősítése')) { handleLogout() } }} className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-surface-hover dark:hover:bg-zinc-800 rounded-full transition-colors">
                         <span className="material-symbols-outlined">logout</span>
                     </button>
                 </div>
@@ -103,61 +103,61 @@ const DashBoardHeader = ({ name, showAdmin, backTo, isSoundEnabled, onSoundToggl
                         aria-label="Menü megnyitása"
                         aria-expanded={isMobileMenuOpen}
                         onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-                        className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+                        className="text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-surface-hover dark:hover:bg-zinc-800 rounded-full transition-colors"
                     >
                         <span className="material-symbols-outlined">
                             {isMobileMenuOpen ? 'close' : 'menu'}
                         </span>
                     </button>
-                </div>
 
-                {isMobileMenuOpen ? (
-                    <div className="absolute right-0 top-12 z-30 w-56 rounded-xl border border-[#e6e0db] bg-white p-2 shadow-lg dark:border-zinc-700 dark:bg-zinc-900 md:hidden">
-                        {showAdmin && me?.role === 'admin' ? (
-                            <Link
-                                to="/orders"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="text-foreground dark:text-white flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-zinc-800"
-                            >
-                                <span className="material-symbols-outlined text-[20px]">order_play</span>
-                                Rendeléskezelő
-                            </Link>
-                        ) : null}
+                    {isMobileMenuOpen ? (
+                        <div className="absolute right-0 top-12 z-30 w-56 rounded-xl border border-[#e6e0db] bg-white p-2 shadow-lg dark:border-zinc-700 dark:bg-zinc-900 md:hidden">
+                            {showAdmin && me?.role === 'admin' ? (
+                                <Link
+                                    to="/orders"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="text-foreground dark:text-white flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-300 dark:hover:bg-zinc-800"
+                                >
+                                    <span className="material-symbols-outlined text-[20px]">order_play</span>
+                                    Rendeléskezelő
+                                </Link>
+                            ) : null}
 
-                        {typeof isSoundEnabled === 'boolean' && onSoundToggle ? (
+                            {typeof isSoundEnabled === 'boolean' && onSoundToggle ? (
+                                <button
+                                    type="button"
+                                    onClick={handleSoundToggle}
+                                    className="text-foreground dark:text-white flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-300 dark:hover:bg-zinc-800"
+                                >
+                                    <span className="material-symbols-outlined text-[20px]">
+                                        {isSoundEnabled ? 'notifications_active' : 'notifications_off'}
+                                    </span>
+                                    {isSoundEnabled ? 'Hang be' : 'Hang ki'}
+                                </button>
+                            ) : null}
+
                             <button
                                 type="button"
-                                onClick={handleSoundToggle}
-                                className="text-foreground dark:text-white flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-zinc-800"
+                                onClick={handleThemeToggle}
+                                className="text-foreground dark:text-white flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-300 dark:hover:bg-zinc-800"
                             >
                                 <span className="material-symbols-outlined text-[20px]">
-                                    {isSoundEnabled ? 'notifications_active' : 'notifications_off'}
+                                    {theme === 'dark' ? 'dark_mode' : theme === 'light' ? 'light_mode' : 'computer'}
                                 </span>
-                                {isSoundEnabled ? 'Hang be' : 'Hang ki'}
+                                Téma váltása
                             </button>
-                        ) : null}
 
-                        <button
-                            type="button"
-                            onClick={handleThemeToggle}
-                            className="text-foreground dark:text-white flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-zinc-800"
-                        >
-                            <span className="material-symbols-outlined text-[20px]">
-                                {theme === 'dark' ? 'dark_mode' : theme === 'light' ? 'light_mode' : 'computer'}
-                            </span>
-                            Téma váltása
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => { if (confirm('Kijelentkezés megerősítése')) { handleLogout() } }}
-                            className="text-foreground dark:text-white flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-zinc-800"
-                        >
-                            <span className="material-symbols-outlined text-[20px]">logout</span>
-                            Kijelentkezés
-                        </button>
-                    </div>
-                ) : null}
+                            <button
+                                type="button"
+                                onClick={() => { if (confirm('Kijelentkezés megerősítése')) { handleLogout() } }}
+                                className="text-foreground dark:text-white flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-300 dark:hover:bg-zinc-800"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">logout</span>
+                                Kijelentkezés
+                            </button>
+                        </div>
+                    ) : null}
+                </div>
             </div>
         </div>
     )
