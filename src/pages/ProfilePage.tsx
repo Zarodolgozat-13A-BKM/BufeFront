@@ -13,7 +13,7 @@ import { LoadingState } from '../components/common/LoadingState';
 import {
 	ReorderAvailabilityModal,
 	type ReorderUnavailableItem,
-} from '../components/modals/ReorderAvailabilityModal';
+} from '../modals/ReorderAvailabilityModal';
 
 type ReorderAvailableItem = { item: ItemModel; quantity: number };
 

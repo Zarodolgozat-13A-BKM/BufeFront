@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Modal } from "./Modal";
-import type { ItemCreateModel, ItemModel } from "../../Models/ItemModel";
-import type { CategoryModel } from "../../Models/CategoryModel";
-import { CreateItem, UpdateItem } from "../../services/ItemService";
+import type { ItemCreateModel, ItemModel } from "../Models/ItemModel";
+import type { CategoryModel } from "../Models/CategoryModel";
+import { CreateItem, UpdateItem } from "../services/ItemService";
 
 interface CreateItemModalProps {
   isOpen: boolean;
@@ -211,7 +211,7 @@ export const CreateItemModal = ({
           return;
         }
 
-        savedItem = await UpdateItem(item.id.toString(), changedFormData);
+        savedItem = await UpdateItem(item.id, changedFormData);
       } else {
         const formData = buildItemFormData(form, imageFile);
         savedItem = await CreateItem(formData);

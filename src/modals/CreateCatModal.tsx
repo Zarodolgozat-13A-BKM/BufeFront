@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Modal } from './Modal'
-import type { CategoryModel } from '../../Models/CategoryModel'
-import { CreateCategory, UpdateCategory } from '../../services/CategoryService'
+import type { CategoryModel } from '../Models/CategoryModel'
+import { CreateCategory, UpdateCategory } from '../services/CategoryService'
 
 interface CreateItemModalProps {
     isOpen: boolean

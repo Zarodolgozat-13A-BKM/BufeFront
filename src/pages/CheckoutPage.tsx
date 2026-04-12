@@ -9,6 +9,8 @@ import type { CartItemModel, OrderCreateModel } from "../Models/OrderModel";
 import { CreateOrder } from "../services/OrderService";
 import { QuantityControl } from "../components/mainPage/QuantityControl";
 import { GetOneItem } from "../services/ItemService";
+import Swal from "sweetalert2";
+import { isDarkTheme } from "../services/themeService";
 
 const dph = 0.27;
 const DealerIncome = 1 - dph;
@@ -58,7 +60,12 @@ export const CheckoutPage = () => {
 
 	const updateQuantity = (item: CartItemModel, delta: number) => {
 		if (item.quantity && delta + item.quantity > item.inventory_count) {
-			alert(`Nincs elég készlet a "${item.name}"-ból. Jelenleg ${item.inventory_count} darab elérhető.`)
+			Swal.fire({
+				title: "Nincs elég készlet",
+				text: `Nincs elég készlet a "${item.name}"-ból. Jelenleg ${item.inventory_count} darab elérhető.`,
+				icon: "error",
+				theme: isDarkTheme() ? "dark" : "light",
+			});
 			return
 		}
 		dispatch(updateItemQuantity({ item_id: item.id, delta }));
@@ -142,15 +149,32 @@ export const CheckoutPage = () => {
 				if (error.response.status === 400) {
 					cart.items.forEach((item) => {
 						GetOneItem(item.id)
-							.then((data) => {
+							.then(async (data) => {
 								if (item.quantity && data.inventory_count < item.quantity) {
 									if (data.inventory_count === 0) {
-										confirm(`Sajnáljuk, de a "${item.name}" nevű termék jelenleg nincs készleten. Szeretnéd eltávolítani a kosárból?`) && dispatch(removeItemFromCart(item.id))
+										await Swal.fire({
+											title: "Nincs elég készlet",
+											text: `Sajnáljuk, de a "${item.name}" nevű termék jelenleg nincs készleten. Szeretnéd eltávolítani a kosárból?`,
+											icon: "error",
+											theme: isDarkTheme() ? "dark" : "light",
+										}).then((result) => {
+											if (result.isConfirmed) {
+												dispatch(removeItemFromCart(item.id));
+											}
+										});
 
 									}
 									else {
-										confirm(`Sajnáljuk, de a "${item.name}" nevű termékből már csak ${data.inventory_count} darab elérhető. Szeretnéd frissíteni a kosárban lévő mennyiséget?`) &&
-											dispatch(updateItemQuantity({ item_id: item.id, delta: data.inventory_count - item.quantity! }))
+										await Swal.fire({
+											title: "Nincs elég készlet",
+											text: `Sajnáljuk, de a "${item.name}" nevű termékből már csak ${data.inventory_count} darab elérhető. Szeretnéd frissíteni a kosárban lévő mennyiséget?`,
+											icon: "error",
+											theme: isDarkTheme() ? "dark" : "light",
+										}).then((result) => {
+											if (result.isConfirmed) {
+												dispatch(updateItemQuantity({ item_id: item.id, delta: data.inventory_count - item.quantity! }));
+											}
+										})
 									}
 								}
 							})

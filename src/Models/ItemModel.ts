@@ -22,3 +22,4 @@ export interface ItemCreateModel {
   is_featured: boolean;
   inventory_count: number;
 }
+export type InventoryAdjustment = Array<{ id: number; delta: number }>;

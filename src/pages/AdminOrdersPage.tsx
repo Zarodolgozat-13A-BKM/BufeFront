@@ -164,7 +164,7 @@ export const AdminOrdersPage = () => {
 	const triggerNewOrderAlert = useCallback(
 		(incomingOrder: OrderModel) => {
 			setLatestAlert(
-				`Uj rendeles #${incomingOrder.order_identifier_number} - ${incomingOrder.user_username.replaceAll('.', ' ')}`,
+				`#${incomingOrder.order_identifier_number} - ${incomingOrder.user_username.replaceAll('.', ' ')}`,
 			);
 			setLatestAlertOrderId(incomingOrder.id);
 			setIsAlertVisible(true);
@@ -541,6 +541,7 @@ export const AdminOrdersPage = () => {
 											key={order.id}
 											order={order}
 											highlighted={highlightedOrderId === order.id}
+											onStatusUpdated={refreshOrders}
 										/>
 									),
 								)}

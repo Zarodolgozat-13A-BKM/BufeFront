@@ -13,8 +13,10 @@ import { MenuItemCard } from '../components/mainPage/MenuItemCard'
 import { setMe } from '../store/authSlice'
 import { GetMe } from '../services/APIservice'
 import { useNavigate } from 'react-router'
-import { AddItemModal } from '../components/modals/addItemModal'
+import { AddItemModal } from '../modals/addItemModal'
 import { LoadingState } from '../components/common/LoadingState'
+import Swal from 'sweetalert2'
+import { isDarkTheme } from '../services/themeService'
 
 const MainPage = () => {
     const dispatch = useAppDispatch()
@@ -100,7 +102,12 @@ const MainPage = () => {
 
         const currentQuantity = itemQuantityById[item.id] ?? 0
         if (currentQuantity + delta > item.inventory_count) {
-            alert(`Nincs elég készlet a "${item.name}"-ból. Jelenleg ${item.inventory_count} darab elérhető.`)
+            Swal.fire({
+                title: "Nincs elég készlet",
+                text: `Nincs elég készlet a "${item.name}"-ból. Jelenleg ${item.inventory_count} darab elérhető.`,
+                icon: "error",
+                theme: isDarkTheme() ? "dark" : "light",
+            });
             return
         }
         if (currentQuantity === 0 && delta > 0) {

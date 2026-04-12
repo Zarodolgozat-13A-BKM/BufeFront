@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Modal } from './Modal';
-import type { ItemModel } from '../../Models/ItemModel';
-import { useAppDispatch } from '../../store/hooks';
-import { addItemToCart } from '../../store/cartSlice';
+import type { ItemModel } from '../Models/ItemModel';
+import { useAppDispatch } from '../store/hooks';
+import { addItemToCart } from '../store/cartSlice';
 
 interface AddItemModalProps {
 	isOpen: boolean;

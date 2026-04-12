@@ -1,18 +1,13 @@
 import { useMemo, useState } from "react";
-import type { ItemModel } from "../../Models/ItemModel";
+import type { InventoryAdjustment, ItemModel } from "../Models/ItemModel";
 import { Modal } from "./Modal";
-
-interface StockArrivalChange {
-    itemId: number;
-    increaseBy: number;
-}
 
 interface StockArrivalModalProps {
     isOpen: boolean;
     isSaving: boolean;
     items: ItemModel[];
     onClose: () => void;
-    onSubmit: (changes: StockArrivalChange[]) => Promise<void>;
+    onSubmit: (changes: InventoryAdjustment) => Promise<void>;
 }
 
 const toNormalized = (value: string): number => {
@@ -31,7 +26,7 @@ export const StockArrivalModal = ({
 }: StockArrivalModalProps) => {
     const [selectedItemQuery, setSelectedItemQuery] = useState("");
     const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
-    const [changes, setChanges] = useState<Record<number, string>>({});
+    const [changes, setChanges] = useState<InventoryAdjustment>([]);
     const [error, setError] = useState<string | null>(null);
 
     const sortedItems = useMemo(() => {
@@ -62,17 +57,13 @@ export const StockArrivalModal = ({
         return pickerValueToItemId.has(selectedItemQuery.trim());
     }, [pickerValueToItemId, selectedItemQuery]);
 
-    const preparedChanges = useMemo(() => {
-        return Object.entries(changes)
-            .map(([itemId, value]) => ({
-                itemId: Number(itemId),
-                increaseBy: toNormalized(value),
-            }))
-            .filter((entry) => entry.increaseBy !== 0);
-    }, [changes]);
+    const preparedChanges = useMemo(
+        () => changes.filter((entry) => entry.delta !== 0),
+        [changes],
+    );
 
     const totalUnits = useMemo(() => {
-        return preparedChanges.reduce((sum, entry) => sum + entry.increaseBy, 0);
+        return preparedChanges.reduce((sum, entry) => sum + entry.delta, 0);
     }, [preparedChanges]);
 
     const touchedItemCount = preparedChanges.length;
@@ -80,7 +71,7 @@ export const StockArrivalModal = ({
     const resetStateAndClose = () => {
         setSelectedItemQuery("");
         setSelectedItemIds([]);
-        setChanges({});
+        setChanges([]);
         setError(null);
         onClose();
     };
@@ -101,21 +92,26 @@ export const StockArrivalModal = ({
 
     const removeSelectedItem = (itemId: number) => {
         setSelectedItemIds((prev) => prev.filter((id) => id !== itemId));
-        setChanges((prev) => {
-            const next = { ...prev };
-            delete next[itemId];
-            return next;
-        });
+        setChanges((prev) => prev.filter((change) => change.id !== itemId));
     };
 
     const setItemIncrease = (itemId: number, value: string) => {
-        setChanges((prev) => ({ ...prev, [itemId]: value }));
+        const nextChange = toNormalized(value);
+        setChanges((prev) => {
+            const withoutCurrent = prev.filter((change) => change.id !== itemId);
+            if (nextChange === 0) return withoutCurrent;
+            return [...withoutCurrent, { id: itemId, delta: nextChange }];
+        });
     };
 
     const addQuickAmount = (itemId: number, amount: number) => {
         setChanges((prev) => {
-            const currentValue = toNormalized(prev[itemId] ?? "0");
-            return { ...prev, [itemId]: String(currentValue + amount) };
+            const currentValue = prev.find((change) => change.id === itemId)?.delta ?? 0;
+            const nextValue = currentValue + amount;
+            const withoutCurrent = prev.filter((change) => change.id !== itemId);
+
+            if (nextValue === 0) return withoutCurrent;
+            return [...withoutCurrent, { id: itemId, delta: nextValue }];
         });
     };
 
@@ -132,7 +128,7 @@ export const StockArrivalModal = ({
             await onSubmit(preparedChanges);
             setSelectedItemQuery("");
             setSelectedItemIds([]);
-            setChanges({});
+            setChanges([]);
             setError(null);
         } catch (submitError) {
             console.error("Failed to receive stock shipment:", submitError);
@@ -225,7 +221,10 @@ export const StockArrivalModal = ({
                                     <td className="px-3 py-2 text-center">
                                         <input
                                             type="number"
-                                            value={changes[item.id] ?? ""}
+                                            value={
+                                                changes.find((change) => change.id === item.id)
+                                                    ?.delta ?? ""
+                                            }
                                             onChange={(event) =>
                                                 setItemIncrease(item.id, event.target.value)
                                             }
@@ -302,4 +301,3 @@ export const StockArrivalModal = ({
         </Modal>
     );
 };
-

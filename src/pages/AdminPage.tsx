@@ -1,12 +1,13 @@
-import { useState, useMemo, useEffect, type ReactNode } from 'react';
+import { useState, useMemo, useEffect, type ReactNode, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import type { CategoryModel } from '../Models/CategoryModel';
-import type { ItemModel } from '../Models/ItemModel';
-import { CreateItemModal } from '../components/modals/CreateItemModal';
-import { StockArrivalModal } from '../components/modals/StockArrivalModal';
+import type { InventoryAdjustment, ItemModel } from '../Models/ItemModel';
+import { CreateItemModal } from '../modals/CreateItemModal';
+import { EnableStockItemsModal } from '../modals/EnableStockItemsModal';
+import { StockArrivalModal } from '../modals/StockArrivalModal';
 import CategoriesTable from '../components/adminPage/CategoriesTable';
 import ItemsTable from '../components/adminPage/ItemsTable';
-import { CreateCatModal } from '../components/modals/CreateCatModal';
+import { CreateCatModal } from '../modals/CreateCatModal';
 import OrdersTable from '../components/adminPage/OrdersTable';
 import type { OrderModel } from '../Models/OrderModel';
 import DashBoardHeader from '../components/common/dashBoardHeader';
@@ -20,6 +21,8 @@ import {
 	ToggleFeatured,
 } from '../services/ItemService';
 import { DeleteCategory, GetAllCategories } from '../services/CategoryService';
+import Swal from 'sweetalert2'
+import { isDarkTheme } from '../services/themeService';
 
 type SortDir = 'asc' | 'desc';
 type SortableOrderField =
@@ -119,18 +122,21 @@ const AdminPage = () => {
 	const items = useAppSelector((state) =>
 		state.category.categories.flatMap((c) => c.items),
 	);
+	const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const [CategoryTableVisible, setCategoryTableVisible] = useState(true);
 	const [ItemTableVisible, setItemTableVisible] = useState(false);
 	const [orderTableVisible, setOrderTableVisible] = useState(false);
 	const orders = useAppSelector((state) => state.order.orders ?? []);
 	const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
+	const [isEnableStockItemsOpen, setIsEnableStockItemsOpen] = useState(false);
+	const [isEnablingStockItems, setIsEnablingStockItems] = useState(false);
 	const [isStockArrivalOpen, setIsStockArrivalOpen] = useState(false);
 	const [isSavingStockArrival, setIsSavingStockArrival] = useState(false);
 	const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
 	const [selectedItem, setSelectedItem] = useState<ItemModel | undefined>(
 		undefined,
 	);
-
 	useEffect(() => {
 		const bootstrapAdminPage = async () => {
 			try {
@@ -146,6 +152,24 @@ const AdminPage = () => {
 		};
 		bootstrapAdminPage();
 	}, [dispatch]);
+	useEffect(() => {
+		if (!isMobileMenuOpen) return;
+
+		const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+			const target = event.target as Node | null;
+			if (!target) return;
+			if (mobileMenuRef.current?.contains(target)) return;
+			setIsMobileMenuOpen(false);
+		};
+
+		window.addEventListener('mousedown', handleOutsideClick);
+		window.addEventListener('touchstart', handleOutsideClick);
+
+		return () => {
+			window.removeEventListener('mousedown', handleOutsideClick);
+			window.removeEventListener('touchstart', handleOutsideClick);
+		};
+	}, [isMobileMenuOpen]);
 
 	const handleItemStatusToggle = async (
 		id: number,
@@ -193,9 +217,17 @@ const AdminPage = () => {
 
 	const handleItemDelete = async (item: ItemModel) => {
 		if (
-			confirm(
-				`Biztosan törölni szeretnéd a(z) "${item.name}" terméket? Ez a művelet nem visszavonható!`,
-			)
+			await Swal.fire({
+				title: "Biztosan törölni szeretnéd a terméket?",
+				text: `Biztosan törölni szeretnéd a(z) "${item.name}" terméket? Ez a művelet nem visszavonható!`,
+				icon: "warning",
+				theme: isDarkTheme() ? "dark" : "light",
+				showCancelButton: true,
+				confirmButtonColor: "#3085d6",
+				cancelButtonColor: "#d33",
+				confirmButtonText: "Igen, törölni szeretném!",
+				cancelButtonText: "Mégsem",
+			}).then((result) => result.isConfirmed)
 		) {
 			await DeleteItem(item.id);
 
@@ -210,12 +242,8 @@ const AdminPage = () => {
 		}
 	};
 
-	const applyInventoryIncrements = async (
-		changes: Array<{ itemId: number; increaseBy: number }>,
-	) => {
-		const payload = changes
-			.filter((change) => change.increaseBy !== 0)
-			.map((change) => ({ item_id: change.itemId, change: change.increaseBy }));
+	const applyInventoryIncrements = async (changes: InventoryAdjustment) => {
+		const payload = changes.filter((change) => change.delta !== 0);
 
 		if (payload.length === 0) return;
 
@@ -253,23 +281,29 @@ const AdminPage = () => {
 		dispatch(setCategories(updatedCategories));
 	};
 
-	const handleStockArrivalSubmit = async (
-		changes: Array<{ itemId: number; increaseBy: number }>,
-	) => {
+	const handleStockArrivalSubmit = async (changes: InventoryAdjustment) => {
 		setIsSavingStockArrival(true);
 
-		const decreases = changes.filter((change) => change.increaseBy < 0);
+		const decreases = changes.filter((change) => change.delta < 0);
 		if (decreases.length > 0) {
 			const itemNames = decreases
 				.map(
 					(change) =>
-						items.find((item) => item.id === change.itemId)?.name ??
-						`#${change.itemId}`,
+						items.find((item) => item.id === change.id)?.name ??
+						`#${change.id}`,
 				)
 				.join(', ');
-			const isConfirmed = window.confirm(
-				`Biztosan csökkenteni szeretnéd a készletet ezeknél: ${itemNames}?`,
-			);
+			const isConfirmed = await Swal.fire({
+				title: "Biztosan csökkenteni szeretnéd a készletet?",
+				text: `Biztosan csökkenteni szeretnéd a készletet ezeknél: ${itemNames}?`,
+				icon: "warning",
+				theme: isDarkTheme() ? "dark" : "light",
+				showCancelButton: true,
+				confirmButtonColor: "#3085d6",
+				cancelButtonColor: "#d33",
+				confirmButtonText: "Igen, csökkenteni szeretném!",
+				cancelButtonText: "Mégsem",
+			}).then((result) => result.isConfirmed);
 
 			if (!isConfirmed) {
 				setIsSavingStockArrival(false);
@@ -287,9 +321,17 @@ const AdminPage = () => {
 
 	const handleCatDelete = async (cat: CategoryModel) => {
 		if (
-			confirm(
-				`Biztosan törölni szeretnéd a "${cat.name}" kategóriát? Ez a művelet nem visszavonható, és minden termék, ami csak ehhez a kategóriához tartozik, szintén törlésre kerül!`,
-			)
+			await Swal.fire({
+				title: "Biztosan törölni szeretnéd a kategóriát?",
+				text: `Biztosan törölni szeretnéd a "${cat.name}" kategóriát? Ez a művelet nem visszavonható, és minden termék, ami ehhez a kategóriához tartozik, szintén törlésre kerül!`,
+				icon: "warning",
+				theme: isDarkTheme() ? "dark" : "light",
+				showCancelButton: true,
+				confirmButtonColor: "#3085d6",
+				cancelButtonColor: "#d33",
+				confirmButtonText: "Igen, törölni szeretném!",
+				cancelButtonText: "Mégsem",
+			}).then((result) => result.isConfirmed)
 		) {
 			await DeleteCategory(cat.id.toString());
 			dispatch(
@@ -369,6 +411,45 @@ const AdminPage = () => {
 			console.error('Failed to update order status:', error);
 		}
 	};
+	const handleOpenEnableStockItems = () => {
+		const inactiveInStockItems = items.filter(
+			(item) => !item.is_active && item.inventory_count > 0,
+		);
+
+		if (inactiveInStockItems.length === 0) {
+			Swal.fire({
+				title: 'Nincsenek olyan termékek, amik raktáron vannak és inaktívak.',
+				icon: 'info',
+				theme: isDarkTheme() ? 'dark' : 'light',
+			});
+			return;
+		}
+
+		setIsEnableStockItemsOpen(true);
+	};
+
+	const handleEnableStockItemsSubmit = async (selectedItemIds: number[]) => {
+		setIsEnablingStockItems(true);
+
+		try {
+			await Promise.all(selectedItemIds.map((itemId) => ToggleActive(itemId)));
+
+			const selectedIdsSet = new Set(selectedItemIds);
+			const updatedCategories = categories.map((category) => ({
+				...category,
+				items: category.items.map((item) =>
+					selectedIdsSet.has(item.id) ? { ...item, is_active: true } : item,
+				),
+			}));
+
+			dispatch(setCategories(updatedCategories));
+			setIsEnableStockItemsOpen(false);
+		} catch (error) {
+			console.error('Failed to enable selected stock items:', error);
+		} finally {
+			setIsEnablingStockItems(false);
+		}
+	};
 
 	const sortedCategories = useMemo(() => {
 		return sortByField(categories, catSortField, catSortDir);
@@ -387,7 +468,7 @@ const AdminPage = () => {
 			<div className='relative mx-auto flex w-full flex-col overflow-x-auto shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800'>
 				<DashBoardHeader
 					showAdmin={true}
-          showPos={true}
+					showPos={true}
 					backTo='/main'
 					name={
 						<div className='rounded-xl p-4'>
@@ -484,15 +565,21 @@ const AdminPage = () => {
 					)}
 					{ItemTableVisible && (
 						<div className='min-w-0 w-full flex-1 rounded-xl border border-[#e6e0db] bg-surface dark:bg-zinc-800/50 dark:border-zinc-800 p-4 md:p-5'>
-							<div className='flex flex-wrap items-center justify-between gap-3 mb-4'>
+							<div className='relative flex flex-wrap items-center justify-between gap-3 mb-4'>
 								<h2 className='text-xl font-bold text-foreground dark:text-white'>
 									Termékek ({items.length})
 								</h2>
-								<div className='flex items-center gap-2'>
+								<div className='items-center gap-2 hidden md:flex'>
+									<button
+										onClick={handleOpenEnableStockItems}
+										className='flex items-center gap-2 px-4 py-2 rounded-xl border dark:border-green-900 dark:bg-green-700 bg-green-300 border-green-500 text-foreground font-semibold text-sm hover:bg-green-200 transition-colors dark:text-zinc-200 dark:hover:bg-zinc-700'>
+										<span className='material-symbols-outlined'>toggle_on</span>
+										Raktáron levő termékek aktiválása
+									</button>
 									<button
 										onClick={() => setIsStockArrivalOpen(true)}
 										className='flex items-center gap-2 px-4 py-2 rounded-xl border border-[#e6e0db] bg-white text-foreground font-semibold text-sm hover:bg-surface transition-colors dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'>
-										<span className='text-base leading-none'>+</span>
+										<span className='material-symbols-outlined'>update</span>
 										Raktárkészlet frissítése
 									</button>
 									<button
@@ -501,6 +588,56 @@ const AdminPage = () => {
 										<span className='text-base leading-none'>+</span>
 										Termék hozzáadása
 									</button>
+								</div>
+								<div
+									ref={mobileMenuRef}
+									className='relative md:hidden'>
+									<button
+										type='button'
+										aria-label='Menü megnyitása'
+										aria-expanded={isMobileMenuOpen}
+										onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+										className='text-foreground dark:text-white flex size-12 items-center justify-center cursor-pointer hover:bg-surface-hover dark:hover:bg-zinc-800 rounded-full transition-colors'>
+										<span className='material-symbols-outlined'>
+											{isMobileMenuOpen ? 'close' : 'menu'}
+										</span>
+									</button>
+
+									{isMobileMenuOpen ? (
+										<div className='absolute right-0 top-12 z-30 w-56 space-y-2 rounded-xl border border-[#e6e0db] bg-white p-2 shadow-lg dark:border-zinc-700 dark:bg-zinc-900 md:hidden'>
+											<button
+												onClick={() => {
+													handleOpenEnableStockItems();
+													setIsMobileMenuOpen(false);
+												}}
+												className='p-2 flex w-full items-center justify-start gap-2 rounded-xl border dark:border-green-900 dark:bg-green-700 bg-green-300 border-green-500 text-foreground font-semibold text-sm hover:bg-green-200 transition-colors dark:text-zinc-200 dark:hover:bg-zinc-700'>
+												<span className='material-symbols-outlined '>
+													toggle_on
+												</span>
+												Raktáron levő termékek aktiválása
+											</button>
+											<button
+												onClick={() => {
+													setIsStockArrivalOpen(true);
+													setIsMobileMenuOpen(false);
+												}}
+												className='p-2 flex w-full items-center justify-start gap-2 rounded-xl border border-[#e6e0db] bg-white px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-surface dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'>
+												<span className='material-symbols-outlined'>
+													update
+												</span>
+												Raktárkészlet frissítése
+											</button>
+											<button
+												onClick={() => {
+													setIsCreateItemOpen(true);
+													setIsMobileMenuOpen(false);
+												}}
+												className='p-2 flex w-full items-center justify-start gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#e07b1a]'>
+												<span className='text-base leading-none'>+</span>
+												Termék hozzáadása
+											</button>
+										</div>
+									) : null}
 								</div>
 							</div>
 							<ItemsTable
@@ -552,6 +689,13 @@ const AdminPage = () => {
 					items={items}
 					isSaving={isSavingStockArrival}
 					onSubmit={handleStockArrivalSubmit}
+				/>
+				<EnableStockItemsModal
+					isOpen={isEnableStockItemsOpen}
+					onClose={() => setIsEnableStockItemsOpen(false)}
+					items={items}
+					isSaving={isEnablingStockItems}
+					onSubmit={handleEnableStockItemsSubmit}
 				/>
 				<CreateCatModal
 					isOpen={isCreateCategoryOpen}
