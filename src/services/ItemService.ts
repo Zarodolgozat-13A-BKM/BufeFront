@@ -1,5 +1,5 @@
 import type { InventoryAdjustment, ItemCreateModel,  ItemModel } from "../Models/ItemModel";
-import { api, fileapi }  from "./axiosInstance";
+import { api }  from "./axiosInstance";
 
 type ItemPayload = ItemCreateModel | FormData;
 
@@ -16,7 +16,7 @@ export const GetOneItem = async (id: number) => {
 
 export const CreateItem = async (postData: ItemPayload) => {
   if (postData instanceof FormData) {
-    const response = await fileapi.post<ItemModel>(`/items`, postData);
+    const response = await api.post<ItemModel>(`/items`, postData);
     return response.data;
   } else {
     const response = await api.post<ItemModel>(`/items`, postData);
@@ -25,7 +25,7 @@ export const CreateItem = async (postData: ItemPayload) => {
 };
 
 export const UpdateItem = async (id: number, postData: FormData) => {
-  const response = await fileapi.patch<ItemModel>(`/items/${id}`, postData);
+  const response = await api.patch<ItemModel>(`/items/${id}`, postData);
   return response.data;
 };
 
