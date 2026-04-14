@@ -100,7 +100,7 @@ const LoginPage = () => {
 				<div className='absolute inset-0 bg-black/30'></div>
 			</div>
 
-			<div className='relative z-10 w-full max-w-md px-4 py-6 sm:max-w-lg sm:px-6 sm:py-8 lg:max-w-5xl lg:scale-[1.5] lg:origin-center'>
+			<div className='relative z-10 w-full max-w-md px-4 py-6 sm:max-w-lg sm:px-6 sm:py-8 lg:max-w-lg lg:scale-[1.5] lg:origin-center'>
 				<div className='backdrop-blur-lg bg-surface-overlay/10 dark:bg-black/10 rounded-xl p-5 sm:p-6 shadow-2xl border border-white/20'>
 					<div className='text-center mb-8'>
 						<div className='w-16 h-16 rounded-lg bg-primary flex items-center justify-center shadow-lg mb-4 mx-auto'>
