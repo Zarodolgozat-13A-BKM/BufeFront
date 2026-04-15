@@ -41,6 +41,19 @@ const extractTime = (deliveryDate: string | null): string | null => {
 	return timeMatch ? timeMatch[1] : null;
 };
 
+const extractDate = (value: string | null): string | null => {
+	if (!value) return null;
+	const dateMatch = value.match(/(\d{4}-\d{2}-\d{2})/);
+	return dateMatch ? dateMatch[1] : null;
+};
+
+const toLocalDateString = (date: Date): string => {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0');
+	const day = String(date.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+};
+
 const toTimestamp = (value: string | null | undefined): number => {
 	if (!value) return 0;
 	const parsed = Date.parse(value);
@@ -144,7 +157,7 @@ export const AdminOrdersPage = () => {
 			oscillator.frequency.setValueAtTime(880, context.currentTime);
 			gainNode.gain.setValueAtTime(0.001, context.currentTime);
 			gainNode.gain.exponentialRampToValueAtTime(
-				0.07,
+				0.56,
 				context.currentTime + 0.02,
 			);
 			gainNode.gain.exponentialRampToValueAtTime(
@@ -364,25 +377,24 @@ export const AdminOrdersPage = () => {
 
 	const filteredOrders = useMemo(() => {
 		if (orderFilter === 'whole-day') {
-			return orders.filter((order) => order.items && order.items.length > 0);
+			return orders.filter((order) => order.items && order.items.length > 0 && order.delivery_date && extractDate(order.delivery_date) === toLocalDateString(new Date()));
 		}
-
 		if (!nextBreakStart) {
 			return [];
 		}
 
-		const today = new Date().toISOString().split('T')[0];
+		const today = toLocalDateString(new Date());
 
 		return orders
-			.filter((order) => order.items && order.items.length > 0)
+			.filter((order) => order.items && order.items.length > 0 && order.delivery_date)
 			.filter((order) => {
 				const deliveryDate = order.delivery_date;
 				const deliveryTime = extractTime(deliveryDate);
-
+				const deliveryDay = extractDate(deliveryDate);
 				return (
-					deliveryDate?.split('T')[0] === today &&
+					deliveryDay === today &&
 					!!deliveryTime &&
-					deliveryTime <= nextBreakStart.end
+					deliveryTime <= nextBreakStart.start
 				);
 			});
 	}, [orders, nextBreakStart, orderFilter]);
