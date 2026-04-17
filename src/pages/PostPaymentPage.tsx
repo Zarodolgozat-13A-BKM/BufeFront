@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { OrderModel } from '../Models/OrderModel';
 import DashBoardHeader from '../components/common/dashBoardHeader';
-import { GetAllOrders, GetOneOrder } from '../services/OrderService';
+import { GetAllActiveOrders, GetOneOrder } from '../services/OrderService';
 import {
 	subscribeToOrderUpdates,
 	type OrderRealtimeEvent,
@@ -180,8 +180,8 @@ const PostPaymentPage = () => {
 	}, [getAudioContext, isSoundEnabled]);
 
 	const refreshOpenOrders = useCallback(async () => {
-		const allOrders = await GetAllOrders();
-		setOrders(allOrders.filter(isOpenOrder));
+		const allOrders = await GetAllActiveOrders();
+		setOrders(allOrders);
 	}, []);
 
 	const resolveOrdersFromEvent = useCallback(

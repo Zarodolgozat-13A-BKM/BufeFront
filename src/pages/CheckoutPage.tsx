@@ -345,9 +345,9 @@ export const CheckoutPage = () => {
 						</h4>
 						<div className='bg-white dark:bg-zinc-800/50 rounded-xl p-4 space-y-3 border border-[#e6e0db] dark:border-zinc-800'>
 								{isCartEmpty ? (
-									<div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-surface py-10 dark:border-zinc-700 dark:bg-zinc-800/40'>
-										<span className='material-symbols-outlined text-3xl text-muted dark:text-zinc-400'>shopping_cart_off</span>
-										<p className='mt-2 text-muted dark:text-zinc-300 text-sm font-normal text-center'>
+									<div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 py-10 dark:border-zinc-700 dark:bg-zinc-900/70'>
+										<span className='material-symbols-outlined text-3xl text-muted dark:text-zinc-300'>shopping_cart_off</span>
+										<p className='mt-2 text-muted dark:text-zinc-200 text-sm font-normal text-center'>
 											A kosarad jelenleg üres.
 										</p>
 										<Link

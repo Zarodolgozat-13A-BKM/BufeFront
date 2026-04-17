@@ -14,8 +14,8 @@ export const GetStatuses = async () => {
   }
   return response.data;
 };
-export const GetAllOrders = async () => {
-  const response = await api.get<OrderModel[]>(`/orders`);
+export const GetAllOrders = async (page: number) => {
+  const response = await api.get<OrderModel[]>(`/orders?page=${page}`);
   return response.data;
 };
 export const GetAllActiveOrders = async () => {

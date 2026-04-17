@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { GetAllActiveOrders } from '../services/OrderService';
+import { GetAllOrders } from '../services/OrderService';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { GetMe } from '../services/APIservice';
 import { setMe } from '../store/authSlice';
@@ -128,7 +128,7 @@ const ProfilePage = () => {
 		const getOrders = async () => {
 			setIsLoadingOrders(true);
 			try {
-				const data = await GetAllActiveOrders();
+				const data = await GetAllOrders(1);
 				setOrders(data);
 			} catch (error) {
 				console.error('Failed to fetch orders:', error);
@@ -161,10 +161,6 @@ const ProfilePage = () => {
 								<p className='text-slate-900 dark:text-white text-2xl font-bold leading-tight tracking-[-0.015em] text-center'>
 									{me?.full_name}
 								</p>
-								{/* <div className="flex items-center gap-1 mt-2 bg-primary/10 dark:bg-primary/20 px-3 py-1 rounded-full">
-                  <span className="material-symbols-outlined text-primary text-sm">stars</span>
-                  <p className="text-primary font-semibold text-sm leading-normal text-center">1,250 pont</p>
-                </div> */}
 							</div>
 						</div>
 					</div>

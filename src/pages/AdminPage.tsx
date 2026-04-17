@@ -142,7 +142,7 @@ const AdminPage = () => {
 			try {
 				const [updatedCategories, updatedOrders] = await Promise.all([
 					GetAllCategories(),
-					GetAllOrders(),
+					GetAllOrders(1),
 				]);
 				dispatch(setCategories(updatedCategories));
 				dispatch(setOrders(updatedOrders));
