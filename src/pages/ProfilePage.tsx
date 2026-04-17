@@ -129,7 +129,7 @@ const ProfilePage = () => {
 			setIsLoadingOrders(true);
 			try {
 				const data = await GetAllOrders(1);
-				setOrders(data);
+				setOrders(data.data);	
 			} catch (error) {
 				console.error('Failed to fetch orders:', error);
 			} finally {

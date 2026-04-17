@@ -1,4 +1,11 @@
-import { useState, useMemo, useEffect, type ReactNode, useRef } from "react";
+import {
+  useState,
+  useMemo,
+  useEffect,
+  type ReactNode,
+  useRef,
+  useCallback,
+} from "react";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import type { CategoryModel } from "../Models/CategoryModel";
 import type { InventoryAdjustment, ItemModel } from "../Models/ItemModel";
@@ -116,6 +123,51 @@ const getSortIcon = (
   );
 };
 
+const TABLE_ROWS_PER_PAGE = 10;
+
+interface PaginationControlsProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  isLoading?: boolean;
+}
+
+const PaginationControls = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  isLoading = false,
+}: PaginationControlsProps) => {
+  if (totalPages <= 1) return null;
+
+  const isOnFirstPage = currentPage <= 1;
+  const isOnLastPage = currentPage >= totalPages;
+
+  return (
+    <div className="mt-4 flex items-center justify-end gap-2">
+      <button
+        type="button"
+        disabled={isLoading || isOnFirstPage}
+        onClick={() => onPageChange(currentPage - 1)}
+        className="rounded-lg border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-foreground dark:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        Előző
+      </button>
+      <span className="text-xs font-medium text-muted dark:text-zinc-400">
+        {currentPage} / {totalPages}
+      </span>
+      <button
+        type="button"
+        disabled={isLoading || isOnLastPage}
+        onClick={() => onPageChange(currentPage + 1)}
+        className="rounded-lg border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-foreground dark:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        Következő
+      </button>
+    </div>
+  );
+};
+
 const AdminPage = () => {
   const dispatch = useAppDispatch();
   const categories = useAppSelector((state) => state.category.categories);
@@ -138,21 +190,53 @@ const AdminPage = () => {
   const [selectedItem, setSelectedItem] = useState<ItemModel | undefined>(
     undefined,
   );
+  const [categoryPage, setCategoryPage] = useState(1);
+  const [itemPage, setItemPage] = useState(1);
+  const [orderPage, setOrderPage] = useState(1);
+  const [ordersHasNextPage, setOrdersHasNextPage] = useState(false);
+  const [isOrdersLoading, setIsOrdersLoading] = useState(false);
+  const latestOrdersRequestIdRef = useRef(0);
+
+  const fetchOrdersPage = useCallback(
+    async (page: number) => {
+      const sanitizedPage = Math.max(1, page);
+      const requestId = latestOrdersRequestIdRef.current + 1;
+      latestOrdersRequestIdRef.current = requestId;
+
+      setIsOrdersLoading(true);
+
+      try {
+        const updatedOrders = await GetAllOrders(sanitizedPage);
+        if (latestOrdersRequestIdRef.current !== requestId) return;
+
+        dispatch(setOrders(updatedOrders.data));
+        setOrdersHasNextPage(Boolean(updatedOrders.links.next));
+      } catch (error) {
+        if (latestOrdersRequestIdRef.current !== requestId) return;
+        console.error("Failed to fetch orders:", error);
+      } finally {
+        if (latestOrdersRequestIdRef.current !== requestId) return;
+        setIsOrdersLoading(false);
+      }
+    },
+    [dispatch],
+  );
+
   useEffect(() => {
     const bootstrapAdminPage = async () => {
       try {
-        const [updatedCategories, updatedOrders] = await Promise.all([
-          GetAllCategories(),
-          GetAllOrders(),
-        ]);
+        const updatedCategories = await GetAllCategories();
         dispatch(setCategories(updatedCategories));
-        dispatch(setOrders(updatedOrders));
       } catch (error) {
-        console.error("Failed to fetch orders:", error);
+        console.error("Failed to fetch categories:", error);
       }
     };
     bootstrapAdminPage();
   }, [dispatch]);
+
+  useEffect(() => {
+    fetchOrdersPage(orderPage);
+  }, [fetchOrdersPage, orderPage]);
   useEffect(() => {
     if (!isMobileMenuOpen) return;
 
@@ -385,18 +469,21 @@ const AdminPage = () => {
     const next = toggleSortDirection(catSortField, catSortDir, field);
     setCatSortField(next.field);
     setCatSortDir(next.dir);
+    setCategoryPage(1);
   };
 
   const handleItemSort = (field: keyof ItemModel) => {
     const next = toggleSortDirection(itemSortField, itemSortDir, field);
     setItemSortField(next.field);
     setItemSortDir(next.dir);
+    setItemPage(1);
   };
 
   const handleOrderSort = (field: SortableOrderField) => {
     const next = toggleSortDirection(orderSortField, orderSortDir, field);
     setOrderSortField(next.field);
     setOrderSortDir(next.dir);
+    setOrderPage(1);
   };
 
   const handleOrderStatusChange = async (order: OrderModel, status: string) => {
@@ -465,6 +552,34 @@ const AdminPage = () => {
     return sortOrdersByField(orders, orderSortField, orderSortDir);
   }, [orders, orderSortField, orderSortDir]);
 
+  const categoryTotalPages = useMemo(
+    () => Math.max(1, Math.ceil(sortedCategories.length / TABLE_ROWS_PER_PAGE)),
+    [sortedCategories.length],
+  );
+
+  const itemTotalPages = useMemo(
+    () => Math.max(1, Math.ceil(sortedItems.length / TABLE_ROWS_PER_PAGE)),
+    [sortedItems.length],
+  );
+
+  useEffect(() => {
+    setCategoryPage((current) => Math.min(current, categoryTotalPages));
+  }, [categoryTotalPages]);
+
+  useEffect(() => {
+    setItemPage((current) => Math.min(current, itemTotalPages));
+  }, [itemTotalPages]);
+
+  const pagedCategories = useMemo(() => {
+    const start = (categoryPage - 1) * TABLE_ROWS_PER_PAGE;
+    return sortedCategories.slice(start, start + TABLE_ROWS_PER_PAGE);
+  }, [categoryPage, sortedCategories]);
+
+  const pagedItems = useMemo(() => {
+    const start = (itemPage - 1) * TABLE_ROWS_PER_PAGE;
+    return sortedItems.slice(start, start + TABLE_ROWS_PER_PAGE);
+  }, [itemPage, sortedItems]);
+
   return (
     <div className="bg-secondary dark:bg-secondary-dark font-display antialiased ">
       <div className="relative mx-auto flex w-full flex-col overflow-x-auto shadow-sm bg-white dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
@@ -485,6 +600,7 @@ const AdminPage = () => {
                         setCategoryTableVisible(true);
                         setItemTableVisible(false);
                         setOrderTableVisible(false);
+                        setCategoryPage(1);
                       }}
                       className={
                         "shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
@@ -500,6 +616,7 @@ const AdminPage = () => {
                         setCategoryTableVisible(false);
                         setItemTableVisible(true);
                         setOrderTableVisible(false);
+                        setItemPage(1);
                       }}
                       className={
                         "shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
@@ -515,6 +632,7 @@ const AdminPage = () => {
                         setCategoryTableVisible(false);
                         setItemTableVisible(false);
                         setOrderTableVisible(true);
+                        setOrderPage(1);
                       }}
                       className={
                         "shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
@@ -550,7 +668,7 @@ const AdminPage = () => {
                 </button>
               </div>
               <CategoriesTable
-                sortedCategories={sortedCategories}
+                sortedCategories={pagedCategories}
                 categories={categories}
                 catSortField={catSortField}
                 catSortDir={catSortDir}
@@ -566,6 +684,11 @@ const AdminPage = () => {
                 setSelectedItem={setSelectedItem}
                 setCreateItemOpen={setIsCreateItemOpen}
                 handleItemDelete={handleItemDelete}
+              />
+              <PaginationControls
+                currentPage={categoryPage}
+                totalPages={categoryTotalPages}
+                onPageChange={setCategoryPage}
               />
             </div>
           )}
@@ -653,7 +776,7 @@ const AdminPage = () => {
               </div>
               <ItemsTable
                 handleItemStatusToggle={handleItemStatusToggle}
-                sortedItems={sortedItems}
+                sortedItems={pagedItems}
                 itemSortField={itemSortField}
                 itemSortDir={itemSortDir}
                 categories={categories}
@@ -662,6 +785,11 @@ const AdminPage = () => {
                 setSelectedItem={setSelectedItem}
                 setCreateItemOpen={setIsCreateItemOpen}
                 handleItemDelete={handleItemDelete}
+              />
+              <PaginationControls
+                currentPage={itemPage}
+                totalPages={itemTotalPages}
+                onPageChange={setItemPage}
               />
             </div>
           )}
@@ -679,6 +807,16 @@ const AdminPage = () => {
                 handleOrderSort={handleOrderSort}
                 handleOrderStatusChange={handleOrderStatusChange}
                 sortIcon={getSortIcon}
+              />
+              <PaginationControls
+                currentPage={orderPage}
+                totalPages={ordersHasNextPage ? orderPage + 1 : orderPage}
+                isLoading={isOrdersLoading}
+                onPageChange={(nextPage) => {
+                  const canGoNext = ordersHasNextPage || nextPage <= orderPage;
+                  if (nextPage < 1 || !canGoNext) return;
+                  setOrderPage(nextPage);
+                }}
               />
             </div>
           )}

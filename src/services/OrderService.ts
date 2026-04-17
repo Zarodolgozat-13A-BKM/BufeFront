@@ -3,6 +3,7 @@ import type {
   OrderCreateModel,
   OrderModel,
   OrderPatchModel,
+  OrderResponseModel,
   StatusModel,
 } from "../Models/OrderModel";
 import { api } from "./axiosInstance";
@@ -15,7 +16,7 @@ export const GetStatuses = async () => {
   return response.data;
 };
 export const GetAllOrders = async (page: number) => {
-  const response = await api.get<OrderModel[]>(`/orders?page=${page}`);
+  const response = await api.get<OrderResponseModel>(`/orders?page=${page}`);
   return response.data;
 };
 export const GetAllActiveOrders = async () => {

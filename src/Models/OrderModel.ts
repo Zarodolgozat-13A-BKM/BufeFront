@@ -11,6 +11,31 @@ export interface OrderLineItem {
   quantity: number
   price: number
 }
+export interface OrderResponseModel {
+  data: OrderModel[],
+  links: {
+    first: string,
+    last: string | null,
+    prev: string | null,
+    next: string | null
+  },
+  meta: {
+    current_page: number,
+    from: number,
+    last_page: number,
+    links: [
+      {
+        url: string,
+        label: string,
+        active: boolean
+      }
+    ],
+    path: string,
+    per_page: number,
+    to: number,
+    total: number
+  }
+}
 
 export interface OrderModel {
   id: number
@@ -26,7 +51,7 @@ export interface OrderModel {
   clientSecret?: string
   payment_intent_id?: string
 }
-export interface OrderPatchModel{
+export interface OrderPatchModel {
   message?: string,
   order: OrderModel
 }
