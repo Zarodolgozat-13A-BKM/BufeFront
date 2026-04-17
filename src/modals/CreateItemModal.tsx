@@ -101,13 +101,13 @@ export const CreateItemModal = ({
     }
 
     if (!file.type.startsWith("image/")) {
-      setError("Csak kepfajl toltheto fel (image/*).");
+      setError("Csak képfájl tölthető fel (image/*).");
       e.target.value = "";
       return;
     }
 
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      setError("A kep maximalis merete 1 MB lehet.");
+      setError("A kép maximális mérete 1 MB lehet.");
       e.target.value = "";
       return;
     }
@@ -247,7 +247,6 @@ export const CreateItemModal = ({
         )}
 
         <div className="grid grid-cols-2 gap-4">
-          {/* Name */}
           <div className="col-span-2">
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Név *
@@ -261,7 +260,6 @@ export const CreateItemModal = ({
             />
           </div>
 
-          {/* Description */}
           <div className="col-span-2">
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Leírás
@@ -275,33 +273,37 @@ export const CreateItemModal = ({
             />
           </div>
 
-          {/* Picture Upload */}
           <div className="col-span-2">
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Kép feltöltése
             </label>
             <input
+              id="item-picture-upload"
               name="picture"
               type="file"
               accept="image/*"
               onChange={handleImageChange}
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:font-semibold file:text-primary hover:file:bg-primary/20"
+              className="hidden"
             />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Csak kepfajl (image/*), legfeljebb 1 MB.
-            </p>
-            {imagePreview && (
-              <div className="mt-3 rounded-lg border border-gray-200 dark:border-gray-600 p-2 w-fit bg-gray-50 dark:bg-gray-800">
+            <label
+              htmlFor="item-picture-upload"
+              className="w-full min-h-28 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm flex items-center justify-center cursor-pointer overflow-hidden"
+            >
+              {imagePreview ? (
                 <img
                   src={imagePreview}
-                  alt="Előnézet"
-                  className="h-24 w-24 object-cover rounded-md"
+                  alt="Kiválasztott kép"
+                  className="h-24 w-full max-w-48 object-cover rounded-md"
                 />
-              </div>
-            )}
+              ) : (
+                "Fájlok kiválasztása"
+              )}
+            </label>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Csak képfájl (image/*), legfeljebb 1 MB.
+            </p>
           </div>
 
-          {/* Price */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Ár (Ft) *
@@ -317,7 +319,6 @@ export const CreateItemModal = ({
             />
           </div>
 
-          {/* Delivery time */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Átfutási idő (perc) *
@@ -332,7 +333,6 @@ export const CreateItemModal = ({
               className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>
-          {/* Inventory count */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Raktárkészlet *
@@ -347,9 +347,7 @@ export const CreateItemModal = ({
               className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>
-
-          {/* Category */}
-          <div className="col-span-2">
+          <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Kategória *
             </label>
@@ -371,7 +369,6 @@ export const CreateItemModal = ({
             </select>
           </div>
 
-          {/* Toggles */}
           <div className="flex items-center gap-2">
             <input
               id="is_active"
@@ -430,4 +427,3 @@ export const CreateItemModal = ({
     </Modal>
   );
 };
-
