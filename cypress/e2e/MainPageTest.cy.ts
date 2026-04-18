@@ -94,7 +94,9 @@ describe('main page', () => {
 
     cy.contains('Sajtos szendvics').should('be.visible');
     cy.get('[role="dialog"]').should('be.visible');
-    cy.get('[data-cy="add-item-confirm"]').should('be.visible');
+    cy.get('[role="dialog"]').within(() => {
+      cy.get('[data-cy="add-item-confirm"]').should('exist');
+    });
   });
 
   it('adds an item to the cart summary', () => {

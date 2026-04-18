@@ -30,7 +30,7 @@ describe('admin page', () => {
     cy.contains('Admin felület').should('be.visible');
     cy.contains('Kategóriák').should('be.visible');
     cy.contains('Termékek').click();
-    cy.contains('Termékek (0)').should('be.visible');
+    cy.contains('Termékek (0/0)').should('be.visible');
     cy.contains('Rendelések').click();
     cy.contains('Rendelések (0)').should('be.visible');
   });

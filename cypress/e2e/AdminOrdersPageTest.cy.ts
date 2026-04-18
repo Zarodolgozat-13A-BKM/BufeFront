@@ -1,4 +1,14 @@
 describe('admin orders page', () => {
+  const getTodayAt = (hour: number, minute = 0) => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hh = String(hour).padStart(2, '0');
+    const mm = String(minute).padStart(2, '0');
+    return `${year}-${month}-${day}T${hh}:${mm}:00`;
+  };
+
   const visitWithToken = (path = '/admin/orders') => {
     cy.visit(path, {
       onBeforeLoad(win) {
@@ -29,9 +39,9 @@ describe('admin orders page', () => {
           user_username: 'teszt.elek',
           order_identifier_number: 2101,
           status: 'Keszitjuk',
-          delivery_date: '2026-04-07T10:00:00',
+          delivery_date: getTodayAt(10, 0),
           total_price: 1200,
-          created_at: '2026-04-07T09:45:00',
+          created_at: getTodayAt(9, 45),
           items: [
             {
               item_id: 100,
@@ -92,9 +102,9 @@ describe('admin orders page', () => {
           user_username: 'teszt.elek',
           order_identifier_number: 3101,
           status: 'Keszitjuk',
-          delivery_date: '2026-04-07T11:00:00',
+          delivery_date: getTodayAt(11, 0),
           total_price: 900,
-          created_at: '2026-04-07T09:45:00',
+          created_at: getTodayAt(9, 45),
           items: [
             {
               item_id: 100,

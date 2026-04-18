@@ -1,4 +1,14 @@
 describe('post payment page', () => {
+  const getTodayAt = (hour: number, minute = 0) => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hh = String(hour).padStart(2, '0');
+    const mm = String(minute).padStart(2, '0');
+    return `${year}-${month}-${day}T${hh}:${mm}:00`;
+  };
+
   const visitWithToken = (path = '/orderstatus') => {
     cy.visit(path, {
       onBeforeLoad(win) {
@@ -15,14 +25,14 @@ describe('post payment page', () => {
         full_name: 'Teszt Elek',
         role: 'user',
       },
-      orders: [
+      activeOrders: [
         {
           id: 31,
           user_id: 1,
           user_username: 'teszt.elek',
           order_identifier_number: 3101,
           status: 'Keszitjuk',
-          delivery_date: '2026-04-07T10:00:00',
+          delivery_date: getTodayAt(10, 0),
           total_price: 1500,
           default_completion_time: 15,
           comment: 'teszt',
@@ -55,7 +65,7 @@ describe('post payment page', () => {
         full_name: 'Teszt Elek',
         role: 'user',
       },
-      orders: [],
+      activeOrders: [],
     });
 
     visitWithToken();
@@ -88,7 +98,7 @@ describe('post payment page', () => {
         full_name: 'Teszt Elek',
         role: 'user',
       },
-      orders: [],
+      activeOrders: [],
     });
 
     visitWithToken('/orderstatus');
@@ -103,7 +113,7 @@ describe('post payment page', () => {
         full_name: 'Teszt Elek',
         role: 'user',
       },
-      orders: [],
+      activeOrders: [],
     });
 
     visitWithToken('/orderstatus');
