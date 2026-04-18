@@ -256,8 +256,9 @@ export const CheckoutPage = () => {
   );
 
   return (
-    <div className="bg-surface dark:bg-secondary-dark font-display antialiased">
-      <div className="relative flex h-full min-h-full w-full mx-auto flex-col overflow-x-hidden shadow-sm bg-surface dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
+    <div className="bg-surface dark:bg-secondary-dark font-display antialiased min-h-dvh">
+      <div className=" w-full">
+        <div className="relative flex h-full min-h-full w-full flex-col overflow-x-hidden shadow-sm bg-surface dark:bg-zinc-900 border-x border-gray-100 dark:border-zinc-800">
         <div className="flex items-center bg-surface dark:bg-zinc-900 p-4 pb-2 justify-between sticky top-0 z-10">
           <Link
             to="/main"
@@ -269,7 +270,7 @@ export const CheckoutPage = () => {
             Átvétel Kiválasztása
           </h2>
         </div>
-        <main className="flex-1 pb-6">
+        <main className="flex-1 pb-6 checkout-shell">
           <div className="block animate-fade-in" id="pickup-section">
             <div className="px-4 pt-4 pb-2">
               <h3 className="text-foreground dark:text-white tracking-tight text-2xl font-bold leading-tight text-left">
@@ -285,7 +286,13 @@ export const CheckoutPage = () => {
                   <select
                     value={deliverydatetime}
                     onChange={(e) => setDeliverydatetime(e.target.value)}
-                    className="appearance-none w-full rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal text-foreground dark:text-white transition-shadow outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                    className="appearance-none bg-none w-full rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 h-14 pl-4 pr-10 text-base font-normal leading-normal text-foreground dark:text-white transition-shadow outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                    style={{
+                      backgroundImage: "none",
+                      appearance: "none",
+                      WebkitAppearance: "none",
+                      MozAppearance: "none",
+                    }}
                   >
                     {orderingClosed ? (
                       <option value="" disabled>
@@ -489,7 +496,7 @@ export const CheckoutPage = () => {
                         </div>
                     </div> */}
         </main>
-        <div className="w-full p-4 bg-surface dark:bg-zinc-900">
+        <div className="w-full checkout-shell p-4 bg-surface dark:bg-zinc-900">
           {checkoutError ? (
             <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-300">
               {checkoutError}
@@ -574,6 +581,7 @@ export const CheckoutPage = () => {
               </button>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

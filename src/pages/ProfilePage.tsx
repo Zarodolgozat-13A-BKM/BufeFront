@@ -3,7 +3,7 @@ import { GetAllOrders } from '../services/OrderService';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { GetMe } from '../services/APIservice';
 import { setMe } from '../store/authSlice';
-import type { OrderModel } from '../Models/OrderModel';
+import type { OrderModel, OrderResponseModel } from '../Models/OrderModel';
 import type { ItemModel } from '../Models/ItemModel';
 import OrderItem from '../components/profilePage/orderItem';
 import { addItemToCart, clearCart } from '../store/cartSlice';
@@ -14,13 +14,41 @@ import {
 	ReorderAvailabilityModal,
 	type ReorderUnavailableItem,
 } from '../modals/ReorderAvailabilityModal';
+import { PaginationControls } from '../components/common/paginationCtrl';
 
 type ReorderAvailableItem = { item: ItemModel; quantity: number };
+
+const EMPTY_ORDER_RESPONSE: OrderResponseModel = {
+	data: [],
+	links: {
+		first: '',
+		last: null,
+		prev: null,
+		next: null,
+	},
+	meta: {
+		current_page: 1,
+		from: 0,
+		last_page: 1,
+		links: [
+			{
+				url: '',
+				label: '',
+				active: false,
+			},
+		],
+		path: '',
+		per_page: 0,
+		to: 0,
+		total: 0,
+	},
+};
 
 const ProfilePage = () => {
 	const me = useAppSelector((state) => state.auth.me);
 	const category = useAppSelector((state) => state.category.categories);
-	const [orders, setOrders] = useState<OrderModel[]>([]);
+	const [orders, setOrders] = useState<OrderResponseModel>(EMPTY_ORDER_RESPONSE);
+	const [ordersPage, setOrdersPage] = useState(1);
 	const [isLoadingOrders, setIsLoadingOrders] = useState(true);
 	const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
 	const [availableReorderItems, setAvailableReorderItems] = useState<
@@ -128,16 +156,21 @@ const ProfilePage = () => {
 		const getOrders = async () => {
 			setIsLoadingOrders(true);
 			try {
-				const data = await GetAllOrders(1);
-				setOrders(data.data);	
+				const data = await GetAllOrders(ordersPage);
+				setOrders({
+					...EMPTY_ORDER_RESPONSE,
+					...data,
+					data: data?.data ?? [],
+				});
 			} catch (error) {
 				console.error('Failed to fetch orders:', error);
+				setOrders(EMPTY_ORDER_RESPONSE);
 			} finally {
 				setIsLoadingOrders(false);
 			}
 		};
 		getOrders();
-	}, []);
+	}, [ordersPage]);
 
 	return (
 		<div className='bg-secondary dark:bg-secondary-dark text-slate-900 dark:text-slate-100 font-display'>
@@ -170,13 +203,13 @@ const ProfilePage = () => {
 								Korábbi rendelések
 							</h3>
 							<span className='rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-medium text-primary'>
-								{orders.length} db
+								{orders.data.length} db
 							</span>
 						</div>
 						<div className='flex flex-col gap-3'>
 							{isLoadingOrders ? (
 								<LoadingState message='Rendelések betöltése...' />
-							) : orders.length === 0 ? (
+							) : orders.data.length === 0 ? (
 								<div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800'>
 									<span className='material-symbols-outlined text-3xl text-muted dark:text-zinc-400'>
 										receipt_long
@@ -186,37 +219,49 @@ const ProfilePage = () => {
 									</p>
 								</div>
 							) : (
-								orders
-									.slice()
-									.sort((a, b) => b.id - a.id)
-									.filter(
-										(x) =>
-											x.payment_intent_id == null ||
-											(x.payment_intent_id != null &&
-												x.status != 'Fizetésre vár'),
-									)
-									.map((order) =>
-										order.status == 'Törölve' ? (
-											order.delivery_date! > new Date().toISOString() && (
-												<div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800'>
-													<span className='material-symbols-outlined text-3xl text-muted dark:text-zinc-400'>
-														receipt_long
-													</span>
-													<p className='mt-2 text-muted dark:text-zinc-300 text-sm font-normal leading-normal text-center'>
-														#{order.order_identifier_number} számú rendelésed
-														törlésre került.
-													</p>
-												</div>
-											)
-										) : (
-											<OrderItem
-												key={order.id}
-												handleOrder={handleOrder}
-												order={order}
-											/>
-										),
-									)
+								<>
+									{orders.data
+										.sort((a, b) => b.id - a.id)
+										.filter(
+											(x) =>
+												x.payment_intent_id == null ||
+												(x.payment_intent_id != null &&
+													x.status != 'Fizetésre vár'),
+										)
+										.map((order) =>
+											order.status == 'Törölve' ? (
+												order.delivery_date! > new Date().toISOString() && (
+													<div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e6e0db] bg-white py-10 dark:border-zinc-700 dark:bg-zinc-800'>
+														<span className='material-symbols-outlined text-3xl text-muted dark:text-zinc-400'>
+															receipt_long
+														</span>
+														<p className='mt-2 text-muted dark:text-zinc-300 text-sm font-normal leading-normal text-center'>
+															#{order.order_identifier_number} számú rendelésed
+															törlésre került.
+														</p>
+													</div>
+												)
+											) : (
+												<OrderItem
+													key={order.id}
+													handleOrder={handleOrder}
+													order={order}
+												/>
+											),
+										)}
+								</>
 							)}
+						</div>
+						<div className='w-50 mx-auto'>
+						<PaginationControls
+							currentPage={orders.meta.current_page}
+							totalPages={orders.meta.last_page}
+							isLoading={isLoadingOrders}
+							onPageChange={(nextPage) => {
+								if (nextPage < 1 || nextPage > orders.meta.last_page) return;
+								setOrdersPage(nextPage);
+							}}
+						/>
 						</div>
 					</div>
 				</div>

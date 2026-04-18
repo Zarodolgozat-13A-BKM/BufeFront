@@ -1,24 +1,24 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import type { OrderModel } from '../Models/OrderModel'
+import type { OrderResponseModel } from '../Models/OrderModel'
 
 interface OrderState {
-  orders: OrderModel[]
+  orders: OrderResponseModel
 }
 
 const initialState: OrderState = {
-  orders: [],
+  orders: [] as unknown as OrderResponseModel,
 }
 
 const orderSlice = createSlice({
   name: 'order',
   initialState,
   reducers: {
-    setOrders: (state, action: PayloadAction<OrderModel[]>) => {
+    setOrders: (state, action: PayloadAction<OrderResponseModel>) => {
       state.orders = action.payload
     },
     clearOrders: (state) => {
-      state.orders = []
+      state.orders = [] as unknown as OrderResponseModel
     },
   },
 })

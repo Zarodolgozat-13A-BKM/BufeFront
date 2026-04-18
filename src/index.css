@@ -104,25 +104,64 @@ body {
   height: 100%;
 }
 
-.mainpage-scrollbar {
-  -ms-overflow-style: auto;
+@media (min-width: 1600px) {
+  .checkout-shell {
+    padding-left: 20vw;
+    padding-right: 20vw;
+  }
+}
+* {
   scrollbar-width: thin;
+}
+
+html:not(.dark),
+html:not(.dark) * {
   scrollbar-color: var(--color-primary) transparent;
 }
 
-.mainpage-scrollbar::-webkit-scrollbar {
-  width: 10px;
+html:not(.dark)::-webkit-scrollbar,
+html:not(.dark) *::-webkit-scrollbar {
+  width: 20px;
   height: 10px;
 }
 
-.mainpage-scrollbar::-webkit-scrollbar-track {
+html:not(.dark)::-webkit-scrollbar-track,
+html:not(.dark) *::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.mainpage-scrollbar::-webkit-scrollbar-thumb {
+html:not(.dark)::-webkit-scrollbar-thumb,
+html:not(.dark) *::-webkit-scrollbar-thumb {
   background-color: var(--color-primary);
   border-radius: 9999px;
   border: 2px solid transparent;
+}
+
+html.dark,
+html.dark * {
+  scrollbar-color: var(--color-zinc-500) var(--color-zinc-900);
+}
+
+html.dark::-webkit-scrollbar,
+html.dark *::-webkit-scrollbar {
+  width: 20px;
+  height: 10px;
+}
+
+html.dark::-webkit-scrollbar-track,
+html.dark *::-webkit-scrollbar-track {
+  background: var(--color-zinc-900);
+}
+
+html.dark::-webkit-scrollbar-thumb,
+html.dark *::-webkit-scrollbar-thumb {
+  background-color: var(--color-zinc-500);
+  border-radius: 9999px;
+  border: 2px solid var(--color-zinc-900);
+}
+
+.mainpage-scrollbar {
+  -ms-overflow-style: auto;
 }
 
 .no-scrollbar::-webkit-scrollbar {

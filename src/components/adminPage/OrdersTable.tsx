@@ -3,7 +3,7 @@ import { Fragment, type ReactNode, useEffect, useRef, useState } from 'react'
 
 type SortDir = 'asc' | 'desc'
 
-type SortableOrderField = 'id' | 'user_id' | 'order_identifier_number' | 'status' | 'delivery_date' | 'total_price'
+type SortableOrderField = 'id' | 'user_username' | 'order_identifier_number' | 'status' | 'delivery_date' | 'total_price'
 
 const STATUSES = ['Fizetésre vár', 'Fizetve', 'Készítjük', 'Átvehető', 'Átadva', 'Törölve']
 
@@ -73,8 +73,8 @@ const OrdersTable = ({
                         <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('order_identifier_number')}>
                             Rendelésszám{sortIcon('order_identifier_number', orderSortField, orderSortDir)}
                         </th>
-                        <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('user_id')}>
-                            Felhasználónév{sortIcon('user_id', orderSortField, orderSortDir)}
+                        <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('user_username')}>
+                            Felhasználónév{sortIcon('user_username', orderSortField, orderSortDir)}
                         </th>
                         <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('status')}>
                             Státusz{sortIcon('status', orderSortField, orderSortDir)}

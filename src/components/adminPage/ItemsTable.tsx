@@ -164,7 +164,7 @@ const ItemsTable = ({
               <td className="py-2 px-3 text-center">
                 <div className="flex justify-center gap-2">
                   <button
-                    className="px-2.5 py-1.5 text-xs rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors font-semibold"
+                    className="inline-flex h-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 px-2.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedItem(item);
@@ -174,7 +174,7 @@ const ItemsTable = ({
                     Módosítás
                   </button>
                   <button
-                    className="px-2.5 py-1.5 text-xs rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-semibold"
+                    className="inline-flex h-8 items-center justify-center rounded-lg border border-transparent bg-red-100 px-2.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleItemDelete(item);

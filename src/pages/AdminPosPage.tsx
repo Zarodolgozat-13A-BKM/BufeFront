@@ -306,7 +306,7 @@ const AdminPosPage = () => {
 								)}
 							</section>
 
-							<aside className='max-h-dvh flex flex-col rounded-xl border border-[#e6e0db] bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900'>
+							<aside className='max-h-[85dvh] flex flex-col rounded-xl border border-[#e6e0db] bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900 lg:sticky lg:top-4'>
 								<h2 className='text-base font-bold text-foreground dark:text-zinc-100'>
 									Pénztár
 								</h2>
@@ -352,7 +352,7 @@ const AdminPosPage = () => {
 
 								<div className='my-4 h-px bg-[#e6e0db] dark:bg-zinc-700' />
 
-								<div className='min-h-0 flex-1 space-y-2 overflow-y-auto pr-1'>
+								<div className='min-h-0 max-h-[80dvh] flex-1 space-y-2 overflow-y-auto pr-1'>
 									{cartItems.length === 0 ? (
 										<p className='rounded-lg border border-dashed border-[#d8d0c9] bg-surface px-3 py-4 text-center text-xs text-muted dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'>
 											A kosár üres.

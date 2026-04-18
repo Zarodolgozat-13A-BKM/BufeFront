@@ -15,8 +15,8 @@ export const GetStatuses = async () => {
   }
   return response.data;
 };
-export const GetAllOrders = async (page: number) => {
-  const response = await api.get<OrderResponseModel>(`/orders?page=${page}`);
+export const GetAllOrders = async (page: number, sort: string = "id", order: "asc" | "desc" = "desc") => {
+  const response = await api.get<OrderResponseModel>(`/orders?sort=${sort}&page=${page}&order=${order}`);
   return response.data;
 };
 export const GetAllActiveOrders = async () => {
