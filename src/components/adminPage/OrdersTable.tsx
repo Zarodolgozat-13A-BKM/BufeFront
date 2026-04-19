@@ -1,9 +1,10 @@
 import type { OrderModel } from '../../Models/OrderModel'
-import { Fragment, type ReactNode, useEffect, useRef, useState } from 'react'
+import { Fragment, type ReactNode, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 type SortDir = 'asc' | 'desc'
 
-type SortableOrderField = 'id' | 'user_username' | 'order_identifier_number' | 'status' | 'delivery_date' | 'total_price'
+type SortableOrderField = 'id' | 'user_id' | 'order_identifier_number' | 'status' | 'delivery_date'
 
 const STATUSES = ['Fizetésre vár', 'Fizetve', 'Készítjük', 'Átvehető', 'Átadva', 'Törölve']
 
@@ -38,7 +39,7 @@ const OrdersTable = ({
 }: OrdersTableProps) => {
     const [openStatusId, setOpenStatusId] = useState<number | null>(null)
     const [pendingStatusId, setPendingStatusId] = useState<number | null>(null)
-    const popoverRef = useRef<HTMLDivElement>(null)
+    const [statusMenuPosition, setStatusMenuPosition] = useState<{ top: number; left: number } | null>(null)
     const [expandedRowKeys, setExpandedRowKeys] = useState<number[]>([])
 
     const toggleExpanded = (id: number) => {
@@ -50,8 +51,19 @@ const OrdersTable = ({
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+            const target = event.target as HTMLElement | null
+
+            if (target?.closest('[data-status-menu]')) {
+                return
+            }
+
+            if (target?.closest('[data-status-trigger]')) {
+                return
+            }
+
+            if (openStatusId !== null) {
                 setOpenStatusId(null)
+                setStatusMenuPosition(null)
             }
         }
 
@@ -60,6 +72,25 @@ const OrdersTable = ({
         }
 
         return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [openStatusId])
+
+    useEffect(() => {
+        if (openStatusId === null) {
+            return
+        }
+
+        const closeMenu = () => {
+            setOpenStatusId(null)
+            setStatusMenuPosition(null)
+        }
+
+        window.addEventListener('resize', closeMenu)
+        window.addEventListener('scroll', closeMenu, true)
+
+        return () => {
+            window.removeEventListener('resize', closeMenu)
+            window.removeEventListener('scroll', closeMenu, true)
+        }
     }, [openStatusId])
 
     return (
@@ -73,8 +104,8 @@ const OrdersTable = ({
                         <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('order_identifier_number')}>
                             Rendelésszám{sortIcon('order_identifier_number', orderSortField, orderSortDir)}
                         </th>
-                        <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('user_username')}>
-                            Felhasználónév{sortIcon('user_username', orderSortField, orderSortDir)}
+                        <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('user_id')}>
+                            Felhasználónév{sortIcon('user_id', orderSortField, orderSortDir)}
                         </th>
                         <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('status')}>
                             Státusz{sortIcon('status', orderSortField, orderSortDir)}
@@ -82,8 +113,8 @@ const OrdersTable = ({
                         <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('delivery_date')}>
                             Szállítási dátum{sortIcon('delivery_date', orderSortField, orderSortDir)}
                         </th>
-                        <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('total_price')}>
-                            Végösszeg{sortIcon('total_price', orderSortField, orderSortDir)}
+                        <th className="py-2 px-3 select-none font-semibold uppercase tracking-wide text-[11px] text-center">
+                            Végösszeg
                         </th>
                     </tr>
                 </thead>
@@ -103,29 +134,54 @@ const OrdersTable = ({
                             <td className="py-2 px-3 font-medium text-foreground dark:text-white text-center">#{order.order_identifier_number}</td>
                             <td className="py-2 px-3 text-foreground dark:text-white text-center">{order.user_username}</td>
                             <td className="py-2 px-3 text-center">
-                                <div className="relative inline-block" ref={openStatusId === order.id ? popoverRef : undefined} onClick={(e) => e.stopPropagation()}>
+                                <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
                                     <button
                                         type="button"
                                         disabled={pendingStatusId === order.id}
+                                        data-status-trigger
                                         className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm md:text-xs font-semibold transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70 ${statusStyle(order.status)}`}
-                                        onClick={() => setOpenStatusId(openStatusId === order.id ? null : order.id)}
+                                        onClick={(event) => {
+                                            if (openStatusId === order.id) {
+                                                setOpenStatusId(null)
+                                                setStatusMenuPosition(null)
+                                                return
+                                            }
+
+                                            const rect = event.currentTarget.getBoundingClientRect()
+                                            setOpenStatusId(order.id)
+                                            setStatusMenuPosition({
+                                                top: rect.bottom + 8,
+                                                left: rect.left + rect.width / 2,
+                                            })
+                                        }}
                                     >
                                         <span>{order.status}</span>
                                         <span className="text-[10px]">▾</span>
                                     </button>
-                                    {openStatusId === order.id && (
-                                        <div className="absolute left-1/2 z-50 mt-2 w-40 -translate-x-1/2 overflow-hidden rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-900">
+                                    {openStatusId === order.id && statusMenuPosition && createPortal(
+                                        <div
+                                            data-status-menu
+                                            className="z-60 w-40 overflow-hidden rounded-xl border border-[#e6e0db] bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
+                                            style={{
+                                                position: 'fixed',
+                                                top: statusMenuPosition.top,
+                                                left: statusMenuPosition.left,
+                                                transform: 'translateX(-50%)',
+                                            }}
+                                        >
                                             {STATUSES.map((status) => (
                                                 <button
                                                     key={status}
                                                     type="button"
                                                     disabled={pendingStatusId === order.id}
                                                     className={`block w-full px-3 py-2.5 text-left text-sm md:text-xs font-semibold transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-70 ${status === order.status ? 'bg-primary/10 text-primary' : 'text-foreground dark:text-zinc-200'}`}
-                                                    onClick={async () => {
+                                                    onClick={async (event) => {
+                                                        event.stopPropagation()
                                                         setPendingStatusId(order.id)
                                                         try {
                                                             await handleOrderStatusChange(order, status)
                                                             setOpenStatusId(null)
+                                                            setStatusMenuPosition(null)
                                                         } finally {
                                                             setPendingStatusId(null)
                                                         }
@@ -134,7 +190,8 @@ const OrdersTable = ({
                                                     {status}
                                                 </button>
                                             ))}
-                                        </div>
+                                        </div>,
+                                        document.body,
                                     )}
                                 </div>
                             </td>

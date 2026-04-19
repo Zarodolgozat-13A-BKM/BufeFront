@@ -34,11 +34,10 @@ import { PaginationControls } from '../components/common/paginationCtrl';
 type SortDir = 'asc' | 'desc';
 type SortableOrderField =
 	| 'id'
-	| 'user_username'
+	| 'user_id'
 	| 'order_identifier_number'
 	| 'status'
-	| 'delivery_date'
-	| 'total_price';
+	| 'delivery_date';
 
 const toggleSortDirection = <TField extends string>(
 	currentField: TField,

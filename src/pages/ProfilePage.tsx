@@ -65,6 +65,7 @@ const ProfilePage = () => {
 		itemsToAdd.forEach(({ item, quantity }) => {
 			dispatch(addItemToCart({ item, quantity }));
 		});
+		console.log('Reorder applied with items:', itemsToAdd);
 		navigate('/checkout');
 	};
 
@@ -124,6 +125,7 @@ const ProfilePage = () => {
 	};
 
 	const handleContinueWithoutUnavailable = () => {
+		console.log('User chose to continue without unavailable items. Available items:', availableReorderItems);
 		if (availableReorderItems.length === 0) {
 			dispatch(clearCart());
 			setIsAvailabilityModalOpen(false);
@@ -131,6 +133,7 @@ const ProfilePage = () => {
 		}
 
 		setIsAvailabilityModalOpen(false);
+		console.log('Continuing reorder with available items:', availableReorderItems);
 		applyReorder(availableReorderItems);
 	};
 
