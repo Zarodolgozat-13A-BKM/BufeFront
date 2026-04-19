@@ -173,8 +173,11 @@ const PostPaymentPage = () => {
 
 		if (nextEnabled) {
 			const context = getAudioContext();
-			if (context && context.state !== 'running') {
-				await context.resume();
+			if (context) {
+				if (context.state !== 'running') {
+					await context.resume();
+				}
+				audioUnlockedRef.current = context.state === 'running';
 			}
 		}
 	}, [getAudioContext, isSoundEnabled]);
@@ -321,7 +324,7 @@ const PostPaymentPage = () => {
 			return previousStatus !== 'atveheto' && nextStatus === 'atveheto';
 		});
 
-		if (hasTransitionedToReady && audioUnlockedRef.current && isSoundEnabled) {
+		if (hasTransitionedToReady && isSoundEnabled) {
 			void playReadyAlert();
 		}
 

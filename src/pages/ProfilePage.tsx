@@ -156,6 +156,14 @@ const ProfilePage = () => {
 	}, [me, dispatch]);
 
 	useEffect(() => {
+		if (typeof window === 'undefined') {
+			return;
+		}
+
+		window.localStorage.setItem('post-payment-alert-sound', 'on');
+	}, []);
+
+	useEffect(() => {
 		const getOrders = async () => {
 			setIsLoadingOrders(true);
 			try {

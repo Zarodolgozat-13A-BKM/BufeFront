@@ -43,6 +43,7 @@ const PaymentForm = () => {
     }
 
     if (result.paymentIntent?.status === "succeeded") {
+      dispatch(clearCart());
       navigate("/orderstatus", {
         replace: true,
         state: {
@@ -53,8 +54,6 @@ const PaymentForm = () => {
       });
       return;
     }
-    dispatch(clearCart());
-    navigate("/orderstatus", { replace: true });
   };
 
   const handleCardSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
