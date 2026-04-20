@@ -139,7 +139,7 @@ const mockOrders = [
 ]
 
 const createMockOrderResponse = (
-	data: Array<Record<string, unknown>> = mockOrders,
+	data: Array<Record<string, unknown>> = [],
 ): PaginatedOrderResponse => ({
 	data,
 	links: {
