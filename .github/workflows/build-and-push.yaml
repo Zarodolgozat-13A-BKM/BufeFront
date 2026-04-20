@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - 35-add-tests-v3
-      - experimental_ui
+      - 100-add-pagination
 
 jobs:
   tests:

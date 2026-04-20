@@ -253,7 +253,7 @@ const PostPaymentPage = () => {
 				await refreshOpenOrders();
 			} catch (fetchError) {
 				console.error('Failed to fetch open orders:', fetchError);
-				setError('Nem sikerult betolteni a nyitott rendeleseidet.');
+				setError('Nem sikerült betölteni a nyitott rendeléseidet.');
 			} finally {
 				setIsLoading(false);
 			}
@@ -350,7 +350,7 @@ const PostPaymentPage = () => {
 			await refreshOpenOrders();
 		} catch (fetchError) {
 			console.error('Failed to refresh open orders:', fetchError);
-			setError('Nem sikerult frissiteni a rendeleseidet.');
+			setError('Nem sikerült frissíteni a rendeléseidet.');
 		} finally {
 			setIsLoading(false);
 		}
