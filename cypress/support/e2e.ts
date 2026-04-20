@@ -23,6 +23,30 @@ type MockReply<T> =
 			body: T
 	  }
 
+type PaginatedOrderResponse = {
+	data: Array<Record<string, unknown>>
+	links: {
+		first: string
+		last: string | null
+		prev: string | null
+		next: string | null
+	}
+	meta: {
+		current_page: number
+		from: number
+		last_page: number
+		links: Array<{
+			url: string
+			label: string
+			active: boolean
+		}>
+		path: string
+		per_page: number
+		to: number
+		total: number
+	}
+}
+
 type ApiMockConfig = {
 	me: MockReply<Record<string, unknown>>
 	login: MockReply<Record<string, unknown>>
@@ -35,7 +59,7 @@ type ApiMockConfig = {
 	activeOrders: MockReply<Array<Record<string, unknown>>>
 	breaks: MockReply<Record<string, unknown>>
 	orderById: MockReply<Record<string, unknown>>
-	orders: MockReply<Array<Record<string, unknown>>>
+	orders: MockReply<PaginatedOrderResponse>
 	statuses: MockReply<Array<Record<string, unknown>>>
 	broadcastAuth: MockReply<Record<string, unknown>>
 }
@@ -110,10 +134,37 @@ const mockOrders = [
 		default_completion_time: 12,
 		created_at: '2026-04-07T09:48:00',
 		comment: 'Sok szalveta',
-		payment_intent_id: null,
 		items: mockOrderItems,
 	},
 ]
+
+const createMockOrderResponse = (
+	data: Array<Record<string, unknown>> = mockOrders,
+): PaginatedOrderResponse => ({
+	data,
+	links: {
+		first: '/api/orders?page=1',
+		last: '/api/orders?page=1',
+		prev: null,
+		next: null,
+	},
+	meta: {
+		current_page: 1,
+		from: 1,
+		last_page: 1,
+		links: [
+			{
+				url: '/api/orders?page=1',
+				label: '1',
+				active: true,
+			},
+		],
+		path: '/api/orders',
+		per_page: 10,
+		to: data.length,
+		total: data.length,
+	},
+})
 
 const mockBreaks = [{ start: '10:00', end: '10:15' }, { start: '12:00', end: '12:20' }]
 
@@ -137,7 +188,7 @@ const defaultMocks: ApiMockConfig = {
 	activeOrders: mockOrders as Array<Record<string, unknown>>,
 	breaks: { breaks: mockBreaks },
 	orderById: mockOrders[0] as Record<string, unknown>,
-	orders: mockOrders as Array<Record<string, unknown>>,
+	orders: createMockOrderResponse(),
 	statuses: mockStatuses as Array<Record<string, unknown>>,
 	broadcastAuth: {},
 }

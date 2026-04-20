@@ -1,4 +1,30 @@
 describe('admin page', () => {
+  const emptyOrdersPage = {
+    data: [],
+    links: {
+      first: '/api/orders?page=1',
+      last: '/api/orders?page=1',
+      prev: null,
+      next: null,
+    },
+    meta: {
+      current_page: 1,
+      from: 0,
+      last_page: 1,
+      links: [
+        {
+          url: '/api/orders?page=1',
+          label: '1',
+          active: true,
+        },
+      ],
+      path: '/api/orders',
+      per_page: 10,
+      to: 0,
+      total: 0,
+    },
+  };
+
   const visitWithToken = (path = '/admin') => {
     cy.visit(path, {
       onBeforeLoad(win) {
@@ -22,7 +48,7 @@ describe('admin page', () => {
           items: [],
         },
       ],
-      orders: [],
+      orders: emptyOrdersPage,
     });
 
     visitWithToken();
@@ -59,7 +85,7 @@ describe('admin page', () => {
         role: 'admin',
       },
       categories: [],
-      orders: [],
+      orders: emptyOrdersPage,
     });
 
     visitWithToken('/admin');
@@ -78,7 +104,7 @@ describe('admin page', () => {
         { id: 1, name: 'A', items: [] },
         { id: 2, name: 'B', items: [] },
       ],
-      orders: [],
+      orders: emptyOrdersPage,
     });
 
     visitWithToken('/admin');
