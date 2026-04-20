@@ -14,7 +14,7 @@ export interface OrderLineItem {
 export interface OrderResponseModel {
   data: OrderModel[],
   links: {
-    first: string,
+    first: string | null,
     last: string | null,
     prev: string | null,
     next: string | null

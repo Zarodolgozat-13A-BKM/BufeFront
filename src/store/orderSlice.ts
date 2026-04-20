@@ -9,7 +9,7 @@ interface OrderState {
 const emptyOrderResponse: OrderResponseModel = {
   data: [],
   links: {
-    first: '',
+    first: null,
     last: null,
     prev: null,
     next: null,
