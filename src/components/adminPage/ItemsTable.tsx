@@ -35,7 +35,7 @@ const ItemsTable = ({
   return (
     <div className="overflow-x-auto rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800">
       <table className="w-full text-sm text-left border-collapse min-w-245">
-        <thead className="bg-bg-light dark:bg-zinc-800/80 border-b border-[#e6e0db] dark:border-zinc-700 text-text-dark dark:text-zinc-200">
+        <thead className="bg-surface dark:bg-zinc-800/80 border-b border-[#e6e0db] dark:border-zinc-700 text-foreground dark:text-zinc-200">
           <tr className="h-10">
             <th className="py-2 px-3 text-center font-semibold uppercase tracking-wide text-[11px] ">
               Kép
@@ -97,9 +97,9 @@ const ItemsTable = ({
             <tr
               key={item.id}
               className={
-                item.inventory_count >= 2
-                  ? "h-14 border-b border-[#e6e0db] dark:border-zinc-700 hover:bg-bg-light dark:hover:bg-zinc-800/80 transition-colors"
-                  : "h-14 border-b border-[#e6e0db] dark:border-zinc-700 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+                item.inventory_count > 0
+                  ? "h-14 border-b border-[#e6e0db] dark:border-zinc-700 hover:bg-surface dark:hover:bg-zinc-800/80 transition-colors"
+                  : "h-14 border-b border-[#e6e0db] dark:border-zinc-700 bg-red-900/20 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
               }
             >
               <td className="py-2 px-3 text-center">
@@ -116,22 +116,22 @@ const ItemsTable = ({
                     />
                   </a>
                 ) : (
-                  <span className="text-text-light dark:text-zinc-500">—</span>
+                  <span className="text-muted dark:text-zinc-500">—</span>
                 )}
               </td>
-              <td className="py-2 px-3 font-medium text-text-dark dark:text-white text-center">
+              <td className="py-2 px-3 font-medium text-foreground dark:text-white text-center">
                 {item.name}
               </td>
               <td
-                className="py-2 px-3 text-text-light dark:text-zinc-400 max-w-xs truncate text-center"
+                className="py-2 px-3 text-muted dark:text-zinc-400 max-w-xs truncate text-center"
                 title={item.description ?? ""}
               >
                 {item.description ?? "—"}
               </td>
-              <td className="py-2 px-3 text-text-dark dark:text-white font-medium text-center">
+              <td className="py-2 px-3 text-foreground dark:text-white font-medium text-center">
                 {item.price}
               </td>
-              <td className="py-2 px-3 text-text-dark dark:text-white text-center">
+              <td className="py-2 px-3 text-foreground dark:text-white text-center">
                 {categories.find((x) => x.id === item.category_id)?.name ??
                   "Ismeretlen"}
               </td>
@@ -155,16 +155,16 @@ const ItemsTable = ({
                   {item.is_featured ? "Igen" : "Nem"}
                 </span>
               </td>
-              <td className="py-2 px-3 text-text-dark dark:text-white text-center">
+              <td className="py-2 px-3 text-foreground dark:text-white text-center">
                 {item.default_time_to_deliver}
               </td>
-              <td className="py-2 px-3 text-text-dark dark:text-white text-center">
+              <td className="py-2 px-3 text-foreground dark:text-white text-center">
                 {item.inventory_count}
               </td>
               <td className="py-2 px-3 text-center">
                 <div className="flex justify-center gap-2">
                   <button
-                    className="px-2.5 py-1.5 text-xs rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors font-semibold"
+                    className="inline-flex h-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 px-2.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedItem(item);
@@ -174,7 +174,7 @@ const ItemsTable = ({
                     Módosítás
                   </button>
                   <button
-                    className="px-2.5 py-1.5 text-xs rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-semibold"
+                    className="inline-flex h-8 items-center justify-center rounded-lg border border-transparent bg-red-100 px-2.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleItemDelete(item);
@@ -193,3 +193,4 @@ const ItemsTable = ({
 };
 
 export default ItemsTable;
+

@@ -23,9 +23,10 @@ export const CategoryChips = ({ categories, activeCategory, searchQuery = "", on
         return (
           <button
             key={category.id}
+            data-cy={`main-category-chip-${category.id}`}
             onClick={() => onCategoryClick(category, categoryIndex)}
             className={`active:scale-95 shrink-0 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border transition-colors ${
-              activeCategory === category ? 'border-primary bg-primary text-white' : 'border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-text-dark dark:text-zinc-200' }`}
+              activeCategory === category ? 'border-primary bg-primary text-white' : 'border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800 text-foreground dark:text-zinc-200' }`}
             style={{ lineHeight: 1.2 }}
           >
             {category.name}
@@ -35,3 +36,4 @@ export const CategoryChips = ({ categories, activeCategory, searchQuery = "", on
     </div>
   )
 }
+

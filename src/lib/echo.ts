@@ -1,8 +1,6 @@
 import Echo from "laravel-echo";
 import Pusher from "pusher-js";
 import { getStoredToken } from "../services/tokenStorage";
-
-// Necessary for Laravel Echo to find the library
 window.Pusher = Pusher;
 
 const getEchoAuthorizationHeader = (): string => {

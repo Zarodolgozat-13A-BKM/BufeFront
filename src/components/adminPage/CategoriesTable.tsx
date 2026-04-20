@@ -43,7 +43,9 @@ const CategoriesTable = ({
     handleCatDelete
 
 }: CategoriesTableProps) => {
-    const [expandedRowKeys, setExpandedRowKeys] = useState<Set<string>>(new Set())
+    const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([])
+
+    const getRowKey = (category: CategoryModel, index: number) => `${String(category.id)}-${category.name}-${index}`
 
     const sortItems = (items: ItemModel[], field: keyof ItemModel, dir: SortDir) => {
         return [...items].sort((a, b) => {
@@ -58,22 +60,36 @@ const CategoriesTable = ({
 
     const toggleExpanded = (rowKey: string) => {
         setExpandedRowKeys((current) => {
-            const next = new Set(current)
-            if (next.has(rowKey)) {
-                next.delete(rowKey)
-            } else {
-                next.add(rowKey)
+            if (current.includes(rowKey)) {
+                return current.filter((key) => key !== rowKey)
             }
-            return next
+            return [...current, rowKey]
         })
     }
+
+    const toggleAllExpanded = () => {
+        setExpandedRowKeys((current) => {
+            if (current.length === sortedCategories.length && sortedCategories.length > 0) {
+                return []
+            }
+
+            return sortedCategories.map((category, index) => getRowKey(category, index))
+        })
+    }
+
+    const allExpanded = sortedCategories.length > 0 && expandedRowKeys.length === sortedCategories.length
 
     return (
         <div className="overflow-x-auto rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800">
             <table className="w-full min-w-full text-sm text-left border-collapse">
-            <thead className="bg-bg-light dark:bg-zinc-800/80 border-b border-[#e6e0db] dark:border-zinc-700 text-text-dark dark:text-zinc-200">
+            <thead className="bg-surface dark:bg-zinc-800/80 border-b border-[#e6e0db] dark:border-zinc-700 text-foreground dark:text-zinc-200">
                 <tr className="h-10">
-                    <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center">▼</th>
+                    <th
+                        className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center"
+                        onClick={toggleAllExpanded}
+                    >
+                        ID {allExpanded ? '▼' : '▶'}
+                    </th>
                     <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px]" onClick={() => handleCatSort('name')}>Név{sortIcon('name', catSortField, catSortDir)}</th>
                     <th className="py-2 px-3 font-semibold uppercase tracking-wide text-[11px] text-center">Termékek száma</th>
                     <th className="py-2 px-3 font-semibold uppercase tracking-wide text-[11px] text-end">Műveletek</th>
@@ -81,18 +97,18 @@ const CategoriesTable = ({
             </thead>
             <tbody>
                 {sortedCategories.map((category, index) => {
-                    const rowKey = `${String(category.id)}-${category.name}-${index}`
-                    const isExpanded = expandedRowKeys.has(rowKey)
+                    const rowKey = getRowKey(category, index)
+                    const isExpanded = expandedRowKeys.includes(rowKey)
 
                     return (
                         <Fragment key={rowKey}>
-                            <tr onClick={() => toggleExpanded(rowKey)} className="h-14 cursor-pointer border-b border-[#e6e0db] dark:border-zinc-700 hover:bg-bg-light dark:hover:bg-zinc-800/80 transition-colors">
-                                <td className="py-2 px-3 text-center text-text-light dark:text-zinc-400 font-medium whitespace-nowrap">
+                            <tr onClick={() => toggleExpanded(rowKey)} className="h-14 cursor-pointer border-b border-[#e6e0db] dark:border-zinc-700 hover:bg-surface dark:hover:bg-zinc-800/80 transition-colors">
+                                <td className="py-2 px-3 text-center text-muted dark:text-zinc-400 font-medium whitespace-nowrap">
                                     <span className="mr-2 text-xs">{isExpanded ? '▼' : '▶'}</span>
                                     {category.id}
                                 </td>
-                                <td className="py-2 px-3 font-medium text-text-dark dark:text-white">{category.name}</td>
-                                <td className="py-2 px-3 text-text-dark dark:text-white text-center">{category.items.length}</td>
+                                <td className="py-2 px-3 font-medium text-foreground dark:text-white">{category.name}</td>
+                                <td className="py-2 px-3 text-foreground dark:text-white text-center">{category.items.length}</td>
                                 <td className="py-2 px-3">
                                     <div className="flex gap-2 float-end">
                                         <button
@@ -119,10 +135,10 @@ const CategoriesTable = ({
                             </tr>
 
                             {isExpanded && (
-                                <tr className="bg-bg-light dark:bg-zinc-900/70 border-b border-[#e6e0db] dark:border-zinc-700">
+                                <tr className="bg-surface dark:bg-zinc-900/70 border-b border-[#e6e0db] dark:border-zinc-700">
                                     <td colSpan={4} className="px-4 py-3">
                                         {category.items.length === 0 ? (
-                                            <p className="text-sm text-text-light dark:text-zinc-400">Nincs termék ebben a kategóriában.</p>
+                                            <p className="text-sm text-muted dark:text-zinc-400">Nincs termék ebben a kategóriában.</p>
                                         ) : (
                                             <ItemsTable
                                                 sortedItems={sortItems(category.items, itemSortField, itemSortDir)}
@@ -150,3 +166,4 @@ const CategoriesTable = ({
 }
 
 export default CategoriesTable
+

@@ -1,8 +1,9 @@
-
+﻿
 import type {
   OrderCreateModel,
   OrderModel,
   OrderPatchModel,
+  OrderResponseModel,
   StatusModel,
 } from "../Models/OrderModel";
 import { api } from "./axiosInstance";
@@ -14,8 +15,8 @@ export const GetStatuses = async () => {
   }
   return response.data;
 };
-export const GetAllOrders = async () => {
-  const response = await api.get<OrderModel[]>(`/orders`);
+export const GetAllOrders = async (page: number, sort: string = "id", order: "asc" | "desc" = "desc") => {
+  const response = await api.get<OrderResponseModel>(`/orders?sort=${sort}&page=${page}&order=${order}`);
   return response.data;
 };
 export const GetAllActiveOrders = async () => {
@@ -27,6 +28,11 @@ export const GetOneOrder = async (id: string) => {
   const response = await api.get<OrderModel>(`/orders/${id}`);
   return response.data;
 };
+
+export const GetStripeKey = async () => {
+  const response = await api.get<{ key: string }>(`/payment/stripe-key`);
+  return response.data.key;
+}
 
 export const CreateOrder = async (postData: OrderCreateModel) => {
   if (import.meta.env.DEV) {

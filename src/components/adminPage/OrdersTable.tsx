@@ -1,9 +1,10 @@
 import type { OrderModel } from '../../Models/OrderModel'
-import { Fragment, type ReactNode, useEffect, useRef, useState } from 'react'
+import { Fragment, type ReactNode, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 type SortDir = 'asc' | 'desc'
 
-type SortableOrderField = 'id' | 'user_id' | 'order_identifier_number' | 'status' | 'delivery_date' | 'total_price'
+type SortableOrderField = 'id' | 'user_id' | 'order_identifier_number' | 'status' | 'delivery_date'
 
 const STATUSES = ['Fizetésre vár', 'Fizetve', 'Készítjük', 'Átvehető', 'Átadva', 'Törölve']
 
@@ -38,22 +39,31 @@ const OrdersTable = ({
 }: OrdersTableProps) => {
     const [openStatusId, setOpenStatusId] = useState<number | null>(null)
     const [pendingStatusId, setPendingStatusId] = useState<number | null>(null)
-    const popoverRef = useRef<HTMLDivElement>(null)
-    const [expandedRowKeys, setExpandedRowKeys] = useState<Set<number>>(new Set())
+    const [statusMenuPosition, setStatusMenuPosition] = useState<{ top: number; left: number } | null>(null)
+    const [expandedRowKeys, setExpandedRowKeys] = useState<number[]>([])
 
     const toggleExpanded = (id: number) => {
         setExpandedRowKeys((prev) => {
-            const next = new Set(prev)
-            if (next.has(id)) next.delete(id)
-            else next.add(id)
-            return next
+            if (prev.includes(id)) return prev.filter((rowId) => rowId !== id)
+            return [...prev, id]
         })
     }
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+            const target = event.target as HTMLElement | null
+
+            if (target?.closest('[data-status-menu]')) {
+                return
+            }
+
+            if (target?.closest('[data-status-trigger]')) {
+                return
+            }
+
+            if (openStatusId !== null) {
                 setOpenStatusId(null)
+                setStatusMenuPosition(null)
             }
         }
 
@@ -64,10 +74,29 @@ const OrdersTable = ({
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [openStatusId])
 
+    useEffect(() => {
+        if (openStatusId === null) {
+            return
+        }
+
+        const closeMenu = () => {
+            setOpenStatusId(null)
+            setStatusMenuPosition(null)
+        }
+
+        window.addEventListener('resize', closeMenu)
+        window.addEventListener('scroll', closeMenu, true)
+
+        return () => {
+            window.removeEventListener('resize', closeMenu)
+            window.removeEventListener('scroll', closeMenu, true)
+        }
+    }, [openStatusId])
+
     return (
         <div className="overflow-x-auto rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-800">
             <table className="w-full text-sm text-left border-collapse min-w-180">
-            <thead className="bg-bg-light dark:bg-zinc-800/80 border-b border-[#e6e0db] dark:border-zinc-700 text-text-dark dark:text-zinc-200">
+            <thead className="bg-surface dark:bg-zinc-800/80 border-b border-[#e6e0db] dark:border-zinc-700 text-foreground dark:text-zinc-200">
                     <tr className="h-10">
                         <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('id')}>
                             <span className="mr-1">▼</span>ID{sortIcon('id', orderSortField, orderSortDir)}
@@ -84,50 +113,75 @@ const OrdersTable = ({
                         <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('delivery_date')}>
                             Szállítási dátum{sortIcon('delivery_date', orderSortField, orderSortDir)}
                         </th>
-                        <th className="py-2 px-3 cursor-pointer select-none font-semibold uppercase tracking-wide text-[11px] text-center" onClick={() => handleOrderSort('total_price')}>
-                            Végösszeg{sortIcon('total_price', orderSortField, orderSortDir)}
+                        <th className="py-2 px-3 select-none font-semibold uppercase tracking-wide text-[11px] text-center">
+                            Végösszeg
                         </th>
                     </tr>
                 </thead>
                 <tbody>
                     {sortedOrders.map((order: OrderModel) => {
-                        const isExpanded = expandedRowKeys.has(order.id)
+                        const isExpanded = expandedRowKeys.includes(order.id)
                         return (
                         <Fragment key={order.id}>
                         <tr
-                            className="h-14 cursor-pointer border-b border-[#e6e0db] dark:border-zinc-700 hover:bg-bg-light dark:hover:bg-zinc-800/80 transition-colors"
+                            className="h-14 cursor-pointer border-b border-[#e6e0db] dark:border-zinc-700 hover:bg-surface dark:hover:bg-zinc-800/80 transition-colors"
                             onClick={() => toggleExpanded(order.id)}
                         >
-                            <td className="py-2 px-3 font-medium text-text-dark dark:text-white text-center select-none">
-                                <span className="mr-1.5 text-xs text-text-light dark:text-zinc-400">{isExpanded ? '▼' : '▶'}</span>
+                            <td className="py-2 px-3 font-medium text-foreground dark:text-white text-center select-none">
+                                <span className="mr-1.5 text-xs text-muted dark:text-zinc-400">{isExpanded ? '▼' : '▶'}</span>
                                 {order.id}
                             </td>
-                            <td className="py-2 px-3 font-medium text-text-dark dark:text-white text-center">#{order.order_identifier_number}</td>
-                            <td className="py-2 px-3 text-text-dark dark:text-white text-center">{order.user_username}</td>
+                            <td className="py-2 px-3 font-medium text-foreground dark:text-white text-center">#{order.order_identifier_number}</td>
+                            <td className="py-2 px-3 text-foreground dark:text-white text-center">{order.user_username}</td>
                             <td className="py-2 px-3 text-center">
-                                <div className="relative inline-block" ref={openStatusId === order.id ? popoverRef : undefined} onClick={(e) => e.stopPropagation()}>
+                                <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
                                     <button
                                         type="button"
                                         disabled={pendingStatusId === order.id}
+                                        data-status-trigger
                                         className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm md:text-xs font-semibold transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70 ${statusStyle(order.status)}`}
-                                        onClick={() => setOpenStatusId(openStatusId === order.id ? null : order.id)}
+                                        onClick={(event) => {
+                                            if (openStatusId === order.id) {
+                                                setOpenStatusId(null)
+                                                setStatusMenuPosition(null)
+                                                return
+                                            }
+
+                                            const rect = event.currentTarget.getBoundingClientRect()
+                                            setOpenStatusId(order.id)
+                                            setStatusMenuPosition({
+                                                top: rect.bottom + 8,
+                                                left: rect.left + rect.width / 2,
+                                            })
+                                        }}
                                     >
                                         <span>{order.status}</span>
                                         <span className="text-[10px]">▾</span>
                                     </button>
-                                    {openStatusId === order.id && (
-                                        <div className="absolute left-1/2 z-50 mt-2 w-40 -translate-x-1/2 overflow-hidden rounded-xl border border-[#e6e0db] dark:border-zinc-700 bg-white dark:bg-zinc-900">
+                                    {openStatusId === order.id && statusMenuPosition && createPortal(
+                                        <div
+                                            data-status-menu
+                                            className="z-60 w-40 overflow-hidden rounded-xl border border-[#e6e0db] bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
+                                            style={{
+                                                position: 'fixed',
+                                                top: statusMenuPosition.top,
+                                                left: statusMenuPosition.left,
+                                                transform: 'translateX(-50%)',
+                                            }}
+                                        >
                                             {STATUSES.map((status) => (
                                                 <button
                                                     key={status}
                                                     type="button"
                                                     disabled={pendingStatusId === order.id}
-                                                    className={`block w-full px-3 py-2.5 text-left text-sm md:text-xs font-semibold transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-70 ${status === order.status ? 'bg-primary/10 text-primary' : 'text-text-dark dark:text-zinc-200'}`}
-                                                    onClick={async () => {
+                                                    className={`block w-full px-3 py-2.5 text-left text-sm md:text-xs font-semibold transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-70 ${status === order.status ? 'bg-primary/10 text-primary' : 'text-foreground dark:text-zinc-200'}`}
+                                                    onClick={async (event) => {
+                                                        event.stopPropagation()
                                                         setPendingStatusId(order.id)
                                                         try {
                                                             await handleOrderStatusChange(order, status)
                                                             setOpenStatusId(null)
+                                                            setStatusMenuPosition(null)
                                                         } finally {
                                                             setPendingStatusId(null)
                                                         }
@@ -136,29 +190,30 @@ const OrdersTable = ({
                                                     {status}
                                                 </button>
                                             ))}
-                                        </div>
+                                        </div>,
+                                        document.body,
                                     )}
                                 </div>
                             </td>
-                            <td className="py-2 px-3 text-text-dark dark:text-white text-center">
+                            <td className="py-2 px-3 text-foreground dark:text-white text-center">
                                 {order.delivery_date
                                     ? new Date(order.delivery_date).toLocaleString('hu-HU')
-                                    : <span className="text-text-light dark:text-zinc-500">—</span>
+                                    : <span className="text-muted dark:text-zinc-500">—</span>
                                 }
                             </td>
-                            <td className="py-2 px-3 text-text-dark dark:text-white text-center font-medium">
+                            <td className="py-2 px-3 text-foreground dark:text-white text-center font-medium">
                                 {(order.total_price ?? 0).toLocaleString('hu-HU')} Ft
                             </td>
                         </tr>
                         {isExpanded && (
-                            <tr className="bg-bg-light dark:bg-zinc-900/70 border-b border-[#e6e0db] dark:border-zinc-700">
+                            <tr className="bg-surface dark:bg-zinc-900/70 border-b border-[#e6e0db] dark:border-zinc-700">
                                 <td colSpan={6} className="px-6 py-3">
                                     {!order.items || order.items.length === 0 ? (
-                                        <p className="text-sm text-text-light dark:text-zinc-400">Nincs termék ebben a rendelésben.</p>
+                                        <p className="text-sm text-muted dark:text-zinc-400">Nincs termék ebben a rendelésben.</p>
                                     ) : (
                                         <table className="w-full text-xs text-left border-collapse">
                                             <thead>
-                                                <tr className="text-text-light dark:text-zinc-400 uppercase tracking-wide text-[10px] border-b border-[#e6e0db] dark:border-zinc-700">
+                                                <tr className="text-muted dark:text-zinc-400 uppercase tracking-wide text-[10px] border-b border-[#e6e0db] dark:border-zinc-700">
                                                     <th className="py-1.5 pr-4 font-semibold">Termék neve</th>
                                                     <th className="py-1.5 pr-4 font-semibold text-center">Mennyiség</th>
                                                     <th className="py-1.5 pr-4 font-semibold text-right">Egységár</th>
@@ -168,10 +223,10 @@ const OrdersTable = ({
                                             <tbody>
                                                 {order.items.map((item) => (
                                                     <tr key={item.item_id} className="border-b border-[#e6e0db] dark:border-zinc-800 last:border-0">
-                                                        <td className="py-1.5 pr-4 font-medium text-text-dark dark:text-white">{item.item_name}</td>
-                                                        <td className="py-1.5 pr-4 text-center text-text-dark dark:text-white">{item.quantity} db</td>
-                                                        <td className="py-1.5 pr-4 text-right text-text-dark dark:text-white">{item.item_price.toLocaleString('hu-HU')} Ft</td>
-                                                        <td className="py-1.5 text-right font-semibold text-text-dark dark:text-white">{item.price.toLocaleString('hu-HU')} Ft</td>
+                                                        <td className="py-1.5 pr-4 font-medium text-foreground dark:text-white">{item.item_name}</td>
+                                                        <td className="py-1.5 pr-4 text-center text-foreground dark:text-white">{item.quantity} db</td>
+                                                        <td className="py-1.5 pr-4 text-right text-foreground dark:text-white">{item.item_price.toLocaleString('hu-HU')} Ft</td>
+                                                        <td className="py-1.5 text-right font-semibold text-foreground dark:text-white">{item.price.toLocaleString('hu-HU')} Ft</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -190,3 +245,4 @@ const OrdersTable = ({
 }
 
 export default OrdersTable
+
