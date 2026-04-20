@@ -42,6 +42,7 @@ describe('profile page', () => {
         role: 'user',
       },
       activeOrders: [],
+      orders: emptyOrdersPage,
     });
 
     visitWithToken();
