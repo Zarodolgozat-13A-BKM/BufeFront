@@ -19,6 +19,8 @@ import { getThemePreference} from "../services/themeService";
 const dph = 0.27;
 const DealerIncome = 1 - dph;
 const SpinnerDisplTime = 400;
+const ORDER_CUTOFF_HOUR = 15;
+const ORDER_CUTOFF_MINUTE = 15;
 
 type CheckoutOrderResponse = {
   client_secret?: string;
@@ -55,9 +57,25 @@ export const CheckoutPage = () => {
     import.meta.env.PROD && isAvailabilityLoaded && isOrderingClosedByBackend;
   const orderingUnavailable =
     import.meta.env.PROD && (!isAvailabilityLoaded || orderingClosed);
+  const orderCutoffMessage =
+    "15:15 után már nem lehet rendelést leadni. Kérlek, térj vissza holnap.";
   const orderingClosedMessage = orderingClosed
     ? "A rendelésfelvétel szünetel. Kérünk, gyere vissza később."
     : null;
+
+  const isAfterOrderCutoffNow = () => {
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const cutoffMinutes = ORDER_CUTOFF_HOUR * 60 + ORDER_CUTOFF_MINUTE;
+
+    return nowMinutes > cutoffMinutes;
+  };
+
+  const isAfterOrderCutoff = isAfterOrderCutoffNow();
+  const orderingUnavailableNow = orderingUnavailable || (import.meta.env.PROD && isAfterOrderCutoff);
+  const orderingUnavailableMessage = isAfterOrderCutoff
+    ? orderCutoffMessage
+    : orderingClosedMessage;
 
   const isPast = (endTime: string) => {
     const [h, m] = endTime.split(":").map((s) => Number(s));
@@ -106,6 +124,11 @@ export const CheckoutPage = () => {
       setCheckoutError(
         "A rendelhetőség ellenőrzése folyamatban van. Kérlek várj egy pillanatot.",
       );
+      return;
+    }
+
+    if (import.meta.env.PROD && isAfterOrderCutoffNow()) {
+      setCheckoutError(orderCutoffMessage);
       return;
     }
 
@@ -294,13 +317,13 @@ export const CheckoutPage = () => {
                       MozAppearance: "none",
                     }}
                   >
-                    {orderingClosed ? (
+                    {orderingUnavailableNow ? (
                       <option value="" disabled>
-                        {orderingClosedMessage ??
+                        {orderingUnavailableMessage ??
                           "Ma már nem lehet rendelni, kérlek térj vissza holnap!"}
                       </option>
                     ) : null}
-                    <option value="" disabled={orderingUnavailable}>
+                    <option value="" disabled={orderingUnavailableNow}>
                       Lehető leghamarabb
                     </option>
                     {ringing.map((ring, index) => {
@@ -334,13 +357,13 @@ export const CheckoutPage = () => {
                   Átvétel az iskolai büfében.
                 </p>
               </div>
-              {orderingClosed && (
+              {orderingUnavailableNow && (
                 <div className="flex items-center gap-2 p-3 rounded-lg">
                   <span className="material-symbols-outlined text-red-500 dark:text-red-400 text-xl">
                     schedule
                   </span>
                   <p className="text-red-700 dark:text-red-400 text-sm font-medium leading-normal">
-                    {orderingClosedMessage ??
+                    {orderingUnavailableMessage ??
                       "A rendelésfelvétel jelenleg szünetel. Kérünk, gyere vissza később."}
                   </p>
                 </div>
@@ -506,10 +529,10 @@ export const CheckoutPage = () => {
             <div className="flex gap-5">
               <button
                 onClick={() => handleCheckout(true)}
-                disabled={orderingUnavailable || isSubmittingOrder}
+                disabled={orderingUnavailableNow || isSubmittingOrder}
                 className={
                   "w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " +
-                  (orderingUnavailable
+                  (orderingUnavailableNow
                     ? "bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
                     : isSubmittingOrder
                       ? "bg-primary/90 text-white cursor-wait"
@@ -532,10 +555,10 @@ export const CheckoutPage = () => {
               </button>
               <button
                 onClick={() => handleCheckout(false)}
-                disabled={orderingUnavailable || isSubmittingOrder}
+                disabled={orderingUnavailableNow || isSubmittingOrder}
                 className={
                   "w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " +
-                  (orderingUnavailable
+                  (orderingUnavailableNow
                     ? "bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
                     : isSubmittingOrder
                       ? "bg-primary/90 text-white cursor-wait"
@@ -561,8 +584,14 @@ export const CheckoutPage = () => {
             <div className="flex gap-5">
               <button
                 onClick={() => handleCheckout(true)}
+                disabled={orderingUnavailableNow || isSubmittingOrder}
                 className={
-                  "w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]"
+                  "w-full h-12 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all " +
+                  (orderingUnavailableNow
+                    ? "bg-zinc-200 text-zinc-500 border border-zinc-300 cursor-not-allowed dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
+                    : isSubmittingOrder
+                      ? "bg-primary/90 text-white cursor-wait"
+                      : "bg-primary hover:bg-[#e07b1a] text-white shadow-lg shadow-orange-200 dark:shadow-none active:scale-[0.98]")
                 }
               >
                 {isSubmittingOrder ? (

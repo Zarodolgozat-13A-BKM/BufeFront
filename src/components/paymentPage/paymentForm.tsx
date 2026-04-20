@@ -169,7 +169,7 @@ const PaymentForm = () => {
               to='/cart'
               className='text-primary mt-5 inline-flex items-center gap-1 text-sm font-semibold hover:none'>
               <span className='material-symbols-outlined text-base'>arrow_back</span>
-              Vissza a kosarhoz
+              Vissza a kosárhoz
             </Link>
           </aside>
         </div>
